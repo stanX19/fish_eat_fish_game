@@ -1,66 +1,71 @@
 package com.deepseadevs.fisheatfish;
 
-import javafx.geometry.Pos;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class LoginPage {
-    private TextField usernameField;
-    private PasswordField passwordField;
-    private Label messageLabel;
-    private final LoginHandler loginHandler;
+    private final UIController uiController;
+    private final SessionManager sessionManager;
+    private Scene scene;
 
-    public LoginPage(LoginHandler loginHandler) {
-        this.loginHandler = loginHandler;
+    Label usernameLabel;
+    Label passwordLabel;
+    Button loginButton;
+    TextField usernameField;
+    PasswordField passwordField;
+    Text feedbackText;
+
+    public LoginPage(UIController uiController, SessionManager sessionManager) {
+        this.uiController = uiController;
+        this.sessionManager = sessionManager;
+        createScene();
     }
 
-    public void display(Stage primaryStage) {
-        primaryStage.setTitle("Login Page");
-
-        // Setup layout
-        GridPane grid = new GridPane();
-        grid.setAlignment(Pos.CENTER);
-        grid.setHgap(10);
-        grid.setVgap(10);
-
-        // Username field
-        usernameField = new TextField();
-        grid.add(new Label("Username:"), 0, 0);
-        grid.add(usernameField, 1, 0);
-
-        // Password field
-        passwordField = new PasswordField();
-        grid.add(new Label("Password:"), 0, 1);
-        grid.add(passwordField, 1, 1);
-
-        // Message label
-        messageLabel = new Label();
-        grid.add(messageLabel, 1, 2);
-
-        // Login button
-        Button loginButton = new Button("Login");
-        loginButton.setOnAction(e -> handleLogin());
-        grid.add(loginButton, 1, 3);
-
-        // Scene
-        Scene scene = new Scene(grid, 300, 200);
-        primaryStage.setScene(scene);
-        primaryStage.show();
+    public void show(Stage stage) {
+        stage.setScene(scene);
     }
 
-    private void handleLogin() {
+    private void attempt_login() {
         String username = usernameField.getText();
         String password = passwordField.getText();
-        boolean success = loginHandler.login(username, password);
-        if (success) {
-            messageLabel.setText("Login successful!");
+
+        if (DatabaseManager.getInstance().isCorrectPassword(username, password)) {
+            sessionManager.setUser(username);
+            uiController.gotoMainMenu();
         } else {
-            messageLabel.setText("Invalid username or password.");
+            feedbackText.setText("Invalid username or password");
         }
+    }
+
+    private void createScene() {
+        GridPane gridPane = new GridPane();
+        gridPane.setPadding(new Insets(10, 10, 10, 10));
+        gridPane.setVgap(10);
+        gridPane.setHgap(10);
+
+        usernameLabel = new Label("Username:");
+        usernameField = new TextField();
+        passwordLabel = new Label("Password:");
+        passwordField = new PasswordField();
+        loginButton = new Button("Login");
+        feedbackText = new Text();
+
+        gridPane.add(usernameLabel, 0, 0);
+        gridPane.add(usernameField, 1, 0);
+        gridPane.add(passwordLabel, 0, 1);
+        gridPane.add(passwordField, 1, 1);
+        gridPane.add(loginButton, 1, 2);
+        gridPane.add(feedbackText, 1, 3);
+
+        loginButton.setOnAction(e -> this.attempt_login());
+
+        scene = new Scene(gridPane, 400, 300);
     }
 }
