@@ -11,7 +11,7 @@ class Session {
 public class SessionManager {
     private Session session;
 
-    private SessionManager() {
+    SessionManager() {
         this.session = null;
     }
 

@@ -7,7 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-public class MainMenuPage {
+public class MainMenuPage implements AppPage{
     private final UIController uiController;
     private final SessionManager sessionManager;
     private Scene scene;
@@ -16,10 +16,6 @@ public class MainMenuPage {
         this.uiController = uiController;
         this.sessionManager = sessionManager;
         createScene();
-    }
-
-    public void show(Stage stage) {
-        stage.setScene(scene);
     }
 
     private void createScene() {
@@ -34,5 +30,10 @@ public class MainMenuPage {
 
         vbox.getChildren().addAll(welcomeLabel, logoutButton);
         scene = new Scene(vbox, 400, 300);
+    }
+
+    @Override
+    public void show(Stage stage) {
+        stage.setScene(this.scene);
     }
 }
