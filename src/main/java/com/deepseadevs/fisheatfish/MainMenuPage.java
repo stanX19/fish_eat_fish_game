@@ -18,6 +18,10 @@ public class MainMenuPage implements AppPage{
         createScene();
     }
 
+    public Scene getScene() {
+        return this.scene;
+    }
+
     private void createScene() {
         VBox vbox = new VBox();
         vbox.setPadding(new Insets(20));
@@ -30,10 +34,5 @@ public class MainMenuPage implements AppPage{
 
         vbox.getChildren().addAll(welcomeLabel, logoutButton);
         scene = new Scene(vbox, 400, 300);
-    }
-
-    @Override
-    public void show(Stage stage) {
-        stage.setScene(this.scene);
     }
 }

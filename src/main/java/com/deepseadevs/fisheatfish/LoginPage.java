@@ -10,7 +10,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-public class LoginPage implements AppPage{
+public class LoginPage implements AppPage {
     private final UIController uiController;
     private final SessionManager sessionManager;
     private Scene scene;
@@ -28,8 +28,8 @@ public class LoginPage implements AppPage{
         createScene();
     }
 
-    public void show(Stage stage) {
-        stage.setScene(this.scene);
+    public Scene getScene() {
+        return this.scene;
     }
 
     private void attempt_login() {
