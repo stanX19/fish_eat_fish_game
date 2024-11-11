@@ -10,11 +10,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-public class LoginPage implements AppPage {
-    private final UIController uiController;
-    private final SessionManager sessionManager;
-    private Scene scene;
-
+public class LoginPage extends BasePage {
     Label usernameLabel;
     Label passwordLabel;
     Button loginButton;
@@ -23,13 +19,7 @@ public class LoginPage implements AppPage {
     Text feedbackText;
 
     public LoginPage(UIController uiController, SessionManager sessionManager) {
-        this.uiController = uiController;
-        this.sessionManager = sessionManager;
-        createScene();
-    }
-
-    public Scene getScene() {
-        return this.scene;
+        super(uiController, sessionManager);
     }
 
     private void attempt_login() {
@@ -44,7 +34,7 @@ public class LoginPage implements AppPage {
         }
     }
 
-    private void createScene() {
+    protected Scene createScene() {
         GridPane gridPane = new GridPane();
         gridPane.setPadding(new Insets(10, 10, 10, 10));
         gridPane.setVgap(10);
@@ -66,6 +56,6 @@ public class LoginPage implements AppPage {
 
         loginButton.setOnAction(e -> this.attempt_login());
 
-        scene = new Scene(gridPane, 400, 300);
+        return new Scene(gridPane, 400, 300);
     }
 }

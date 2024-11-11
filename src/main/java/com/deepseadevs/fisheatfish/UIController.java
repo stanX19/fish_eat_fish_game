@@ -11,9 +11,8 @@ public class UIController {
         this.sessionManager = sessionManager;
     }
 
-    public void showPage(AppPage page) {
+    public void showPage(BasePage page) {
         stage.setScene(page.getScene());
-        stage.show();
     }
 
     public void gotoLogin() {
@@ -24,6 +23,11 @@ public class UIController {
     public void gotoMainMenu() {
         MainMenuPage mainMenuPage = new MainMenuPage(this, sessionManager);
         showPage(mainMenuPage);
+    }
+
+    public void gotoGamePage() {
+        GamePage gamePage = new GamePage(this, sessionManager);
+        showPage(gamePage);
     }
 
     public void logout() {

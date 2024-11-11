@@ -20,6 +20,8 @@ public class SessionManager {
     }
 
     public String getUsername() {
+        if (this.session == null)
+            return "Guest";
         return this.session.username;
     }
 
