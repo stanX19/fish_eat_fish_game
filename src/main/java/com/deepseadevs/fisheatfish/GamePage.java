@@ -1,53 +1,53 @@
 package com.deepseadevs.fisheatfish;
 
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.layout.StackPane;
 import javafx.scene.control.Button;
-import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 
 public class GamePage extends BasePage {
+    private Canvas canvas;
     private GameEngine gameEngine;
-    private Pane gamePane;
+    Button restartButton;
 
     public GamePage(UIController uiController, SessionManager sessionManager) {
         super(uiController, sessionManager);
+        this.gameEngine = new GameEngine(canvas.getGraphicsContext2D());
+        gameEngine.setGameOverCallback(() -> restartButton.setVisible(true));
+        scene.setOnKeyPressed(event -> gameEngine.handleKeyPressed(event));
+        scene.setOnKeyReleased(event -> gameEngine.handleKeyReleased(event));
+        this.gameEngine.start();
     }
 
+    @Override
     protected Scene createScene() {
-        gamePane = new Pane();
-        gamePane.setPrefSize(800, 600);
+        StackPane root = new StackPane();
 
-        // Initialize the game engine
-        gameEngine = new GameEngine(gamePane, this);
+        this.canvas = new Canvas(800, 600);
+        root.getChildren().add(canvas);
 
-        // Add back button to return to main menu
-        Button backButton = new Button("Back to Main Menu");
-        backButton.setOnAction(e -> {
-            gameEngine.stopGame();
-            uiController.gotoMainMenu();
-        });
-        backButton.setLayoutX(700);
-        backButton.setLayoutY(10);
-        gamePane.getChildren().add(backButton);
+        Scene scene = new Scene(root);
+        scene.setFill(Color.BLACK);
 
-        Scene scene = new Scene(gamePane, 800, 600);
-        setupControls(scene);
+        restartButton = new Button("Restart");
+        restartButton.setOnAction(e -> uiController.gotoGamePage());
+        restartButton.setFont(new Font(20));
+        restartButton.setVisible(false); // Only show on game over
+        root.getChildren().add(restartButton);
+
         return scene;
     }
+    private void showGameOverScreen() {
+        Button restartButton = new Button("Restart");
+        restartButton.setOnAction(e -> uiController.gotoGamePage()); // Restart game
+        restartButton.setFont(new Font(20));
 
-    private void setupControls(Scene scene) {
-        scene.setOnKeyPressed(e -> {
-            double speed = 20.0;
-            if (e.getCode() == KeyCode.UP || e.getCode() == KeyCode.W) {
-                gameEngine.getPlayer().setTranslateY(gameEngine.getPlayer().getTranslateY() - speed);
-            } else if (e.getCode() == KeyCode.DOWN || e.getCode() == KeyCode.S) {
-                gameEngine.getPlayer().setTranslateY(gameEngine.getPlayer().getTranslateY() + speed);
-            } else if (e.getCode() == KeyCode.LEFT || e.getCode() == KeyCode.A) {
-                gameEngine.getPlayer().setTranslateX(gameEngine.getPlayer().getTranslateX() - speed);
-            } else if (e.getCode() == KeyCode.RIGHT || e.getCode() == KeyCode.D) {
-                gameEngine.getPlayer().setTranslateX(gameEngine.getPlayer().getTranslateX() + speed);
-            }
-        });
+        // Add restart button to the StackPane and ensure it’s only done once
+        StackPane root = (StackPane) scene.getRoot();
+        if (!root.getChildren().contains(restartButton)) { // Check if button is already added
+            root.getChildren().add(restartButton);
+        }
     }
 }

@@ -1,116 +1,162 @@
 package com.deepseadevs.fisheatfish;
 
 import javafx.animation.AnimationTimer;
-import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
+import java.util.Set;
+
+class PlayerHandler {
+    private final GameObject player;
+    private final Set<KeyCode> keysPressed;
+
+    public PlayerHandler(GameObject player) {
+        this.player = player;
+        this.keysPressed = new HashSet<>();
+    }
+
+    public void handleKeyPressed(KeyEvent event) {
+        keysPressed.add(event.getCode());
+    }
+
+    public void handleKeyReleased(KeyEvent event) {
+        keysPressed.remove(event.getCode());
+    }
+
+    public void updatePlayerMovement(double deltaTime) {
+        double dx = calculateHorizontalMovement();
+        double dy = calculateVerticalMovement();
+
+        player.setXv(dx);
+        player.setYv(dy);
+        player.setSpeed(player.getMaxSpeed());
+    }
+
+    private double calculateHorizontalMovement() {
+        if (keysPressed.contains(KeyCode.A) || keysPressed.contains(KeyCode.LEFT))
+            return -1;
+        if (keysPressed.contains(KeyCode.D) || keysPressed.contains(KeyCode.RIGHT))
+            return 1;
+        return 0;
+    }
+
+    private double calculateVerticalMovement() {
+        if (keysPressed.contains(KeyCode.W) || keysPressed.contains(KeyCode.UP))
+            return -1;
+        if (keysPressed.contains(KeyCode.S) || keysPressed.contains(KeyCode.DOWN))
+            return 1;
+        return 0;
+    }
+}
+
 
 public class GameEngine {
-    private final Pane gamePane;
-    private Circle player;
-    private final List<Circle> enemies;
-    private final Random random;
+    private final GraphicsContext gc;
+    private final GameObject player;
+    private final List<GameObject> enemies;
     private AnimationTimer gameLoop;
-    private final GamePage gamePage;
-    private boolean gameSetupDone;
+    private Runnable gameOverCallback;
+    private boolean gameOver;
+    private final PlayerHandler playerHandler;
 
-    public GameEngine(Pane gamePane, GamePage gamePage) {
-        this.gamePane = gamePane;
-        this.gamePage = gamePage;
+    public GameEngine(GraphicsContext gc) {
+        this.gc = gc;
+        this.player = new GameObject(400, 300, 100, 20, 20);
         this.enemies = new ArrayList<>();
-        this.random = new Random();
-        this.gameSetupDone = false;
-
-        // Add a layout listener to initialize game objects only after the layout is complete
-        gamePane.layoutBoundsProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.getWidth() > 0 && newValue.getHeight() > 0 && !gameSetupDone) {
-                setupGameObjects();
-                startGameLoop();
-                gameSetupDone = true;
-            }
-        });
+        this.gameOver = false;
+        this.playerHandler = new PlayerHandler(player);
+        spawnEnemies(5);
+        initializeGameLoop();
     }
 
-    private void setupGameObjects() {
-        System.out.println("Initialized");
-        // Initialize player
-        player = new Circle(20, Color.BLUE);
-        player.setTranslateX(gamePane.getWidth() / 2);
-        player.setTranslateY(gamePane.getHeight() / 2);
-        gamePane.getChildren().add(player);
-
-        // Initialize enemies
-        for (int i = 0; i < 10; i++) {
-            addEnemy();
-        }
+    public void setGameOverCallback(Runnable gameOverCallback) {
+        this.gameOverCallback = gameOverCallback;
     }
 
-    private void startGameLoop() {
-        gameLoop = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                update();
-            }
-        };
+    public void start() {
         gameLoop.start();
     }
 
-    private void addEnemy() {
-        Circle enemy = new Circle(random.nextInt(10) - 5 + player.getRadius(), Color.RED);
-        enemy.setTranslateX(random.nextDouble() * gamePane.getWidth());
-        enemy.setTranslateY(random.nextDouble() * gamePane.getHeight());
-        enemies.add(enemy);
-        gamePane.getChildren().add(enemy);
+    public void handleKeyPressed(KeyEvent event) {
+        playerHandler.handleKeyPressed(event);
     }
 
-    private void update() {
-        // Create a list to track enemies that need to be removed
-        List<Circle> enemiesToRemove = new ArrayList<>();
+    public void handleKeyReleased(KeyEvent event) {
+        playerHandler.handleKeyReleased(event);
+    }
 
-        // Move enemies randomly
-        for (Circle enemy : enemies) {
-            double dx = random.nextDouble() * 2 - 1;
-            double dy = random.nextDouble() * 2 - 1;
-            enemy.setTranslateX(enemy.getTranslateX() + dx);
-            enemy.setTranslateY(enemy.getTranslateY() + dy);
-        }
+    private void initializeGameLoop() {
+        gameLoop = new AnimationTimer() {
+            private long lastTime = System.nanoTime();
 
-        for (Circle enemy : enemies) {
-            if (checkCollision(player, enemy)) {
-                if (player.getRadius() > enemy.getRadius()) {
-                    player.setRadius(player.getRadius() + enemy.getRadius() * 0.2);
-                    enemiesToRemove.add(enemy);  // Mark enemy for removal
-                } else {
-                    gameLoop.stop();
-                    // Handle game over here
-                    // Call resetGame() if you want to reset the game on failure
+            @Override
+            public void handle(long now) {
+                double deltaTime = (now - lastTime) / 1_000_000_000.0;
+                lastTime = now;
+
+                if (!gameOver) {
+                    update(deltaTime);
+                    render();
                 }
             }
+        };
+    }
+
+    private void spawnEnemies(int count) {
+        for (int i = 0; i < count; i++) {
+            enemies.add(new GameObject(Math.random() * 780, Math.random() * 580, 50,
+                    player.width + (Math.random() - 0.5) * 10, 15));
         }
-        enemies.removeAll(enemiesToRemove);
-        for (Circle enemy : enemiesToRemove) {
-            addEnemy();
+    }
+
+    private void update(double deltaTime) {
+        playerHandler.updatePlayerMovement(deltaTime);
+        player.update(deltaTime);
+        checkCollisions();
+    }
+
+    private void render() {
+        gc.clearRect(0, 0, 800, 600);
+        renderPlayer();
+        renderEnemies();
+    }
+
+    private void checkCollisions() {
+        for (GameObject enemy : new ArrayList<>(enemies)) {
+            if (player.collidesWith(enemy)) {
+                handleCollisionWithEnemy(enemy);
+            }
         }
-        gamePane.getChildren().removeAll(enemiesToRemove);
     }
 
-
-    private boolean checkCollision(Circle c1, Circle c2) {
-        double dx = c1.getTranslateX() - c2.getTranslateX();
-        double dy = c1.getTranslateY() - c2.getTranslateY();
-        double distance = Math.sqrt(dx * dx + dy * dy);
-        return distance < c1.getRadius() + c2.getRadius();
+    private void handleCollisionWithEnemy(GameObject enemy) {
+        if (player.getWidth() > enemy.getWidth()) {
+            enemies.remove(enemy);
+            player.setWidth(player.width + enemy.width / 5.0);
+            spawnEnemies(1);
+        } else {
+            triggerGameOver();
+        }
     }
 
-    public void stopGame() {
-        gameLoop.stop();
+    private void triggerGameOver() {
+        gameOver = true;
+        if (gameOverCallback != null) {
+            gameOverCallback.run();
+        }
     }
 
-    public Circle getPlayer() {
-        return player;
+    private void renderPlayer() {
+        player.render(gc);
+    }
+
+    private void renderEnemies() {
+        for (GameObject enemy : enemies) {
+            enemy.render(gc);
+        }
     }
 }
