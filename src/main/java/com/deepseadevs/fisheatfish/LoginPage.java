@@ -22,24 +22,15 @@ public class LoginPage extends BasePage {
         super(uiController, sessionManager);
     }
 
-    private void attempt_login() {
-        String username = usernameField.getText();
-        String password = passwordField.getText();
-
-        if (DatabaseManager.getInstance().isCorrectPassword(username, password)) {
-            sessionManager.setUser(username);
-            uiController.gotoMainMenu();
-        } else {
-            feedbackText.setText("Invalid username or password");
-        }
-    }
-
     protected Scene createScene() {
         GridPane gridPane = new GridPane();
         gridPane.setPadding(new Insets(10, 10, 10, 10));
         gridPane.setVgap(10);
         gridPane.setHgap(10);
 
+        // TODO:
+        //  when enter is pressed on username, give focus to password
+        //  when enter is pressed on password, trigger login button
         usernameLabel = new Label("Username:");
         usernameField = new TextField();
         passwordLabel = new Label("Password:");
@@ -57,5 +48,17 @@ public class LoginPage extends BasePage {
         loginButton.setOnAction(e -> this.attempt_login());
 
         return new Scene(gridPane, 400, 300);
+    }
+
+    private void attempt_login() {
+        String username = usernameField.getText();
+        String password = passwordField.getText();
+
+        if (DatabaseManager.getInstance().isCorrectPassword(username, password)) {
+            sessionManager.setUser(username);
+            uiController.gotoMainMenu();
+        } else {
+            feedbackText.setText("Invalid username or password");
+        }
     }
 }

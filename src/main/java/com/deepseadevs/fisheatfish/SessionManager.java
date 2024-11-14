@@ -1,22 +1,14 @@
 package com.deepseadevs.fisheatfish;
 
-class Session {
-    public String username;
-
-    Session(String username) {
-        this.username = username;
-    }
-}
-
 public class SessionManager {
-    private Session session;
+    private UserData session;
 
     SessionManager() {
         this.session = null;
     }
 
     public void setUser(String username) {
-        this.session = new Session(username);
+        this.session = DatabaseManager.getInstance().getUserData(username);
     }
 
     public String getUsername() {
