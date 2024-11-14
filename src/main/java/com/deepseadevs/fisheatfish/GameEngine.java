@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Set;
 
 class PlayerHandler {
-    private final GameObject player;
+    private final BaseFish player;
     private final Set<KeyCode> keysPressed;
 
-    public PlayerHandler(GameObject player) {
+    public PlayerHandler(BaseFish player) {
         this.player = player;
         this.keysPressed = new HashSet<>();
     }
@@ -33,7 +33,8 @@ class PlayerHandler {
 
         player.setXv(dx);
         player.setYv(dy);
-        player.setSpeed(player.getMaxSpeed());
+        if (player.getSpeed() > player.getMaxSpeed() || dy != 0 || dx != 0)
+            player.setSpeed(player.getMaxSpeed());
     }
 
     private double calculateHorizontalMovement() {
@@ -56,8 +57,8 @@ class PlayerHandler {
 
 public class GameEngine {
     private final GraphicsContext gc;
-    private final GameObject player;
-    private final List<GameObject> enemies;
+    private final BaseFish player;
+    private final List<BaseFish> enemies;
     private AnimationTimer gameLoop;
     private Runnable gameOverCallback;
     private boolean gameOver;
@@ -65,11 +66,11 @@ public class GameEngine {
 
     public GameEngine(GraphicsContext gc) {
         this.gc = gc;
-        this.player = new GameObject(400, 300, 100, 20, 20);
+        this.player = new BaseFish(200, 200, 500, 20, 20);
         this.enemies = new ArrayList<>();
         this.gameOver = false;
         this.playerHandler = new PlayerHandler(player);
-        spawnEnemies(5);
+        spawnEnemies(15);
         initializeGameLoop();
     }
 
@@ -108,7 +109,7 @@ public class GameEngine {
 
     private void spawnEnemies(int count) {
         for (int i = 0; i < count; i++) {
-            enemies.add(new GameObject(Math.random() * 780, Math.random() * 580, 50,
+            enemies.add(new BaseFish(Math.random() * 780, Math.random() * 580, 50,
                     player.width + (Math.random() - 0.5) * 10, 15));
         }
     }
@@ -126,14 +127,14 @@ public class GameEngine {
     }
 
     private void checkCollisions() {
-        for (GameObject enemy : new ArrayList<>(enemies)) {
+        for (BaseFish enemy : new ArrayList<>(enemies)) {
             if (player.collidesWith(enemy)) {
                 handleCollisionWithEnemy(enemy);
             }
         }
     }
 
-    private void handleCollisionWithEnemy(GameObject enemy) {
+    private void handleCollisionWithEnemy(BaseFish enemy) {
         if (player.getWidth() > enemy.getWidth()) {
             enemies.remove(enemy);
             player.setWidth(player.width + enemy.width / 5.0);
@@ -155,7 +156,7 @@ public class GameEngine {
     }
 
     private void renderEnemies() {
-        for (GameObject enemy : enemies) {
+        for (BaseFish enemy : enemies) {
             enemy.render(gc);
         }
     }

@@ -19,14 +19,48 @@ public class GameObject {
         this.maxSpeed = maxSpeed;
     }
 
+    public void update(double deltaTime) {
+        move(deltaTime);
+    }
+
+    public void render(GraphicsContext gc) {
+        gc.setFill(Color.BLUE);
+        gc.fillOval(x, y, width, height);
+    }
+
+    /**
+     * Moves the GameObject based on its velocity and the elapsed time.
+     * Speed is limited to maxSpeed.
+     */
+    public void move(double deltaTime) {
+        double currentSpeed = getSpeed();
+        if (currentSpeed > maxSpeed) {
+            setSpeed(maxSpeed);
+        }
+        this.x += xv * deltaTime;
+        this.y += yv * deltaTime;
+    }
+
+    /**
+     * Checks if this GameObject collides with another GameObject.
+     * Collision detection is done using axis-aligned bounding boxes (AABB).
+     *
+     * @param other The other GameObject to check collision with.
+     * @return true if this GameObject collides with the other, false otherwise.
+     */
+    public boolean collidesWith(GameObject other) {
+        return this.x < other.x + other.width && this.x + this.width > other.x
+                && this.y < other.y + other.height && this.y + this.height > other.y;
+    }
+
     public double getSpeed() {
         return Math.hypot(xv, yv);
     }
 
     public void setSpeed(double speed) {
-        double originalSpeed = getSpeed();
-        this.xv *= speed / originalSpeed;
-        this.yv *= speed / originalSpeed;
+        double originalAngle = getAngle();
+        this.xv = speed * Math.cos(originalAngle);
+        this.yv = speed * Math.sin(originalAngle);
     }
 
     public double getAngle() {
@@ -39,14 +73,6 @@ public class GameObject {
         this.yv = speed * Math.sin(angle);
     }
 
-    public void update(double deltaTime) {
-        move(deltaTime);
-    }
-
-    public void render(GraphicsContext gc) {
-        gc.setFill(Color.BLUE);
-        gc.fillOval(x, y, width, height);
-    }
 
     public double getX() {
         return x;
@@ -104,29 +130,4 @@ public class GameObject {
         this.height = height;
     }
 
-    /**
-     * Moves the GameObject based on its velocity and the elapsed time.
-     * Speed is limited to maxSpeed.
-     */
-    public void move(double deltaTime) {
-        double currentSpeed = getSpeed();
-        if (currentSpeed > maxSpeed) {
-            setSpeed(maxSpeed);
-        }
-        this.x += xv * deltaTime;
-        this.y += yv * deltaTime;
-    }
-
-    /**
-     * Checks if this GameObject collides with another GameObject.
-     * Collision detection is done using axis-aligned bounding boxes (AABB).
-     * @param other The other GameObject to check collision with.
-     * @return true if this GameObject collides with the other, false otherwise.
-     */
-    public boolean collidesWith(GameObject other) {
-        return this.x < other.x + other.width &&
-                this.x + this.width > other.x &&
-                this.y < other.y + other.height &&
-                this.y + this.height > other.y;
-    }
 }

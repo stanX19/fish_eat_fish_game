@@ -17,6 +17,9 @@ public class MainMenuPage extends BasePage {
         vbox.setPadding(new Insets(20));
         vbox.setSpacing(10);
 
+        // TODO:
+        //  add appropriate buttons
+        //  add good design to buttons
         Label welcomeLabel = new Label("Welcome, " + sessionManager.getUsername() + "!");
         Button logoutButton = new Button("Logout");
         Button startGameButton = new Button("Start Game");

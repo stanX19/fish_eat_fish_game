@@ -3,13 +3,17 @@ package com.deepseadevs.fisheatfish;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class DatabaseManager {
     private static DatabaseManager instance;
-    private Map<String, String> userData;
+    private Map<String, UserData> dataBase;
 
     private DatabaseManager() {
-        userData = new HashMap<>();
-        userData.put("test", "test");
+        dataBase = new HashMap<>();
+
+        // TODO:
+        //  load data from csv file
+        //  the map data structure can to hold more data such as high score
     }
 
     public static DatabaseManager getInstance() {
@@ -20,8 +24,23 @@ public class DatabaseManager {
     }
 
     public boolean isCorrectPassword(String username, String password) {
-        return userData.containsKey(username) && userData.get(username).equals(password);
+        return dataBase.containsKey(username)
+                && dataBase.get(username).password.equals(password);
     }
 
-    // Additional methods for user management could be added here
+    // TODO:
+    //  complete the following classes
+    public void updateUserData(UserData data) {
+        // write to database
+        // if data.username already exists in database, overwrite
+        // else raise
+    }
+
+    public void createNewUser(String name, String password) {
+        dataBase.put(name, new UserData(name, password, 0));
+    }
+
+    public void addNewUser(UserData user) {
+        dataBase.put(user.username, user);
+    }
 }
