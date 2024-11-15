@@ -75,7 +75,7 @@ public class LoginPage extends BasePage {
         VBox outerBox = new VBox(gridPane);
         outerBox.setPadding(new Insets(30));
         outerBox.setStyle("-fx-background-color: #F0F8FF; -fx-border-color: #B0C4DE;" +
-                          "-fx-border-radius: 10; -fx-background-radius: 10;");
+                          "-fx-background-radius: 10;");
         outerBox.setAlignment(Pos.CENTER);
 
         return new Scene(outerBox, 400, 300);
