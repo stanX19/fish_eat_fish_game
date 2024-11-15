@@ -18,6 +18,7 @@ public class LoginPage extends BasePage {
     Label usernameLabel;
     Label passwordLabel;
     Button loginButton;
+    Button newAccountButton;
     TextField usernameField;
     PasswordField passwordField;
     Text feedbackText;
@@ -33,7 +34,7 @@ public class LoginPage extends BasePage {
         gridPane.setHgap(15);
         gridPane.setAlignment(Pos.CENTER);
 
-        // widgets
+        // widgets and design
         usernameLabel = new Label("Username:");
         usernameLabel.setFont(new Font("Arial", 16));
         usernameField = new TextField();
@@ -45,11 +46,15 @@ public class LoginPage extends BasePage {
         loginButton = new Button("Login");
         loginButton.setFont(new Font("Arial", 14));
         loginButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+        // TODO: beautify newAccount button
+        newAccountButton = new Button("New Account");
+        newAccountButton.setFont(new Font("Arial", 14));
         feedbackText = new Text();
         feedbackText.setFont(new Font("Arial", 12));
 
         // hooks
         loginButton.setOnAction(e -> this.attemptLogin());
+        newAccountButton.setOnAction(e -> uiController.gotoNewAccount());
         // Move focus to password field when "Enter" is pressed
         usernameField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
@@ -69,7 +74,8 @@ public class LoginPage extends BasePage {
         gridPane.add(passwordLabel, 0, 1);
         gridPane.add(passwordField, 1, 1);
         gridPane.add(loginButton, 1, 2);
-        gridPane.add(feedbackText, 1, 3);
+        gridPane.add(newAccountButton, 1, 3);
+        gridPane.add(feedbackText, 1, 4);
 
         // Outer container
         VBox outerBox = new VBox(gridPane);

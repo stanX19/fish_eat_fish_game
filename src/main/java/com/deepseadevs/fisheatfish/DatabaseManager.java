@@ -1,17 +1,11 @@
 package com.deepseadevs.fisheatfish;
 
-import java.util.HashMap;
-import java.util.Map;
-
-
 public class DatabaseManager {
     private static DatabaseManager instance;
-    private String csvPath;
-    private Map<String, UserData> loadedData;
+    private final DataBase dataBase;
 
     private DatabaseManager() {
-        this.loadedData = new HashMap<>();
-        this.csvPath = "data.csv";
+        this.dataBase = new DataBase("data.csv");
 
         // TODO:
         //  load data from csv file
@@ -27,16 +21,15 @@ public class DatabaseManager {
     }
 
     public UserData getUserData(String username) {
-        return loadedData.get(username);
+        return dataBase.get(username);
     }
 
     public boolean userExists(String username) {
-        return loadedData.containsKey(username);
+        return dataBase.containsKey(username);
     }
 
     public boolean isCorrectPassword(String username, String password) {
-        return userExists(username)
-                && loadedData.get(username).password.equals(password);
+        return userExists(username) && dataBase.get(username).password.equals(password);
     }
 
     // TODO:
@@ -44,19 +37,8 @@ public class DatabaseManager {
     //  any change in data must be reflected on csv too
     public void updateUserData(UserData data) {
         // TODO:
-        //  write to database
-        //  if data.username already exists in database, overwrite and update csv
+        //  write to database, database will handle save to csv
         //  else raise
-    }
-
-    public void loadDataBase() {
-        // TODO:
-        //  load all data from csvPath
-    }
-
-    public void saveDataBase() {
-        // TODO:
-        //  saves all data in loadedData to csvPath
     }
 
     public void deleteUser(String name) {
@@ -66,10 +48,12 @@ public class DatabaseManager {
     }
 
     public void createNewUser(String name, String password) {
-        loadedData.put(name, new UserData(name, password, 0));
+        if (userExists(name))
+            throw new IllegalArgumentException("User already exists: " + name);
+        addNewUser(new UserData(name, password, 0));
     }
 
     public void addNewUser(UserData user) {
-        loadedData.put(user.username, user);
+        dataBase.put(user.username, user);
     }
 }

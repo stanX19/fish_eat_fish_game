@@ -20,6 +20,11 @@ public class UIController {
         showPage(loginPage);
     }
 
+    public void gotoNewAccount() {
+        NewAccountPage loginPage = new NewAccountPage(this, sessionManager);
+        showPage(loginPage);
+    }
+
     public void gotoMainMenu() {
         MainMenuPage mainMenuPage = new MainMenuPage(this, sessionManager);
         showPage(mainMenuPage);
