@@ -1,5 +1,7 @@
 package com.deepseadevs.fisheatfish;
 
+import java.util.Collection;
+
 public class DatabaseManager {
     private static DatabaseManager instance;
     private final DataBase dataBase;
@@ -55,5 +57,9 @@ public class DatabaseManager {
 
     public void addNewUser(UserData user) {
         dataBase.put(user.username, user);
+    }
+
+    public Collection<UserData> getAllUserData() {
+        return dataBase.getAll();
     }
 }

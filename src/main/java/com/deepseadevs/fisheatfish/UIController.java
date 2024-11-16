@@ -35,6 +35,11 @@ public class UIController {
         showPage(gamePage);
     }
 
+    public void gotoLeaderBoard() {
+        LeaderboardPage leaderboardPage = new LeaderboardPage(this, sessionManager);
+        showPage(leaderboardPage);
+    }
+
     public void logout() {
         sessionManager.clearSession();
         gotoLogin();
