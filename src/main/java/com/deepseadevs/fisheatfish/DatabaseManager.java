@@ -8,10 +8,6 @@ public class DatabaseManager {
 
     private DatabaseManager() {
         this.dataBase = new DataBase("data.csv");
-
-        // TODO:
-        //  load data from csv file
-        //  the map data structure can to hold more data such as high score
         createNewUser("test", "test");
     }
 
