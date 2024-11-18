@@ -4,12 +4,17 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 public class GameObject {
-    protected double x, y;
-    protected double xv, yv;
-    protected double maxSpeed;
-    protected double width, height;
+    private double x, y;
+    private double xv, yv;
+    private double maxSpeed;
+    private double width, height;
+    private Color color;
 
     public GameObject(double x, double y, double maxSpeed, double width, double height) {
+        this(x, y, maxSpeed, width, height, Color.BLUE);
+    }
+
+    public GameObject(double x, double y, double maxSpeed, double width, double height, Color color) {
         this.x = x;
         this.y = y;
         this.xv = 0;
@@ -17,6 +22,7 @@ public class GameObject {
         this.width = width;
         this.height = height;
         this.maxSpeed = maxSpeed;
+        this.color = color;
     }
 
     public void update(double deltaTime) {
@@ -24,7 +30,7 @@ public class GameObject {
     }
 
     public void render(GraphicsContext gc) {
-        gc.setFill(Color.BLUE);
+        gc.setFill(this.color);
         gc.fillOval(x, y, width, height);
     }
 
@@ -72,7 +78,27 @@ public class GameObject {
         this.xv = speed * Math.cos(angle);
         this.yv = speed * Math.sin(angle);
     }
+    
+    public double getArea() {
+        return this.height * this.width;
+    }
 
+    public void setArea(double newArea) {
+        if (newArea <= 0)
+            return;
+        if (this.height == 0 && this.width == 0) {
+            this.height = Math.sqrt(newArea);
+            this.width = Math.sqrt(newArea);
+        } else if (this.height == 0) {
+            this.height = newArea / this.width;
+        } else if (this.width == 0) {
+            this.width = newArea / this.height;
+        } else {
+            double scaleFactor = Math.sqrt(newArea / getArea());
+            this.height *= scaleFactor;
+            this.width *= scaleFactor;
+        }
+    }
 
     public double getX() {
         return x;
@@ -129,5 +155,4 @@ public class GameObject {
     public void setHeight(double height) {
         this.height = height;
     }
-
 }

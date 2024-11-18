@@ -66,7 +66,7 @@ public class GameEngine {
 
     public GameEngine(GraphicsContext gc) {
         this.gc = gc;
-        this.player = new BaseFish(200, 200, 500, 20, 20);
+        this.player = new BaseFish(200, 200, 500, 60, 20);
         this.enemies = new ArrayList<>();
         this.gameOver = false;
         this.playerHandler = new PlayerHandler(player);
@@ -107,10 +107,16 @@ public class GameEngine {
         };
     }
 
+    private void spawnEnemy() {
+        BaseFish newFish = new BaseFish(Math.random() * 780, Math.random() * 580, 50,
+                player.getWidth(), player.getHeight());
+        newFish.setArea(player.getArea() + Math.random() * 20 - 10);
+        enemies.add(newFish);
+    }
+
     private void spawnEnemies(int count) {
         for (int i = 0; i < count; i++) {
-            enemies.add(new BaseFish(Math.random() * 780, Math.random() * 580, 50,
-                    player.width + (Math.random() - 0.5) * 10, 15));
+            spawnEnemy();
         }
     }
 
@@ -137,7 +143,7 @@ public class GameEngine {
     private void handleCollisionWithEnemy(BaseFish enemy) {
         if (player.getWidth() > enemy.getWidth()) {
             enemies.remove(enemy);
-            player.setWidth(player.width + enemy.width / 5.0);
+            player.setArea(player.getArea() + enemy.getArea() / 5.0);
             spawnEnemies(1);
         } else {
             triggerGameOver();
