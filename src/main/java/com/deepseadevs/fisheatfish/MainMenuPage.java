@@ -23,11 +23,13 @@ public class MainMenuPage extends BasePage {
         Label welcomeLabel = new Label("Welcome, " + sessionManager.getUsername() + "!");
         Button logoutButton = new Button("Logout");
         Button startGameButton = new Button("Start Game");
+        Button leaderboardButton = new Button("Leaderboard");
 
         logoutButton.setOnAction(e -> uiController.logout());
         startGameButton.setOnAction(e -> uiController.gotoGamePage());
+        leaderboardButton.setOnAction(e -> uiController.gotoLeaderBoard());
 
-        vbox.getChildren().addAll(welcomeLabel, logoutButton, startGameButton);
+        vbox.getChildren().addAll(welcomeLabel, logoutButton, startGameButton, leaderboardButton);
         return new Scene(vbox, 400, 300);
     }
 }

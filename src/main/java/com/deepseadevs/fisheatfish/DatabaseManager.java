@@ -8,7 +8,12 @@ public class DatabaseManager {
 
     private DatabaseManager() {
         this.dataBase = new DataBase("data.csv");
-        createNewUser("test", "test");
+        createNewUser("test", "test", 100);
+        createNewUser("test1", "test", 200);
+        createNewUser("test2", "test", 300);
+        createNewUser("test3", "test", 400);
+        createNewUser("test4", "test", -500);
+        createNewUser("test5", "test", 600);
     }
 
     public static DatabaseManager getInstance() {
@@ -46,9 +51,13 @@ public class DatabaseManager {
     }
 
     public void createNewUser(String name, String password) {
+        createNewUser(name, password, 0);
+    }
+
+    public void createNewUser(String name, String password, long highScore) {
         if (userExists(name))
             throw new IllegalArgumentException("User already exists: " + name);
-        addNewUser(new UserData(name, password, 0));
+        addNewUser(new UserData(name, password, highScore));
     }
 
     public void addNewUser(UserData user) {
