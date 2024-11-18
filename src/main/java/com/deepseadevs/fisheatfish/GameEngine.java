@@ -35,21 +35,18 @@ class PlayerHandler {
         player.setYv(dy);
         if (player.getSpeed() > player.getMaxSpeed() || dy != 0 || dx != 0)
             player.setSpeed(player.getMaxSpeed());
+        player.move(deltaTime);
     }
 
     private double calculateHorizontalMovement() {
-        if (keysPressed.contains(KeyCode.A) || keysPressed.contains(KeyCode.LEFT))
-            return -1;
-        if (keysPressed.contains(KeyCode.D) || keysPressed.contains(KeyCode.RIGHT))
-            return 1;
+        if (keysPressed.contains(KeyCode.A) || keysPressed.contains(KeyCode.LEFT)) return -1;
+        if (keysPressed.contains(KeyCode.D) || keysPressed.contains(KeyCode.RIGHT)) return 1;
         return 0;
     }
 
     private double calculateVerticalMovement() {
-        if (keysPressed.contains(KeyCode.W) || keysPressed.contains(KeyCode.UP))
-            return -1;
-        if (keysPressed.contains(KeyCode.S) || keysPressed.contains(KeyCode.DOWN))
-            return 1;
+        if (keysPressed.contains(KeyCode.W) || keysPressed.contains(KeyCode.UP)) return -1;
+        if (keysPressed.contains(KeyCode.S) || keysPressed.contains(KeyCode.DOWN)) return 1;
         return 0;
     }
 }
@@ -59,14 +56,14 @@ public class GameEngine {
     private final GraphicsContext gc;
     private final BaseFish player;
     private final List<BaseFish> enemies;
+    private final PlayerHandler playerHandler;
     private AnimationTimer gameLoop;
     private Runnable gameOverCallback;
     private boolean gameOver;
-    private final PlayerHandler playerHandler;
 
     public GameEngine(GraphicsContext gc) {
         this.gc = gc;
-        this.player = new BaseFish(200, 200, 500, 60, 20);
+        this.player = new BaseFish(200, 200, 300, 30, 20);
         this.enemies = new ArrayList<>();
         this.gameOver = false;
         this.playerHandler = new PlayerHandler(player);
@@ -108,9 +105,10 @@ public class GameEngine {
     }
 
     private void spawnEnemy() {
-        BaseFish newFish = new BaseFish(Math.random() * 780, Math.random() * 580, 50,
-                player.getWidth(), player.getHeight());
-        newFish.setArea(player.getArea() + Math.random() * 20 - 10);
+        BaseFish newFish = new BaseFish(-player.getWidth() - Math.random() * 200, Math.random() * 580,
+                500, player.getWidth(), player.getHeight());
+        newFish.setArea(player.getArea() * Math.random() + 100);
+        newFish.setXv(50 + Math.random() * 150);
         enemies.add(newFish);
     }
 
@@ -120,16 +118,54 @@ public class GameEngine {
         }
     }
 
+    private void boundFishMovement(BaseFish fish) {
+        boundFishMovement(fish, 0, gc.getCanvas().getWidth(), 0, gc.getCanvas().getHeight());
+    }
+    
+    private void boundFishMovement(BaseFish fish, double minX, double maxX, double minY, double maxY) {
+        if (fish.getX() > maxX && fish.getXv() > 0)
+            fish.setXv(-fish.getXv());
+        if (fish.getX() < minX && fish.getXv() < 0)
+            fish.setXv(-fish.getXv());
+        if (fish.getY() > maxY && fish.getYv() > 0)
+            fish.setYv(-fish.getYv());
+        if (fish.getY() < minY && fish.getYv() < 0)
+            fish.setYv(-fish.getYv());
+    }
+    
+    private void moveEnemies(double deltaTime) {
+        for (BaseFish enemy: enemies) {
+            enemy.move(deltaTime);
+            boundFishMovement(enemy);
+        }
+    }
+
     private void update(double deltaTime) {
         playerHandler.updatePlayerMovement(deltaTime);
+        boundFishMovement(player);
         player.update(deltaTime);
+        moveEnemies(deltaTime);
         checkCollisions();
     }
 
     private void render() {
-        gc.clearRect(0, 0, 800, 600);
+        gc.clearRect(0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
         renderPlayer();
         renderEnemies();
+    }
+
+    private void handleFishFishCollision(BaseFish fish1, BaseFish fish2) {
+        if (Math.abs(fish1.getArea() - fish2.getArea()) < 10) {
+            return;
+        }
+        if (fish1.getArea() > fish2.getArea()) {
+            enemies.remove(fish2);
+            fish1.setArea(fish1.getArea() + fish2.getArea() / 2.5);
+        } else {
+            enemies.remove(fish1);
+            fish1.setArea(fish2.getArea() + fish1.getArea() / 2.5);
+        }
+        spawnEnemies(1);
     }
 
     private void checkCollisions() {
@@ -138,12 +174,23 @@ public class GameEngine {
                 handleCollisionWithEnemy(enemy);
             }
         }
+        for (int i = 0; i < enemies.size(); i++) {
+            for (int j = i + 1; j < enemies.size(); j++) {
+                BaseFish fish1 = enemies.get(i);
+                BaseFish fish2 = enemies.get(j);
+                if (fish1.collidesWith(fish2))
+                    handleFishFishCollision(fish1, fish2);
+            }
+        }
     }
 
     private void handleCollisionWithEnemy(BaseFish enemy) {
-        if (player.getWidth() > enemy.getWidth()) {
+        if (Math.abs(player.getArea() - enemy.getArea()) < 10) {
+            return;
+        }
+        else if (player.getArea() > enemy.getArea()) {
             enemies.remove(enemy);
-            player.setArea(player.getArea() + enemy.getArea() / 5.0);
+            player.setArea(player.getArea() + enemy.getArea() / 2.5);
             spawnEnemies(1);
         } else {
             triggerGameOver();
