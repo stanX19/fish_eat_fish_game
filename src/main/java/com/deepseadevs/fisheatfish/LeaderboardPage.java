@@ -6,6 +6,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
+import java.util.Collection;
+
 public class LeaderboardPage extends BasePage {
     public LeaderboardPage(UIController uiController, SessionManager sessionManager) {
         super(uiController, sessionManager);
@@ -16,6 +18,7 @@ public class LeaderboardPage extends BasePage {
         vbox.setPadding(new Insets(20));
         vbox.setSpacing(10);
 
+        Collection<UserData> topPlayers = LeaderboardUtils.getTopUsers(10);
         // TODO:
         //  create the leaderboard :)
         //  store the users in LeaderboardUtils
