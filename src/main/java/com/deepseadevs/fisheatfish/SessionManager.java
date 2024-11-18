@@ -17,6 +17,12 @@ public class SessionManager {
         return this.session.username;
     }
 
+    public long getHighScore() {
+        if (this.session == null)
+            return 0;
+        return this.session.highScore;
+    }
+
     public void clearSession() {
         this.session = null;
     }

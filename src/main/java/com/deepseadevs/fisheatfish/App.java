@@ -12,7 +12,9 @@ public class App extends Application {
         sessionManager = new SessionManager();
         uiController = new UIController(primaryStage, sessionManager);
         uiController.gotoLogin();
-        primaryStage.setTitle("Fish Eat Fish hahahaahah");
+        primaryStage.setTitle("Fish Eat Fish");
+//        Image icon = new Image("fish.png");
+//        primaryStage.getIcons().add(icon);
         primaryStage.show();
     }
 
