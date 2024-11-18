@@ -29,7 +29,7 @@ public class GamePage extends BasePage {
         StackPane root = new StackPane();
 
         // Main game canvas
-        this.canvas = new Canvas(1500, 1200);
+        this.canvas = new Canvas(800, 600);
         root.getChildren().add(canvas);
 
         // Game over screen

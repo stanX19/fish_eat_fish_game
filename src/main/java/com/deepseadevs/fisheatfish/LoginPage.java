@@ -45,10 +45,11 @@ public class LoginPage extends BasePage {
         passwordField.setFont(new Font("Arial", 14));
         loginButton = new Button("Login");
         loginButton.setFont(new Font("Arial", 14));
-        loginButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+        loginButton.setStyle("-fx-background-color: #66ccff; -fx-text-fill: white;");
         // TODO: beautify newAccount button
         newAccountButton = new Button("New Account");
         newAccountButton.setFont(new Font("Arial", 14));
+        newAccountButton.setStyle("-fx-background-color: #0099ff; -fx-text-fill: white;");
         feedbackText = new Text();
         feedbackText.setFont(new Font("Arial", 12));
 
