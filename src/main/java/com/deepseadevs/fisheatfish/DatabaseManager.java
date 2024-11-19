@@ -39,15 +39,28 @@ public class DatabaseManager {
     //  complete the following classes
     //  any change in data must be reflected on csv too
     public void updateUserData(UserData data) {
-        // TODO:sdfsf
+        // TODO:
         //  write to database, database will handle save to csv
         //  else raise
+        if (!userExists(data.username)) {
+            throw new IllegalArgumentException("User does not exist: " + data.username);
+
+        }
+        dataBase.put(data.username, data);
+
     }
 
     public void deleteUser(String name) {
         // TODO:
         //  Used to remove user on "delete account" button
         //  remove user from database
+        if (!userExists(name)) {
+            throw new IllegalArgumentException("User does not exist: " + name);
+
+        }
+        dataBase.remove(name);
+
+
     }
 
     public void createNewUser(String name, String password) {
@@ -55,8 +68,7 @@ public class DatabaseManager {
     }
 
     public void createNewUser(String name, String password, long highScore) {
-        if (userExists(name))
-            throw new IllegalArgumentException("User already exists: " + name);
+        if (userExists(name)) throw new IllegalArgumentException("User already exists: " + name);
         addNewUser(new UserData(name, password, highScore));
     }
 
