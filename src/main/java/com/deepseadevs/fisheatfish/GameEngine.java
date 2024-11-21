@@ -109,6 +109,7 @@ public class GameEngine {
                 500, player.getWidth(), player.getHeight());
         newFish.setArea(player.getArea() * Math.random() + 100);
         newFish.setXv(50 + Math.random() * 150);
+        newFish.setYv(10 * Math.random() - 5);
         enemies.add(newFish);
     }
 
@@ -118,16 +119,24 @@ public class GameEngine {
         }
     }
 
+    public double getCanvasWidth() {
+        return gc.getCanvas().getWidth();
+    }
+
+    public double getCanvasHeight() {
+        return gc.getCanvas().getWidth();
+    }
+
     private void boundFishMovement(BaseFish fish) {
-        boundFishMovement(fish, 0, gc.getCanvas().getWidth(), 0, gc.getCanvas().getHeight());
+        boundFishMovement(fish, 0, getCanvasWidth(), 0, getCanvasHeight());
     }
     
     private void boundFishMovement(BaseFish fish, double minX, double maxX, double minY, double maxY) {
-        if (fish.getX() > maxX && fish.getXv() > 0)
+        if (fish.getX() + fish.getWidth() > maxX && fish.getXv() > 0)
             fish.setXv(-fish.getXv());
         if (fish.getX() < minX && fish.getXv() < 0)
             fish.setXv(-fish.getXv());
-        if (fish.getY() > maxY && fish.getYv() > 0)
+        if (fish.getY() + fish.getHeight() > maxY && fish.getYv() > 0)
             fish.setYv(-fish.getYv());
         if (fish.getY() < minY && fish.getYv() < 0)
             fish.setYv(-fish.getYv());
@@ -136,7 +145,7 @@ public class GameEngine {
     private void moveEnemies(double deltaTime) {
         for (BaseFish enemy: enemies) {
             enemy.move(deltaTime);
-            boundFishMovement(enemy);
+            boundFishMovement(enemy, -100, getCanvasWidth() + 100, 0, getCanvasHeight());
         }
     }
 
@@ -160,10 +169,10 @@ public class GameEngine {
         }
         if (fish1.getArea() > fish2.getArea()) {
             enemies.remove(fish2);
-            fish1.setArea(fish1.getArea() + fish2.getArea() / 2.5);
+            fish1.setArea(fish1.getArea() + fish2.getArea() * 0.5);
         } else {
             enemies.remove(fish1);
-            fish1.setArea(fish2.getArea() + fish1.getArea() / 2.5);
+            fish1.setArea(fish2.getArea() + fish1.getArea() * 0.5);
         }
         spawnEnemies(1);
     }
@@ -190,7 +199,7 @@ public class GameEngine {
         }
         else if (player.getArea() > enemy.getArea()) {
             enemies.remove(enemy);
-            player.setArea(player.getArea() + enemy.getArea() / 2.5);
+            player.setArea(player.getArea() + enemy.getArea() * 0.1);
             spawnEnemies(1);
         } else {
             triggerGameOver();
