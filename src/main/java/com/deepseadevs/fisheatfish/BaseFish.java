@@ -33,7 +33,7 @@ public class BaseFish extends GameObject {
         gc.fillOval(getX() + getWidth() / 1.5, getY() + getHeight() / 3, getWidth() / 6, getHeight() / 7);
     }
 
-    public void render(GraphicsContext gc) {
+    public void drawFishLeft(GraphicsContext gc) {
         // Set the fill color for the fish's body
         gc.setFill(Color.SILVER);
 
