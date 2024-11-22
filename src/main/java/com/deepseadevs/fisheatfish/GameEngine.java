@@ -194,10 +194,7 @@ public class GameEngine {
     }
 
     private void handleCollisionWithEnemy(BaseFish enemy) {
-        if (Math.abs(player.getArea() - enemy.getArea()) < 10) {
-            return;
-        }
-        else if (player.getArea() > enemy.getArea()) {
+        if (player.getArea() > enemy.getArea()) {
             enemies.remove(enemy);
             player.setArea(player.getArea() + enemy.getArea() * 0.1);
             spawnEnemies(1);
