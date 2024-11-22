@@ -1,6 +1,5 @@
 package com.deepseadevs.fisheatfish;
 import javafx.scene.canvas.GraphicsContext;
-
 import javafx.scene.paint.Color;
 
 
@@ -9,8 +8,24 @@ public class BaseFish extends GameObject {
         super(x, y, maxSpeed, width, height);
     }
 
+    private boolean facingRight = true;
     // TODO
     //  Overwrite render method to draw a fish
+    public void render(GraphicsContext gc) {
+        if(getXv() < 0){
+            facingRight = false;
+        }
+        else if(getXv() > 0){
+            facingRight = true;
+        }
+
+        if (facingRight) {
+            drawFishRight(gc);
+        } else {
+            drawFishLeft(gc);
+        }
+    }
+
     public void drawFishRight(GraphicsContext gc) {
         // Set the fill color for the fish's body
         gc.setFill(Color.ORANGE);
@@ -35,7 +50,7 @@ public class BaseFish extends GameObject {
 
     public void drawFishLeft(GraphicsContext gc) {
         // Set the fill color for the fish's body
-        gc.setFill(Color.SILVER);
+        gc.setFill(Color.CORAL);
 
         // Draw the fish's body as an oval, facing left
         gc.fillOval(getX(), getY(), getWidth(), getHeight());
@@ -54,4 +69,5 @@ public class BaseFish extends GameObject {
         // Draw the fish's eye as a circle, positioned on the right side of the body
         gc.fillOval(getX() + getWidth() / 4.5, getY() + getHeight() / 3, getWidth() / 6, getHeight() / 7);
     }
+
 }
