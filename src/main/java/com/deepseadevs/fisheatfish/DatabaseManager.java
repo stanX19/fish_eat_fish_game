@@ -8,12 +8,12 @@ public class DatabaseManager {
 
     private DatabaseManager() {
         this.dataBase = new DataBase("data.csv");
-        createNewUser("test", "test", 100);
-        createNewUser("test1", "test", 200);
-        createNewUser("test2", "test", 300);
-        createNewUser("test3", "test", 400);
-        createNewUser("test4", "test", -500);
-        createNewUser("test5", "test", 600);
+        createNewUser("test", "test", "test", 100);
+        createNewUser("tes1", "tes1", "test", 200);
+        createNewUser("tes2", "tes2", "test", 300);
+        createNewUser("tes3", "tes3", "test", 400);
+        createNewUser("tes4", "tes4", "test", -500);
+        createNewUser("tes5", "tes5", "test", 600);
     }
 
     public static DatabaseManager getInstance() {
@@ -23,57 +23,43 @@ public class DatabaseManager {
         return instance;
     }
 
-    public UserData getUserData(String username) {
-        return dataBase.get(username);
+    public UserData getUserData(String userID) {
+        return dataBase.get(userID);
     }
 
-    public boolean userExists(String username) {
-        return dataBase.containsKey(username);
+    public boolean userExists(String userID) {
+        return dataBase.containsKey(userID);
     }
 
-    public boolean isCorrectPassword(String username, String password) {
-        return userExists(username) && dataBase.get(username).password.equals(password);
+    public boolean isCorrectPassword(String userID, String password) {
+        return userExists(userID) && dataBase.get(userID).getPassword().equals(password);
     }
 
-    // TODO:
-    //  complete the following classes
-    //  any change in data must be reflected on csv too
     public void updateUserData(UserData data) {
-        // TODO:
-        //  write to database, database will handle save to csv
-        //  else raise
-        if (!userExists(data.username)) {
-            throw new IllegalArgumentException("User does not exist: " + data.username);
-
+        if (!userExists(data.getUserID())) {
+            throw new IllegalArgumentException("User does not exist: " + data.getUserID());
         }
-        dataBase.put(data.username, data);
-
+        dataBase.put(data.getUserID(), data);
     }
 
-    public void deleteUser(String name) {
-        // TODO:
-        //  Used to remove user on "delete account" button
-        //  remove user from database
-        if (!userExists(name)) {
-            throw new IllegalArgumentException("User does not exist: " + name);
-
+    public void deleteUser(String userID) {
+        if (!userExists(userID)) {
+            throw new IllegalArgumentException("User does not exist: " + userID);
         }
-        dataBase.remove(name);
-
-
+        dataBase.remove(userID);
     }
 
-    public void createNewUser(String name, String password) {
-        createNewUser(name, password, 0);
+    public void createNewUser(String userID, String name, String password) {
+        createNewUser(userID, name, password, 0);
     }
 
-    public void createNewUser(String name, String password, long highScore) {
-        if (userExists(name)) throw new IllegalArgumentException("User already exists: " + name);
-        addNewUser(new UserData(name, password, highScore));
+    public void createNewUser(String userID, String name, String password, long highScore) {
+        if (userExists(userID)) throw new IllegalArgumentException("User already exists: " + name);
+        addNewUser(new UserData(userID, name, password, highScore));
     }
 
     public void addNewUser(UserData user) {
-        dataBase.put(user.username, user);
+        dataBase.put(user.getUserID(), user);
     }
 
     public Collection<UserData> getAllUserData() {

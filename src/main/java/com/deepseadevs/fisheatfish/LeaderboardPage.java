@@ -23,9 +23,9 @@ public class LeaderboardPage extends BasePage {
         // TODO:
         //  change the colors
         //  change the appearance of the grid such that each column is not detached
-        //  add small arrow beside player name if player is on leaderboard
         //  if player is not on leaderboard show player name and score at the bottom
         //  of the leaderboard
+        //  show very small, not obvious userid text below user's name
 
         // Root container with gradient background
         StackPane root = new StackPane();
@@ -38,7 +38,7 @@ public class LeaderboardPage extends BasePage {
         contentBox.setSpacing(20);
 
         // Welcome label
-        Label welcomeLabel = new Label("Welcome, " + sessionManager.getUsername() + "!");
+        Label welcomeLabel = new Label("Welcome, " + sessionManager.getDisplayName() + "!");
         welcomeLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
 
         // Back button
@@ -74,24 +74,24 @@ public class LeaderboardPage extends BasePage {
 
         // Header row with colored background
         Label rankHeader = new Label("Rank");
-        Label usernameHeader = new Label("Username");
+        Label displayNameHeader = new Label("Username");
         Label scoreHeader = new Label("High Score");
         styleHeader(rankHeader);
-        styleHeader(usernameHeader);
+        styleHeader(displayNameHeader);
         styleHeader(scoreHeader);
 
         grid.add(rankHeader, 0, 0);
-        grid.add(usernameHeader, 1, 0);
+        grid.add(displayNameHeader, 1, 0);
         grid.add(scoreHeader, 2, 0);
 
         GridPane.setHalignment(rankHeader, HPos.CENTER);
-        GridPane.setHalignment(usernameHeader, HPos.CENTER);
+        GridPane.setHalignment(displayNameHeader, HPos.CENTER);
         GridPane.setHalignment(scoreHeader, HPos.CENTER);
 
         // Fetch and sort top players
         Collection<UserData> topPlayersRaw = LeaderboardUtils.getTopUsers(10);
         List<UserData> topPlayers = new ArrayList<>(topPlayersRaw);
-        topPlayers.sort(Comparator.comparingLong((UserData u) -> u.highScore).reversed());
+        topPlayers.sort(Comparator.comparingLong(UserData::getHighScore).reversed());
 
         if (topPlayers.isEmpty()) {
             Label noDataLabel = new Label("No players on the leaderboard yet.");
@@ -103,16 +103,16 @@ public class LeaderboardPage extends BasePage {
             int rank = 1;
             for (UserData user : topPlayers) {
                 Label rankLabel = new Label(String.valueOf(rank));
-                Label usernameLabel = new Label(user.username);
-                Label scoreLabel = new Label(String.valueOf(user.highScore));
+                Label displayedNameLabel = new Label(user.getDisplayName());
+                Label scoreLabel = new Label(String.valueOf(user.getHighScore()));
 
-                boolean isCurrentUser = user.username.equals(sessionManager.getUsername());
+                boolean isCurrentUser = user.getUserID().equals(sessionManager.getUserID());
                 styleCell(rankLabel, row, isCurrentUser);
-                styleCell(usernameLabel, row, isCurrentUser);
+                styleCell(displayedNameLabel, row, isCurrentUser);
                 styleCell(scoreLabel, row, isCurrentUser);
 
                 grid.add(rankLabel, 0, row);
-                grid.add(usernameLabel, 1, row);
+                grid.add(displayedNameLabel, 1, row);
                 grid.add(scoreLabel, 2, row);
 
                 GridPane.setHalignment(rankLabel, HPos.CENTER);

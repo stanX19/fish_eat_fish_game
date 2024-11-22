@@ -15,11 +15,11 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 public class LoginPage extends BasePage {
-    Label usernameLabel;
+    Label userIDLabel;
     Label passwordLabel;
     Button loginButton;
     Button newAccountButton;
-    TextField usernameField;
+    TextField userIDField;
     PasswordField passwordField;
     Text feedbackText;
 
@@ -35,10 +35,10 @@ public class LoginPage extends BasePage {
         gridPane.setAlignment(Pos.CENTER);
 
         // widgets and design
-        usernameLabel = new Label("Username:");
-        usernameLabel.setFont(new Font("Arial", 16));
-        usernameField = new TextField();
-        usernameField.setFont(new Font("Arial", 14));
+        userIDLabel = new Label("Username:");
+        userIDLabel.setFont(new Font("Arial", 16));
+        userIDField = new TextField();
+        userIDField.setFont(new Font("Arial", 14));
         passwordLabel = new Label("Password:");
         passwordLabel.setFont(new Font("Arial", 16));
         passwordField = new PasswordField();
@@ -57,7 +57,7 @@ public class LoginPage extends BasePage {
         loginButton.setOnAction(e -> this.attemptLogin());
         newAccountButton.setOnAction(e -> uiController.gotoNewAccount());
         // Move focus to password field when "Enter" is pressed
-        usernameField.setOnKeyPressed(event -> {
+        userIDField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 passwordField.requestFocus();
             }
@@ -70,8 +70,8 @@ public class LoginPage extends BasePage {
         });
 
         // Add nodes to grid
-        gridPane.add(usernameLabel, 0, 0);
-        gridPane.add(usernameField, 1, 0);
+        gridPane.add(userIDLabel, 0, 0);
+        gridPane.add(userIDField, 1, 0);
         gridPane.add(passwordLabel, 0, 1);
         gridPane.add(passwordField, 1, 1);
         gridPane.add(loginButton, 1, 2);
@@ -89,11 +89,11 @@ public class LoginPage extends BasePage {
     }
 
     private void attemptLogin() {
-        String username = usernameField.getText();
+        String userID = userIDField.getText();
         String password = passwordField.getText();
 
-        if (DatabaseManager.getInstance().isCorrectPassword(username, password)) {
-            sessionManager.setUser(username);
+        if (DatabaseManager.getInstance().isCorrectPassword(userID, password)) {
+            sessionManager.setUser(userID);
             uiController.gotoMainMenu();
         } else {
             feedbackText.setText("Invalid username or password");

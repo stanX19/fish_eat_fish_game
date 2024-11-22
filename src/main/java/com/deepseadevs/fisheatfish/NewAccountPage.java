@@ -9,27 +9,34 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 public class NewAccountPage extends BasePage {
-    Label usernameLabel;
+    // Define UI components
+    VBox mainBox;
+    Label userIDLabel;
+    Label displayNameLabel;
     Label passwordLabel;
     Label confirmPasswordLabel;
     Button createAccountButton;
     Button backToLoginButton;
-    TextField usernameField;
+    TextField userIDField;
+    TextField displayNameField;
     PasswordField passwordField;
     PasswordField confirmPasswordField;
     Text feedbackText;
+    VBox successOverlay;
 
     public NewAccountPage(UIController uiController, SessionManager sessionManager) {
         super(uiController, sessionManager);
     }
 
     protected Scene createScene() {
+        // Main form layout
         GridPane gridPane = new GridPane();
         gridPane.setPadding(new Insets(20, 20, 20, 20));
         gridPane.setVgap(15);
@@ -37,11 +44,17 @@ public class NewAccountPage extends BasePage {
         gridPane.setAlignment(Pos.CENTER);
 
         // Widgets and design
-        usernameLabel = new Label("Username:");
-        usernameLabel.setFont(new Font("Arial", 16));
+        userIDLabel = new Label("Account name:");
+        userIDLabel.setFont(new Font("Arial", 16));
 
-        usernameField = new TextField();
-        usernameField.setFont(new Font("Arial", 14));
+        userIDField = new TextField();
+        userIDField.setFont(new Font("Arial", 14));
+
+        displayNameLabel = new Label("Displayed name:");
+        displayNameLabel.setFont(new Font("Arial", 16));
+
+        displayNameField = new TextField();
+        displayNameField.setFont(new Font("Arial", 14));
 
         passwordLabel = new Label("Password:");
         passwordLabel.setFont(new Font("Arial", 16));
@@ -57,20 +70,26 @@ public class NewAccountPage extends BasePage {
 
         createAccountButton = new Button("Create Account");
         createAccountButton.setFont(new Font("Arial", 14));
-        createAccountButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+        createAccountButton.setStyle("-fx-background-color: #66ccff; -fx-text-fill: white;");
 
         backToLoginButton = new Button("Back to Login");
         backToLoginButton.setFont(new Font("Arial", 14));
-        backToLoginButton.setStyle("-fx-background-color: #B0C4DE; -fx-text-fill: white;");
+        backToLoginButton.setStyle("-fx-background-color: #0099ff; -fx-text-fill: white;");
 
         feedbackText = new Text();
         feedbackText.setFont(new Font("Arial", 12));
 
         // Hooks
         createAccountButton.setOnAction(e -> this.attemptCreateAccount());
+        backToLoginButton.setOnAction(e -> uiController.gotoLogin());
 
-        // Keypress events
-        usernameField.setOnKeyPressed(event -> {
+        // events
+        userIDField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                displayNameField.requestFocus();
+            }
+        });
+        displayNameField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 passwordField.requestFocus();
             }
@@ -86,48 +105,78 @@ public class NewAccountPage extends BasePage {
             }
         });
 
-        backToLoginButton.setOnAction(e -> uiController.gotoLogin());
-
         // Add nodes to grid
-        gridPane.add(usernameLabel, 0, 0);
-        gridPane.add(usernameField, 1, 0);
-        gridPane.add(passwordLabel, 0, 1);
-        gridPane.add(passwordField, 1, 1);
-        gridPane.add(confirmPasswordLabel, 0, 2);
-        gridPane.add(confirmPasswordField, 1, 2);
-        gridPane.add(createAccountButton, 1, 3);
-        gridPane.add(backToLoginButton, 0, 3);
-        gridPane.add(feedbackText, 1, 4);
+        gridPane.add(userIDLabel, 0, 0);
+        gridPane.add(userIDField, 1, 0);
+        gridPane.add(displayNameLabel, 0, 1);
+        gridPane.add(displayNameField, 1, 1);
+        gridPane.add(passwordLabel, 0, 2);
+        gridPane.add(passwordField, 1, 2);
+        gridPane.add(confirmPasswordLabel, 0, 3);
+        gridPane.add(confirmPasswordField, 1, 3);
+        gridPane.add(createAccountButton, 1, 4);
+        gridPane.add(backToLoginButton, 0, 4);
+        gridPane.add(feedbackText, 1, 5);
 
-        // Outer container
-        VBox outerBox = new VBox(gridPane);
-        outerBox.setPadding(new Insets(30));
-        outerBox.setStyle("-fx-background-color: #F0F8FF; -fx-border-color: #B0C4DE;" +
-                "-fx-background-radius: 10;");
-        outerBox.setAlignment(Pos.CENTER);
+        // Main box for new account form
+        mainBox = new VBox(gridPane);
+        mainBox.setPadding(new Insets(30));
+        mainBox.setStyle("-fx-background-color: #F0F8FF;");
+        mainBox.setAlignment(Pos.CENTER);
 
-        return new Scene(outerBox, 400, 350);
+        // Success overlay
+        successOverlay = new VBox();
+        successOverlay.setSpacing(20);
+        successOverlay.setPadding(new Insets(20));
+        successOverlay.setAlignment(Pos.CENTER);
+        successOverlay.setStyle("-fx-background-color: #F0F8FF;");
+
+        Text successMessage = new Text("Account created successfully!");
+        successMessage.setFont(new Font("Arial", 18));
+        successMessage.setStyle("-fx-font-weight: bold;");
+        successMessage.setFill(Color.GREEN);
+
+        Button overlayBackToLoginButton = new Button("Back to Login");
+        overlayBackToLoginButton.setFont(new Font("Arial", 14));
+        overlayBackToLoginButton.setStyle("-fx-background-color: #66ccff; -fx-text-fill: white;");
+        overlayBackToLoginButton.setOnAction(e -> uiController.gotoLogin());
+
+        successOverlay.getChildren().addAll(successMessage, overlayBackToLoginButton);
+        successOverlay.setVisible(false);
+        successOverlay.setDisable(true);
+
+        // Wrap everything in a StackPane for overlay functionality
+        StackPane root = new StackPane();
+        root.getChildren().addAll(mainBox, successOverlay);
+
+        return new Scene(root, 400, 350);
     }
 
     private void attemptCreateAccount() {
-        String username = usernameField.getText();
+        String userID = userIDField.getText();
+        String displayedName = displayNameField.getText();
         String password = passwordField.getText();
         String confirmPassword = confirmPasswordField.getText();
 
-        if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+        if (userID.isEmpty() || displayedName.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             feedbackText.setText("All fields are required.");
             feedbackText.setFill(Color.RED);
         } else if (!password.equals(confirmPassword)) {
             feedbackText.setText("Passwords do not match.");
             feedbackText.setFill(Color.RED);
-        } else if (DatabaseManager.getInstance().userExists(username)) {
+        } else if (DatabaseManager.getInstance().userExists(userID)) {
             feedbackText.setText("Username already taken.");
             feedbackText.setFill(Color.RED);
         } else {
-            createAccountButton.setDisable(true);
-            DatabaseManager.getInstance().createNewUser(username, password);
-            feedbackText.setText("Account created successfully!");
-            feedbackText.setFill(Color.GREEN);
+            disableCreateAccountInputs();
+            DatabaseManager.getInstance().createNewUser(userID, displayedName, password);
+            successOverlay.setDisable(false);
+            successOverlay.setVisible(true);
+            backToLoginButton.requestFocus();
         }
+    }
+
+    private void disableCreateAccountInputs() {
+        mainBox.setDisable(true);
     }
 }
