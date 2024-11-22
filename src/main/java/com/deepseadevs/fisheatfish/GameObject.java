@@ -67,6 +67,13 @@ public class GameObject {
         double originalAngle = getAngle();
         this.xv = speed * Math.cos(originalAngle);
         this.yv = speed * Math.sin(originalAngle);
+        double EPSILON = 1e-6;
+        if (Math.abs(this.xv) < EPSILON) {
+            this.xv = 0;
+        }
+        if (Math.abs(this.yv) < EPSILON) {
+            this.yv = 0;
+        }
     }
 
     public double getAngle() {
