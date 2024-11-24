@@ -1,6 +1,8 @@
 package com.deepseadevs.fisheatfish;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -24,6 +26,11 @@ class DataBase {
     public DataBase(String accountsPath) {
         this.accountsPath = accountsPath;
         this.dataMap = new HashMap<>();
+        try {
+            Files.createDirectories(Paths.get("data/history/"));
+        } catch (IOException e) {
+            System.err.println("Error creating directories: " + e.getMessage());
+        }
         loadFromCSV();
     }
 
@@ -58,7 +65,8 @@ class DataBase {
                     System.err.println("Error parsing number from CSV: " + e.getMessage());
                 }
 
-                dataMap.put(accountsCol[0], new UserData(accountsCol[0],
+                dataMap.put(accountsCol[0], new UserData(
+                        accountsCol[0],
                         accountsCol[1],
                         accountsCol[2],
                         Long.parseLong(accountsCol[3]),
