@@ -7,13 +7,13 @@ public class DatabaseManager {
     private final DataBase dataBase;
 
     private DatabaseManager() {
-        this.dataBase = new DataBase("data.csv");
-        createNewUser("test", "test", "test", 100);
-        createNewUser("tes1", "tes1", "test", 200);
-        createNewUser("tes2", "tes2", "test", 300);
-        createNewUser("tes3", "tes3", "test", 400);
-        createNewUser("tes4", "tes4", "test", -500);
-        createNewUser("tes5", "tes5", "test", 600);
+        this.dataBase = new DataBase("data/accounts.csv");
+//        createNewUser("test", "test", "test", 100);
+//        createNewUser("tes1", "tes1", "test", 200);
+//        createNewUser("tes2", "tes2", "test", 300);
+//        createNewUser("tes3", "tes3", "test", 400);
+//        createNewUser("tes4", "tes4", "test", -500);
+//        createNewUser("tes5", "tes5", "test", 600);
     }
 
     public static DatabaseManager getInstance() {

@@ -83,6 +83,10 @@ public class GameData {
         return endTime;
     }
 
+    public Duration getGameDuration() {
+        return gameDuration;
+    }
+
     public boolean isEnded() {
         return ended;
     }
