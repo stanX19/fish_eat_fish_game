@@ -7,7 +7,7 @@ public class DatabaseManager {
     private final DataBase dataBase;
 
     private DatabaseManager() {
-        this.dataBase = new DataBase("data/accounts.csv");
+        this.dataBase = new DataBase("data");
 //        createNewUser("test", "test", "test", 100);
 //        createNewUser("tes1", "tes1", "test", 200);
 //        createNewUser("tes2", "tes2", "test", 300);

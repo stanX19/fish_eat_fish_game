@@ -21,13 +21,13 @@ history.csv: score,level,fishEaten,size,ended,startTime,endTime,gameDuration
  */
 class DataBase {
     private Map<String, UserData> dataMap;
-    private String accountsPath;
+    private String dataPath;
 
-    public DataBase(String accountsPath) {
-        this.accountsPath = accountsPath;
+    public DataBase(String dataPath) {
+        this.dataPath = dataPath;
         this.dataMap = new HashMap<>();
         try {
-            Files.createDirectories(Paths.get("data/history/"));
+            Files.createDirectories(Paths.get(dataPath+"/history"));
         } catch (IOException e) {
             System.err.println("Error creating directories: " + e.getMessage());
         }
@@ -36,14 +36,15 @@ class DataBase {
 
     // Loads the data from the CSV
     private void loadFromCSV() {
-        try (BufferedReader accountsReader = new BufferedReader(new FileReader(accountsPath))) {
+        try (BufferedReader accountsReader = new BufferedReader(
+                new FileReader(dataPath+"/accounts.csv"))) {
             String accountsRow;
             while ((accountsRow = accountsReader.readLine()) != null) {
                 String[] accountsCol = accountsRow.split(",");
 
                 ArrayList<GameData> history = new ArrayList<>();
                 try (BufferedReader historyReader = new BufferedReader(
-                        new FileReader("data/history/"+accountsCol[0]+".csv"))) {
+                        new FileReader(dataPath+"/history/"+accountsCol[0]+".csv"))) {
                     String historyRow;
                     while ((historyRow = historyReader.readLine()) != null) {
                         String[] historyCol = historyRow.split(",");
@@ -83,7 +84,8 @@ class DataBase {
 
     // Save current dataMap to CSV
     private void saveToCSV() {
-        try (BufferedWriter accountsWriter = new BufferedWriter(new FileWriter(accountsPath))) {
+        try (BufferedWriter accountsWriter = new BufferedWriter(
+                new FileWriter(dataPath+"/accounts.csv"))) {
             for (Map.Entry<String, UserData> entry : dataMap.entrySet()) {
                 UserData userData = entry.getValue();
                 accountsWriter.write(userData.getUserID()+","+
@@ -93,7 +95,7 @@ class DataBase {
                 accountsWriter.newLine();
 
                 try (BufferedWriter historyWriter = new BufferedWriter(
-                        new FileWriter("data/history/"+userData.getUserID()+".csv"))) {
+                        new FileWriter(dataPath+"/history/"+userData.getUserID()+".csv"))) {
                     List<GameData> history = userData.getHistory();
                     for (GameData gameData : history) {
                         historyWriter.write(gameData.getScore() + "," +
