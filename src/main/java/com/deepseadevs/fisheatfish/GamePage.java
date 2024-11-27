@@ -1,5 +1,6 @@
 package com.deepseadevs.fisheatfish;
 
+import com.deepseadevs.fisheatfish.game.GameEngine;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.StackPane;
@@ -17,7 +18,7 @@ public class GamePage extends BasePage {
 
     public GamePage(UIController uiController, SessionManager sessionManager) {
         super(uiController, sessionManager);
-        this.gameEngine = new GameEngine(canvas.getGraphicsContext2D());
+        this.gameEngine = new GameEngine(canvas.getGraphicsContext2D(), sessionManager);
         gameEngine.setGameOverCallback(this::showGameOverScreen);
         scene.setOnKeyPressed(event -> gameEngine.handleKeyPressed(event));
         scene.setOnKeyReleased(event -> gameEngine.handleKeyReleased(event));

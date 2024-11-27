@@ -1,4 +1,4 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.game;
 
 import java.time.Duration;
 import java.time.Instant;

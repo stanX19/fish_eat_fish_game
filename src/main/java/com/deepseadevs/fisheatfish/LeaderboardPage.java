@@ -14,7 +14,6 @@ import java.util.Comparator;
 import java.util.List;
 
 public class LeaderboardPage extends BasePage {
-
     public LeaderboardPage(UIController uiController, SessionManager sessionManager) {
         super(uiController, sessionManager);
     }

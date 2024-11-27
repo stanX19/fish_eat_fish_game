@@ -1,4 +1,6 @@
 package com.deepseadevs.fisheatfish;
+import com.deepseadevs.fisheatfish.game.GameData;
+
 import java.util.ArrayList;
 import java.util.List;
 

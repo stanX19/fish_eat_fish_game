@@ -1,5 +1,7 @@
 package com.deepseadevs.fisheatfish;
 
+import com.deepseadevs.fisheatfish.game.GameData;
+
 public class SessionManager {
     private UserData session;
 

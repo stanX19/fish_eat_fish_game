@@ -1,4 +1,4 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.game.fish;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -41,7 +41,7 @@ public class GameObject {
     public void move(double deltaTime) {
         double currentSpeed = getSpeed();
         if (currentSpeed > maxSpeed) {
-            setSpeed(maxSpeed);
+            setSpeed(getMaxSpeed());
         }
         this.x += xv * deltaTime;
         this.y += yv * deltaTime;

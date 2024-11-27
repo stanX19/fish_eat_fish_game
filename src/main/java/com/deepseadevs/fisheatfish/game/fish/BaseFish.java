@@ -1,11 +1,22 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.game.fish;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 
 public class BaseFish extends GameObject {
-    public BaseFish(double x, double y, double maxSpeed, double width, double height) {
+    private int fishEaten;
+
+    public BaseFish() {
+        this(100, 60, 40);
+    }
+
+    public BaseFish(double maxSpeed, double width, double height) {
+        this(0, 0, maxSpeed, width, height, 0);
+    }
+
+    public BaseFish(double x, double y, double maxSpeed, double width, double height, int fishEaten) {
         super(x, y, maxSpeed, width, height);
+        this.fishEaten = fishEaten;
     }
 
     private boolean facingRight = true;
@@ -70,4 +81,15 @@ public class BaseFish extends GameObject {
         gc.fillOval(getX() + getWidth() / 4.5, getY() + getHeight() / 3, getWidth() / 6, getHeight() / 7);
     }
 
+    public int getFishEaten() {
+        return fishEaten;
+    }
+
+    public void setFishEaten(int fishEaten) {
+        this.fishEaten = fishEaten;
+    }
+
+    public void incrementFishEaten() {
+        fishEaten += 1;
+    }
 }
