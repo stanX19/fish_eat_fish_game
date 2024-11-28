@@ -1,6 +1,5 @@
 package com.deepseadevs.fisheatfish.game;
 
-import com.deepseadevs.fisheatfish.game.fish.BaseFish;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -61,7 +60,7 @@ public class GameRenderer {
         String levelText = "Level: " + gameData.getLevel();
         gc.setFill(Color.GREEN);
         gc.fillText(levelText, margin, gc.getCanvas().getHeight() - margin - lineSpacing);
-        renderProgressBar(gc, margin, gc.getCanvas().getHeight() - margin, gameData.getFishEaten() / 30.0);
+        renderProgressBar(gc, margin, gc.getCanvas().getHeight() - margin, gameData.getProgress());
 
         // Render game duration at the top right
         String gameDurationText = formatDuration(gameData.getGameDuration());

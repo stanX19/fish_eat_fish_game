@@ -4,6 +4,7 @@ import com.deepseadevs.fisheatfish.game.fish.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 public class Spawner {
@@ -33,6 +34,10 @@ public class Spawner {
 
     public BaseFish spawnRandomFish(FishTypes... fishTypes) {
         return spawnRandomFish(new ArrayList<>(Arrays.asList(fishTypes)));
+    }
+
+    public BaseFish spawnRandomFish(List<FishTypes> fishTypes) {
+        return spawnRandomFish(new ArrayList<>(fishTypes));
     }
 
     public BaseFish spawnRandomFish(ArrayList<FishTypes> fishTypesList) {

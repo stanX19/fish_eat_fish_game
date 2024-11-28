@@ -14,4 +14,12 @@ public class Bound {
         this.maxX = maxX;
         this.maxY = maxY;
     }
+
+    public double getMidX() {
+        return minX + (maxX - minX) / 2;
+    }
+
+    public double getMidY() {
+        return minY + (maxY - minY) / 2;
+    }
 }

@@ -6,6 +6,7 @@ import java.time.Instant;
 public class GameData {
     private long score;
     private int level;
+    private double levelProgress;
     private int fishEaten;
     private int size;
     private boolean ended;
@@ -93,5 +94,13 @@ public class GameData {
 
     public void setEnded(boolean ended) {
         this.ended = ended;
+    }
+
+    public double getProgress() {
+        return levelProgress;
+    }
+
+    public void setLevelProgress(double levelProgress) {
+        this.levelProgress = levelProgress;
     }
 }

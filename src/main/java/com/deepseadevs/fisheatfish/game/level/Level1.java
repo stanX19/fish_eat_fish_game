@@ -1,0 +1,21 @@
+package com.deepseadevs.fisheatfish.game.level;
+
+import com.deepseadevs.fisheatfish.game.FishTypes;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class Level1 extends Level {
+    // TODO:
+    //  overwrite getNewProgress to design different
+    //  progress criteria for different level
+
+    public List<FishTypes> getFishTypes(double progress) {
+        if (progress < 0.5) {
+            return List.of(FishTypes.SMALL);
+        } else {
+            return List.of(FishTypes.SMALL, FishTypes.MEDIUM);
+        }
+    }
+}
