@@ -152,6 +152,8 @@ public class NewAccountPage extends BasePage {
         return new Scene(root, 400, 350);
     }
 
+    // TODO:
+    //  Apply password hashing using LoginUtils.hashString
     private void attemptCreateAccount() {
         String userID = userIDField.getText();
         String displayedName = displayNameField.getText();

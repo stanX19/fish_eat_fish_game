@@ -25,6 +25,12 @@ public class GamePage extends BasePage {
         this.gameEngine.start();
     }
 
+    // TODO:
+    //  add button to pause, and show overlay that contains
+    //  buttons for continue or quit mid game
+    // TODO:
+    //  remake ending screen
+    //  - goto leaderboard, retry, back to menu
     @Override
     protected Scene createScene() {
         StackPane root = new StackPane();

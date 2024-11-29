@@ -4,6 +4,7 @@ import com.deepseadevs.fisheatfish.game.fish.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 public class Spawner {
@@ -26,6 +27,14 @@ public class Spawner {
                 return new LargeFish();
             case GIANT:
                 return new GiantFish();
+            case PLAYER_SMALL:
+                return new SmallPlayerFish();
+            case PLAYER_MEDIUM:
+                return new MediumPlayerFish();
+            case PLAYER_LARGE:
+                return new LargePlayerFish();
+            case PLAYER_GIANT:
+                return new GiantPlayerFish();
             default:
                 throw new IllegalArgumentException("Unhandled fish type: " + fishType);
         }
@@ -33,6 +42,10 @@ public class Spawner {
 
     public BaseFish spawnRandomFish(FishTypes... fishTypes) {
         return spawnRandomFish(new ArrayList<>(Arrays.asList(fishTypes)));
+    }
+
+    public BaseFish spawnRandomFish(List<FishTypes> fishTypes) {
+        return spawnRandomFish(new ArrayList<>(fishTypes));
     }
 
     public BaseFish spawnRandomFish(ArrayList<FishTypes> fishTypesList) {
@@ -49,8 +62,19 @@ public class Spawner {
         return configureNewFish(newFish);
     }
 
+    public BaseFish spawnFishAtCentre(FishTypes fishType) {
+        return spawnFishAt(fishType, bound.getMidX(), bound.getMidY());
+    }
+
+    public BaseFish spawnFishAt(FishTypes fishType, double x, double y) {
+        BaseFish newFish = fishTypeToFish(fishType);
+        newFish.setX(x);
+        newFish.setY(y);
+        return newFish;
+    }
+
     private BaseFish configureNewFish(BaseFish newFish) {
-        double buffer = BUFFER * newFish.getArea() / 1000;
+        double buffer = BUFFER; // * newFish.getArea() / 1000;
         if (Math.random() > 0.5) // left side
             newFish.setX(random.nextDouble(bound.minX - 2 * buffer, bound.minX - buffer));
         else // right side

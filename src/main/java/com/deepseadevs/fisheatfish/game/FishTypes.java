@@ -4,5 +4,9 @@ public enum FishTypes {
     SMALL,
     MEDIUM,
     LARGE,
-    GIANT
+    GIANT,
+    PLAYER_SMALL,
+    PLAYER_MEDIUM,
+    PLAYER_LARGE,
+    PLAYER_GIANT
 }

@@ -88,6 +88,8 @@ public class LoginPage extends BasePage {
         return new Scene(outerBox, 400, 300);
     }
 
+    // TODO:
+    //  Apply password hashing using LoginUtils.hashString
     private void attemptLogin() {
         String userID = userIDField.getText();
         String password = passwordField.getText();

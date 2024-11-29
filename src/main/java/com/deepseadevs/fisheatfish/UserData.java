@@ -60,6 +60,10 @@ public class UserData {
         this.history = history;
     }
 
+    public void addGameData(GameData gameData) {
+        history.add(gameData);
+    }
+
     public String getUserID() {
         return userID;
     }
