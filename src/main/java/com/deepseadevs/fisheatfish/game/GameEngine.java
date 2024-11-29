@@ -2,7 +2,7 @@ package com.deepseadevs.fisheatfish.game;
 
 import com.deepseadevs.fisheatfish.SessionManager;
 import com.deepseadevs.fisheatfish.game.fish.BaseFish;
-import com.deepseadevs.fisheatfish.game.fish.PlayerFish;
+import com.deepseadevs.fisheatfish.game.fish.SmallPlayerFish;
 import com.deepseadevs.fisheatfish.game.level.LevelHandler;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.GraphicsContext;
@@ -23,6 +23,9 @@ public class GameEngine {
     private Runnable gameOverCallback;
     private final GameData gameData;
 
+    // TODO:
+    //  Add music to game
+    //  Add sound effects to game
     public GameEngine(GraphicsContext gc, SessionManager sessionManager) {
         this.gc = gc;
         this.sessionManager = sessionManager;
@@ -30,10 +33,10 @@ public class GameEngine {
         this.bound = new Bound(0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
         this.spawner = new Spawner(this.bound);
         this.fishHandler = new FishHandler(this.bound);
-        this.gameRenderer = new GameRenderer(gc, this.fishHandler, this.gameData);
+        this.gameRenderer = new GameRenderer(gc, this.fishHandler, this.gameData, sessionManager);
 
         // Initialize the player and add to fishHandler
-        this.player = new PlayerFish();
+        this.player = new SmallPlayerFish();
         this.player.setX(this.bound.getMidX());
         this.player.setY(this.bound.getMidY());
         this.fishHandler.addFish(player);

@@ -1,5 +1,6 @@
 package com.deepseadevs.fisheatfish.game;
 
+import com.deepseadevs.fisheatfish.SessionManager;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -13,11 +14,13 @@ public class GameRenderer {
     private final GraphicsContext gc;
     private final FishHandler fishHandler;
     private final GameData gameData;
+    private final SessionManager sessionManager;
 
-    public GameRenderer(GraphicsContext gc, FishHandler fishHandler, GameData gameData) {
+    public GameRenderer(GraphicsContext gc, FishHandler fishHandler, GameData gameData, SessionManager sessionManager) {
         this.gc = gc;
         this.fishHandler = fishHandler;
         this.gameData = gameData;
+        this.sessionManager = sessionManager;
     }
 
     public void render() {
@@ -53,10 +56,10 @@ public class GameRenderer {
         gc.setFill(Color.WHITE);
         gc.fillText(scoreText, margin, margin + lineSpacing);
 
-        // Render level with a progress bar at the bottom left
         // TODO:
-        //  find a better way to indicate progress not just divide by 30
-        //  prob cannot be done here, need add attribute to gameData
+        //  show high score to motivate player
+        //  sessionManager.getHighScore()
+        // Render level with a progress bar at the bottom left
         String levelText = "Level: " + gameData.getLevel();
         gc.setFill(Color.GREEN);
         gc.fillText(levelText, margin, gc.getCanvas().getHeight() - margin - lineSpacing);

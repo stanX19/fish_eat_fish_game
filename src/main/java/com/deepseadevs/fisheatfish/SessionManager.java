@@ -2,6 +2,8 @@ package com.deepseadevs.fisheatfish;
 
 import com.deepseadevs.fisheatfish.game.GameData;
 
+import java.util.List;
+
 public class SessionManager {
     private UserData currentUser;
 
@@ -61,6 +63,10 @@ public class SessionManager {
         //   return the most recent game if its paused
         //   use case: game page -> continue playing -> ...
         return new GameData();
+    }
+
+    public List<GameData> getGameHistory() {
+        return this.currentUser.getHistory();
     }
 
     public GameData createNewGameData() {

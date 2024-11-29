@@ -40,6 +40,11 @@ public class UIController {
         showPage(leaderboardPage);
     }
 
+    public void gotoHistoryPage() {
+        HistoryPage historyPage = new HistoryPage(this, sessionManager);
+        showPage(historyPage);
+    }
+
     public void logout() {
         sessionManager.clearSession();
         gotoLogin();
