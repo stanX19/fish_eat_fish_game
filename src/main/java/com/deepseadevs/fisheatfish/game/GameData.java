@@ -6,26 +6,29 @@ import java.time.Instant;
 public class GameData {
     private long score;
     private int level;
-    private double levelProgress;
     private int fishEaten;
     private int size;
     private boolean ended;
     private final Instant startTime;
     private Instant endTime;
     private Duration gameDuration;
-    // different from end time, example I can pause
-    // the game and continue tomorrow and gameDuration is still 2 minutes
-    // but when I complete the game, the end time will be two days from start time
+
+    private int levelFishEaten;
+    private Duration levelDuration;
+    private double levelProgress;
+
 
     public GameData() {
         this(0, 1, 0, 0);
     }
 
     public GameData(long score, int level, int fishEaten, int size) {
-        this(score, level, fishEaten, size, false, Instant.now(), Instant.now(), Duration.ZERO);
+        this(score, level, fishEaten, size, false, Instant.now(), Instant.now(), Duration.ZERO, Duration.ZERO);
     }
-
     public GameData(long score, int level, int fishEaten, int size, boolean ended, Instant startTime, Instant endTime, Duration gameDuration) {
+        this(score, level, fishEaten, size, ended, startTime, endTime, gameDuration, Duration.ZERO);
+    }
+    public GameData(long score, int level, int fishEaten, int size, boolean ended, Instant startTime, Instant endTime, Duration gameDuration, Duration levelDuration) {
         this.score = score;
         this.level = level;
         this.fishEaten = fishEaten;
@@ -34,12 +37,14 @@ public class GameData {
         this.startTime = startTime;
         this.endTime = endTime;
         this.gameDuration = gameDuration;
+        this.levelDuration = levelDuration;
     }
 
     public void updateDuration(double deltaTime) {
         // seconds to milliseconds
         Duration additionalTime = Duration.ofMillis((long) (deltaTime * 1000));
         gameDuration = gameDuration.plus(additionalTime);
+        levelDuration = levelDuration.plus(additionalTime);
         endTime = Instant.now();
     }
 
@@ -102,5 +107,21 @@ public class GameData {
 
     public void setLevelProgress(double levelProgress) {
         this.levelProgress = levelProgress;
+    }
+
+    public int getLevelFishEaten() {
+        return levelFishEaten;
+    }
+
+    public void setLevelFishEaten(int levelFishEaten) {
+        this.levelFishEaten = levelFishEaten;
+    }
+
+    public Duration getLevelDuration() {
+        return levelDuration;
+    }
+
+    public void setLevelDuration(Duration levelDuration) {
+        this.levelDuration = levelDuration;
     }
 }

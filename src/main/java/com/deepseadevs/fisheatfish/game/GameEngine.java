@@ -26,20 +26,20 @@ public class GameEngine {
     public GameEngine(GraphicsContext gc, SessionManager sessionManager) {
         this.gc = gc;
         this.sessionManager = sessionManager;
-        this.gameData = sessionManager.createNewGameData();
+        this.gameData = sessionManager.createNewGameData(); // TODO: use previous game data when continue
         this.bound = new Bound(0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
         this.spawner = new Spawner(this.bound);
         this.fishHandler = new FishHandler(this.bound);
         this.gameRenderer = new GameRenderer(gc, this.fishHandler, this.gameData);
-        this.levelHandler = new LevelHandler(this.gameData);
 
         // Initialize the player and add to fishHandler
         this.player = new PlayerFish();
         this.player.setX(this.bound.getMidX());
         this.player.setY(this.bound.getMidY());
         this.fishHandler.addFish(player);
-
         this.playerHandler = new PlayerHandler(player);
+        this.levelHandler = new LevelHandler(this.gameData, this.playerHandler);
+
         this.gameData.setEnded(false);
 
         spawnFishes();
@@ -114,8 +114,9 @@ public class GameEngine {
     private void syncGameData(double deltaTime) {
         // TODO:
         //  use a better way to determine score
-        //  instead of using area......if there is one
-        gameData.setFishEaten(player.getFishEaten());
+        //  instead of using area, if there is one
+        gameData.setFishEaten(playerHandler.getAccumulatedFishEaten());
+        gameData.setLevelFishEaten(player.getFishEaten());
         gameData.setScore((int)player.getArea() * 100L);
         gameData.updateDuration(deltaTime);
         sessionManager.updateHighScore(gameData.getScore());

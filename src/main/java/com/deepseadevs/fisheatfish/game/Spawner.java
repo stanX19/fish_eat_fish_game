@@ -55,7 +55,7 @@ public class Spawner {
     }
 
     private BaseFish configureNewFish(BaseFish newFish) {
-        double buffer = BUFFER * newFish.getArea() / 1000;
+        double buffer = BUFFER; // * newFish.getArea() / 1000;
         if (Math.random() > 0.5) // left side
             newFish.setX(random.nextDouble(bound.minX - 2 * buffer, bound.minX - buffer));
         else // right side

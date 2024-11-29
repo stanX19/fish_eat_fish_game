@@ -18,6 +18,6 @@ public class Level {
     }
 
     protected double calculateProgress(GameData gameData) {
-        return gameData.getFishEaten() / 30.0;
+        return gameData.getLevelFishEaten() / 30.0;
     }
 }
