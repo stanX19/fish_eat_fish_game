@@ -54,13 +54,12 @@ public class MainMenuPage extends BasePage {
         titleLabel.setTextFill(Color.web("#60a5fa")); // blue title
 
         // Create welcome tags
-        Label welcomeLabel = new Label("Welcome, " + sessionManager.getUsername() + "!");
+        Label welcomeLabel = new Label("Welcome, " + sessionManager.getDisplayName() + "!");
         welcomeLabel.setFont(Font.font("System", 18));
         welcomeLabel.setTextFill(Color.web("#e2e8f0")); // Light gray text
 
         // Display the highest user score
-        UserData userData = DatabaseManager.getInstance().getUserData(sessionManager.getUsername());
-        Label highScoreLabel = new Label("High Score: " + userData.highScore);
+        Label highScoreLabel = new Label("High Score: " + sessionManager.getHighScore());
         highScoreLabel.setFont(Font.font("System", 16));
         highScoreLabel.setTextFill(Color.web("#fbbf24")); // Gold text
 
@@ -86,7 +85,7 @@ public class MainMenuPage extends BasePage {
 
         utilityButtonsRow.getChildren().addAll(settingsButton, helpButton);
 
-        // Creat a logout button
+        // Create a logout button
         Button logoutButton = createMainButton("Logout", "#dc2626"); // Red logout button
         logoutButton.setOnAction(e -> uiController.logout());
 
@@ -103,15 +102,11 @@ public class MainMenuPage extends BasePage {
         );
 
         // Create the scene and return
-        Scene scene = new Scene(root, 600, 800);
-        return scene;
+        return new Scene(root, 600, 800);
     }
 
     /**
      * createMainButton
-     * @param text
-     * @param color
-     * @return
      */
     private Button createMainButton(String text, String color) {
         Button button = new Button(text);
@@ -153,8 +148,6 @@ public class MainMenuPage extends BasePage {
 
     /**
      * createUtilityButton
-     * @param text
-     * @return
      */
     private Button createUtilityButton(String text) {
         Button button = new Button(text);
@@ -167,16 +160,6 @@ public class MainMenuPage extends BasePage {
         return button;
     }
 
-    /**
-     * @param title
-     * @param content
-     * @param type
-     */
-    /**
-     * @param title
-     * @param content
-     * @param type
-     */
     private void showAlert(String title, String content, AlertType type) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -196,7 +179,7 @@ public class MainMenuPage extends BasePage {
             """);
 
         // Set the button style
-        alert.getDialogPane().lookupButton(alert.getButtonTypes().get(0)).setStyle("""
+        alert.getDialogPane().lookupButton(alert.getButtonTypes().getFirst()).setStyle("""
             -fx-background-color: #3b82f6;
             -fx-text-fill: white;
             -fx-font-size: 14px;
@@ -212,26 +195,26 @@ public class MainMenuPage extends BasePage {
      * Display the current user's highest score
      */
     private void handleLeaderboard() {
-        UserData currentUser = DatabaseManager.getInstance().getUserData(sessionManager.getUsername());
-        String leaderboardInfo = String.format("""
-            🏆 Current High Scores 🏆
-            ═══════════════════
-            
-            👤 Player: %s
-            ⭐ High Score: %d
-            
-            ───────────────────
-            
-            💡 Note:
-            Full leaderboard coming soon!
-            Keep improving your score
-            to achieve a higher rank!
-            """,
-                currentUser.username,
-                currentUser.highScore
-        );
-
-        showAlert("The charts", leaderboardInfo, AlertType.INFORMATION);
+        uiController.gotoLeaderBoard();
+//        String leaderboardInfo = String.format("""
+//            🏆 Current High Scores 🏆
+//            ═══════════════════
+//
+//            👤 Player: %s
+//            ⭐ High Score: %d
+//
+//            ───────────────────
+//
+//            💡 Note:
+//            Full leaderboard coming soon!
+//            Keep improving your score
+//            to achieve a higher rank!
+//            """,
+//                sessionManager.getDisplayName(),
+//                sessionManager.getHighScore()
+//        );
+//
+//        showAlert("The charts", leaderboardInfo, AlertType.INFORMATION);
     }
 
     /**
@@ -239,7 +222,6 @@ public class MainMenuPage extends BasePage {
      * Display user information and account management options
      */
     private void handleProfile() {
-        UserData userData = DatabaseManager.getInstance().getUserData(sessionManager.getUsername());
         String profileInfo = String.format("""
             Username: %s
             High Score: %d
@@ -247,8 +229,8 @@ public class MainMenuPage extends BasePage {
             To delete your account or change password,
             please contact an administrator.
             """,
-                userData.username,
-                userData.highScore
+                sessionManager.getDisplayName(),
+                sessionManager.getHighScore()
         );
 
         showAlert("Profile Information", profileInfo, AlertType.INFORMATION);
