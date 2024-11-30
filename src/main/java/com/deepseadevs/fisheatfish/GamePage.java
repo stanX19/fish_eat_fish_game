@@ -17,8 +17,12 @@ public class GamePage extends BasePage {
     private Pane gameOverOverlay;
 
     public GamePage(UIController uiController, SessionManager sessionManager) {
+        this(uiController, sessionManager, false);
+    }
+
+    public GamePage(UIController uiController, SessionManager sessionManager, boolean continueGame) {
         super(uiController, sessionManager);
-        this.gameEngine = new GameEngine(canvas.getGraphicsContext2D(), sessionManager);
+        this.gameEngine = new GameEngine(canvas.getGraphicsContext2D(), sessionManager, continueGame);
         gameEngine.setGameOverCallback(this::showGameOverScreen);
         scene.setOnKeyPressed(event -> gameEngine.handleKeyPressed(event));
         scene.setOnKeyReleased(event -> gameEngine.handleKeyReleased(event));

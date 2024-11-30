@@ -26,10 +26,10 @@ public class GameEngine {
     // TODO:
     //  Add music to game
     //  Add sound effects to game
-    public GameEngine(GraphicsContext gc, SessionManager sessionManager) {
+    public GameEngine(GraphicsContext gc, SessionManager sessionManager, boolean continueGame) {
         this.gc = gc;
         this.sessionManager = sessionManager;
-        this.gameData = sessionManager.createNewGameData(); // TODO: use previous game data when continue
+        this.gameData = sessionManager.createNewGameData(); // TODO: use previous game data if continueGame
         this.bound = new Bound(0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
         this.spawner = new Spawner(this.bound);
         this.fishHandler = new FishHandler(this.bound);

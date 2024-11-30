@@ -14,27 +14,9 @@ import javafx.scene.control.Alert;
 
 import javafx.scene.control.Alert.AlertType;
 
-
+// TODO:
+//  Add continue button on menu page, to continue previous game
 public class MainMenuPage extends BasePage {
-    // by button style - gray background
-    private static final String BUTTON_STYLE = """
-            -fx-background-color: #4a5568;
-            -fx-text-fill: white;
-            -fx-font-size: 16px;
-            -fx-padding: 12px 24px;
-            -fx-background-radius: 8px;
-            -fx-cursor: hand;
-            """;
-
-    // Button hover style - Dark gray background
-    private static final String BUTTON_HOVER_STYLE = """
-            -fx-background-color: #2d3748;
-            -fx-text-fill: white;
-            -fx-font-size: 16px;
-            -fx-padding: 12px 24px;
-            -fx-background-radius: 8px;
-            -fx-cursor: hand;
-            """;
 
     public MainMenuPage(UIController uiController, SessionManager sessionManager) {
         super(uiController, sessionManager);
@@ -104,6 +86,26 @@ public class MainMenuPage extends BasePage {
         // Create the scene and return
         return new Scene(root, 600, 800);
     }
+
+    // by button style - gray background
+    private static final String BUTTON_STYLE = """
+            -fx-background-color: #4a5568;
+            -fx-text-fill: white;
+            -fx-font-size: 16px;
+            -fx-padding: 12px 24px;
+            -fx-background-radius: 8px;
+            -fx-cursor: hand;
+            """;
+
+    // Button hover style - Dark gray background
+    private static final String BUTTON_HOVER_STYLE = """
+            -fx-background-color: #2d3748;
+            -fx-text-fill: white;
+            -fx-font-size: 16px;
+            -fx-padding: 12px 24px;
+            -fx-background-radius: 8px;
+            -fx-cursor: hand;
+            """;
 
     /**
      * createMainButton

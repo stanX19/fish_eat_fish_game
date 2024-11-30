@@ -35,6 +35,11 @@ public class UIController {
         showPage(gamePage);
     }
 
+    public void gotoGamePage(boolean continueGame) {
+        GamePage gamePage = new GamePage(this, sessionManager, continueGame);
+        showPage(gamePage);
+    }
+
     public void gotoLeaderBoard() {
         LeaderboardPage leaderboardPage = new LeaderboardPage(this, sessionManager);
         showPage(leaderboardPage);
