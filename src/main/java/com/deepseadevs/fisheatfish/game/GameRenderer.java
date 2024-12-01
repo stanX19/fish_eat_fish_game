@@ -59,6 +59,11 @@ public class GameRenderer {
         // TODO:
         //  show high score to motivate player
         //  sessionManager.getHighScore()
+        double margin2 = 30;
+        String highScoreText = "Highscore: " + sessionManager.getHighScore();
+        gc.setFill(Color.WHITE);
+        gc.fillText(highScoreText, margin, margin2 + lineSpacing);
+
         // Render level with a progress bar at the bottom left
         String levelText = "Level: " + gameData.getLevel();
         gc.setFill(Color.GREEN);
