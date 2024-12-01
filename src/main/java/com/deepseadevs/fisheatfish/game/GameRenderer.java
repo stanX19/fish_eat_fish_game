@@ -9,7 +9,7 @@ import java.time.Duration;
 
 // TODO:
 //  create background
-//  beautify display
+//  enhance display (now its too plain)
 public class GameRenderer {
     private final GraphicsContext gc;
     private final FishHandler fishHandler;
@@ -56,9 +56,6 @@ public class GameRenderer {
         gc.setFill(Color.WHITE);
         gc.fillText(scoreText, margin, margin + lineSpacing);
 
-        // TODO:
-        //  show high score to motivate player
-        //  sessionManager.getHighScore()
         double margin2 = 30;
         String highScoreText = "Highscore: " + sessionManager.getHighScore();
         gc.setFill(Color.WHITE);
