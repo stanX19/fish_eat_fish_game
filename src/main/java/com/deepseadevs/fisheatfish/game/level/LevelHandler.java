@@ -58,7 +58,7 @@ public class LevelHandler {
         if (this.levels.isEmpty())
             throw new IllegalArgumentException("No level stored in LevelHandler");
         else if (gameData.getLevel() > levels.size())
-            return levels.getLast();
+            return levels.get(levels.size() - 1); // changed getLast() to levels.size() - 1
         else
             return levels.get(gameData.getLevel() - 1);
     }

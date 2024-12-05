@@ -181,7 +181,8 @@ public class MainMenuPage extends BasePage {
             """);
 
         // Set the button style
-        alert.getDialogPane().lookupButton(alert.getButtonTypes().getFirst()).setStyle("""
+        // changed getFirst to get(0)
+        alert.getDialogPane().lookupButton(alert.getButtonTypes().get(0)).setStyle(""" 
             -fx-background-color: #3b82f6;
             -fx-text-fill: white;
             -fx-font-size: 14px;
