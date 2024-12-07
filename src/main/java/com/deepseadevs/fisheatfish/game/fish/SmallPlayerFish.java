@@ -10,6 +10,6 @@ public class SmallPlayerFish extends BaseFish {
 
     @Override
     public double getMaxSpeed() {
-        return getArea() / 10;
+        return getWidth() * 3;
     }
 }
