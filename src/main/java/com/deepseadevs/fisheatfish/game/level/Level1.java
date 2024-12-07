@@ -10,12 +10,7 @@ public class Level1 extends Level {
     // TODO:
     //  overwrite getNewProgress to design different
     //  progress criteria for different level
-
-    public List<FishTypes> getFishTypes(double progress) {
-        if (progress < 0.5) {
-            return List.of(FishTypes.SMALL);
-        } else {
-            return List.of(FishTypes.SMALL, FishTypes.MEDIUM);
-        }
+    public List<FishTypes> getFishTypes() {
+        return List.of(FishTypes.SMALL);
     }
 }

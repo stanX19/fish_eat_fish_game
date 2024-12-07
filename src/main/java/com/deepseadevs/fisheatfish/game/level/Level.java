@@ -5,7 +5,7 @@ import com.deepseadevs.fisheatfish.game.GameData;
 import java.util.List;
 
 public class Level {
-    public List<FishTypes> getFishTypes(double progress) {
+    public List<FishTypes> getFishTypes() {
         return List.of(FishTypes.SMALL);
     }
 

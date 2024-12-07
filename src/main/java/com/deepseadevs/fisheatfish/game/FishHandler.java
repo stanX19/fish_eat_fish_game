@@ -85,4 +85,17 @@ public class FishHandler {
     public int getFishCount() {
         return allFish.size();
     }
+
+    public int getFishCountInBound() {
+        return getFishCountInBound(bound);
+    }
+
+    public int getFishCountInBound(Bound bound) {
+        int count = 0;
+        for (BaseFish fish: allFish) {
+            if (bound.contains(fish.getX(), fish.getY()))
+                count++;
+        }
+        return count;
+    }
 }

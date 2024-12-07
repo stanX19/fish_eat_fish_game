@@ -7,6 +7,8 @@ public class Level2 extends Level {
     //  overwrite getNewProgress to design different
     //  progress criteria for different level
 
-    // TODO:
-    //  overwrite getFishTypes, refer to level1
+
+    public List<FishTypes> getFishTypes() {
+        return List.of(FishTypes.MEDIUM);
+    }
 }

@@ -3,12 +3,12 @@ package com.deepseadevs.fisheatfish.game.level;
 import com.deepseadevs.fisheatfish.game.FishTypes;
 import com.deepseadevs.fisheatfish.game.GameData;
 import com.deepseadevs.fisheatfish.game.PlayerHandler;
-import com.deepseadevs.fisheatfish.game.fish.BaseFish;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 
 public class LevelHandler {
     ArrayList<Level> levels;
@@ -26,13 +26,16 @@ public class LevelHandler {
     }
 
     public List<FishTypes> updateAndGetFishTypes() {
-        Level level = getCurrentLevel();
-        level.updateLevelProgress(gameData);
-        return level.getFishTypes(gameData.getProgress());
+        getCurrentLevel().updateLevelProgress(gameData);
+        return getFishTypes();
     }
 
     public List<FishTypes> getFishTypes() {
-        return getCurrentLevel().getFishTypes(gameData.getProgress());
+        ArrayList<FishTypes> currentFish = new ArrayList<>(getCurrentLevel().getFishTypes());
+        if (gameData.getProgress() >= 0.5) {
+            currentFish.addAll(getNextLevel().getFishTypes());
+        }
+        return currentFish;
     }
 
     public int getMaxFishCount() {
@@ -55,11 +58,19 @@ public class LevelHandler {
     }
 
     public Level getCurrentLevel() {
+        return getSpecifiedLevel(gameData.getLevel());
+    }
+
+    public Level getNextLevel() {
+        return getSpecifiedLevel(gameData.getLevel() + 1);
+    }
+
+    public Level getSpecifiedLevel(int level) {
         if (this.levels.isEmpty())
             throw new IllegalArgumentException("No level stored in LevelHandler");
-        else if (gameData.getLevel() > levels.size())
+        else if (level > levels.size())
             return levels.get(levels.size() - 1); // changed getLast() to levels.size() - 1
         else
-            return levels.get(gameData.getLevel() - 1);
+            return levels.get(level - 1);
     }
 }

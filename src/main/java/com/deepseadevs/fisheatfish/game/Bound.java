@@ -22,4 +22,8 @@ public class Bound {
     public double getMidY() {
         return minY + (maxY - minY) / 2;
     }
+
+    public boolean contains(double x, double y) {
+        return (x >= minX && x <= maxX && y >= minY && y <= maxY);
+    }
 }

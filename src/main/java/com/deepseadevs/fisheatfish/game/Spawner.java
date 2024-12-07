@@ -8,13 +8,19 @@ import java.util.List;
 import java.util.Random;
 
 public class Spawner {
-    static final int BUFFER = 200;
-    Bound bound;
-    Random random;
+    static final int BUFFER = 600;
+    private double bufferRatio;
+    private final Bound bound;
+    private final Random random;
 
     public Spawner(Bound bound) {
         this.bound = bound;
         this.random = new Random();
+        this.bufferRatio = 0;
+    }
+
+    public void setBufferRatio(double bufferRatio) {
+        this.bufferRatio = bufferRatio;
     }
 
     private BaseFish fishTypeToFish(FishTypes fishType) {
@@ -74,11 +80,19 @@ public class Spawner {
     }
 
     private BaseFish configureNewFish(BaseFish newFish) {
-        double buffer = BUFFER; // * newFish.getArea() / 1000;
-        if (Math.random() > 0.5) // left side
-            newFish.setX(random.nextDouble(bound.minX - 2 * buffer, bound.minX - buffer));
-        else // right side
-            newFish.setX(random.nextDouble(bound.maxX + buffer, bound.maxX + 2 * buffer));
+        double buffer = bufferRatio * BUFFER + 1;
+        System.out.println(buffer);
+        if (Math.random() > 0.5) {// left side
+            newFish.setX(random.nextDouble(
+                    bound.minX - 2 * buffer - newFish.getWidth(),
+                    bound.minX - buffer - newFish.getWidth()
+            ));
+        } else { // right side
+            newFish.setX(random.nextDouble(
+                    bound.maxX + buffer,
+                    bound.maxX + 2 * buffer
+            ));
+        }
         newFish.setY(random.nextDouble(bound.minY, bound.maxY));
         newFish.setXv(random.nextInt(50, 200));
         newFish.setYv(random.nextInt(0, 20));

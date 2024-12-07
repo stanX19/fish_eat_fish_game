@@ -40,14 +40,14 @@ public class GamePage extends BasePage {
         StackPane root = new StackPane();
 
         // Main game canvas
-        this.canvas = new Canvas(800, 600);
+        this.canvas = new Canvas(1280, 720);
         root.getChildren().add(canvas);
 
         // Game over screen
         gameOverOverlay = new Pane();
         gameOverOverlay.setVisible(false); // Only visible on game over
         gameOverOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);"); // semi-transparent black background
-        gameOverOverlay.setPrefSize(800, 600);
+        gameOverOverlay.setPrefSize(canvas.getWidth(), canvas.getHeight());
         restartButton = new Button("Restart");
         restartButton.setOnAction(e -> uiController.gotoGamePage());
         restartButton.setFont(new Font(20));

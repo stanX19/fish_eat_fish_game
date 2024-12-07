@@ -83,6 +83,9 @@ public class GameEngine {
 
     private void spawnFishes() {
         for (int i = 0; i < levelHandler.getMaxFishCount() - fishHandler.getFishCount(); i++) {
+            int fishOutOfBoundCount = fishHandler.getFishCount() - fishHandler.getFishCountInBound();
+            double bufferRatio = fishOutOfBoundCount / (double)levelHandler.getMaxFishCount();
+            spawner.setBufferRatio(bufferRatio);
             BaseFish newFish = spawner.spawnRandomFish(levelHandler.getFishTypes());
             fishHandler.addFish(newFish);
         }
