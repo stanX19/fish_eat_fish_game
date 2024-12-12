@@ -1,4 +1,5 @@
 package com.deepseadevs.fisheatfish;
+import com.deepseadevs.fisheatfish.game.FishTypes;
 import com.deepseadevs.fisheatfish.game.GameData;
 
 import java.util.ArrayList;
@@ -11,9 +12,10 @@ public class UserData {
     private String password;
     private long highScore;
     private List<GameData> history;
+    private FishTypes fishType;
 
     UserData(String userID, String displayName, String password) {
-        this(userID, displayName, password, 0, new ArrayList<>());
+        this(userID, displayName, password, 0);
     }
 
     UserData(String userID, String displayName, String password, long highScore) {
@@ -21,11 +23,16 @@ public class UserData {
     }
 
     UserData(String userID, String displayName, String password, long highScore, ArrayList<GameData> history) {
+        this(userID, displayName, password, highScore, history, FishTypes.PLAYER_SMALL);
+    }
+
+    UserData(String userID, String displayName, String password, long highScore, ArrayList<GameData> history, FishTypes fishType) {
         this.userID = userID;
         this.displayName = displayName;
         this.password = password;
         this.highScore = highScore;
         this.history = history;
+        this.fishType = fishType;
     }
 
     public String getDisplayName() {
@@ -70,5 +77,13 @@ public class UserData {
 
     public void setuserID(String userID) {
         this.userID = userID;
+    }
+
+    public FishTypes getFishType() {
+        return fishType;
+    }
+
+    public void setFishType(FishTypes fishType) {
+        this.fishType = fishType;
     }
 }

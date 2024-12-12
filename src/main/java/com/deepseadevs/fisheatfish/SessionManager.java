@@ -1,5 +1,6 @@
 package com.deepseadevs.fisheatfish;
 
+import com.deepseadevs.fisheatfish.game.FishTypes;
 import com.deepseadevs.fisheatfish.game.GameData;
 
 import java.util.List;
@@ -40,6 +41,19 @@ public class SessionManager {
         if (this.currentUser == null)
             return 0;
         return this.currentUser.getHighScore();
+    }
+
+    public FishTypes getUserFishType() {
+        return this.currentUser.getFishType();
+    }
+
+    public void setUserFishType(FishTypes fishType) {
+        this.currentUser.setFishType(fishType);
+    }
+
+    public void updateHighScore(long score) {
+        if (score > currentUser.getHighScore())
+            currentUser.setHighScore(score);
     }
 
     public void clearSession() {
@@ -84,8 +98,4 @@ public class SessionManager {
             System.out.println("Warning: attempting to commit with null session, skipped");
     }
 
-    public void updateHighScore(long score) {
-        if (score > currentUser.getHighScore())
-            currentUser.setHighScore(score);
-    }
 }

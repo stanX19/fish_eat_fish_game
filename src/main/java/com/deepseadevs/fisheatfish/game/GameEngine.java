@@ -36,7 +36,7 @@ public class GameEngine {
         this.gameRenderer = new GameRenderer(gc, this.fishHandler, this.gameData, sessionManager);
 
         // Initialize the player and add to fishHandler
-        this.player = new SmallPlayerFish();
+        this.player = this.spawner.spawnFish(sessionManager.getUserFishType());
         this.player.setX(this.bound.getMidX());
         this.player.setY(this.bound.getMidY());
         this.fishHandler.addFish(player);

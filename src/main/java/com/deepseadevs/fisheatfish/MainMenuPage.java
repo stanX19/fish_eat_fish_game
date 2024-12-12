@@ -15,7 +15,10 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 
 // TODO:
-//  Add continue button on menu page, to continue previous game
+//  if sessionManager.hasOngoingGame()
+//   Add continue button on menu page, to continue previous game
+//   using uiController.gotoGamePage(true);
+//  Add history button to go to history page
 public class MainMenuPage extends BasePage {
 
     public MainMenuPage(UIController uiController, SessionManager sessionManager) {
