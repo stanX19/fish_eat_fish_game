@@ -1,6 +1,7 @@
 package com.deepseadevs.fisheatfish;
 
 import com.deepseadevs.fisheatfish.game.GameData;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -28,7 +29,7 @@ class DataBase {
         this.dataPath = dataPath;
         this.dataMap = new HashMap<>();
         try {
-            Files.createDirectories(Paths.get(dataPath+"/history"));
+            Files.createDirectories(Paths.get(dataPath + "/history"));
         } catch (IOException e) {
             System.err.println("Error creating directories: " + e.getMessage());
         }
@@ -37,15 +38,14 @@ class DataBase {
 
     // Loads the data from the CSV
     private void loadFromCSV() {
-        try (BufferedReader accountsReader = new BufferedReader(
-                new FileReader(dataPath+"/accounts.csv"))) {
+        String accountsPath = dataPath + "/accounts.csv";
+        try (BufferedReader accountsReader = new BufferedReader(new FileReader(accountsPath))) {
             String accountsRow;
             while ((accountsRow = accountsReader.readLine()) != null) {
                 String[] accountsCol = accountsRow.split(",");
-
                 ArrayList<GameData> history = new ArrayList<>();
-                try (BufferedReader historyReader = new BufferedReader(
-                        new FileReader(dataPath+"/history/"+accountsCol[0]+".csv"))) {
+                String historyPath = dataPath + "/history/" + accountsCol[0] + ".csv";
+                try (BufferedReader historyReader = new BufferedReader(new FileReader(historyPath))) {
                     String historyRow;
                     while ((historyRow = historyReader.readLine()) != null) {
                         String[] historyCol = historyRow.split(",");
@@ -60,7 +60,12 @@ class DataBase {
                                 Duration.parse(historyCol[7])));
                     }
                 } catch (FileNotFoundException e) {
-                    System.out.println("CSV file not found. Starting with empty database.");
+                    System.out.println(historyPath + " not found. Creating empty file.");
+                    try {
+                        new File(historyPath).createNewFile();
+                    } catch (IOException ex) {
+                        System.err.println("Error creating CSV file: " + ex.getMessage());
+                    }
                 } catch (IOException e) {
                     System.err.println("Error reading CSV file: " + e.getMessage());
                 } catch (NumberFormatException e) {
@@ -75,7 +80,12 @@ class DataBase {
                         history));
             }
         } catch (FileNotFoundException e) {
-            System.out.println("CSV file not found. Starting with empty database.");
+            System.out.println(accountsPath + " not found. Creating empty file.");
+            try {
+                new File(accountsPath).createNewFile();
+            } catch (IOException ex) {
+                System.err.println("Error creating CSV file: " + ex.getMessage());
+            }
         } catch (IOException e) {
             System.err.println("Error reading CSV file: " + e.getMessage());
         } catch (NumberFormatException e) {
@@ -85,18 +95,18 @@ class DataBase {
 
     // Save current dataMap to CSV
     private void saveToCSV() {
-        try (BufferedWriter accountsWriter = new BufferedWriter(
-                new FileWriter(dataPath+"/accounts.csv"))) {
+        String accountsPath = dataPath + "/accounts.csv";
+        try (BufferedWriter accountsWriter = new BufferedWriter(new FileWriter(accountsPath))) {
             for (Map.Entry<String, UserData> entry : dataMap.entrySet()) {
                 UserData userData = entry.getValue();
-                accountsWriter.write(userData.getUserID()+","+
-                        userData.getDisplayName()+","+
-                        userData.getPassword()+","+
+                accountsWriter.write(userData.getUserID() + "," +
+                        userData.getDisplayName() + "," +
+                        userData.getPassword() + "," +
                         userData.getHighScore());
                 accountsWriter.newLine();
 
-                try (BufferedWriter historyWriter = new BufferedWriter(
-                        new FileWriter(dataPath+"/history/"+userData.getUserID()+".csv"))) {
+                String historyPath = dataPath + "/history/" + userData.getUserID() + ".csv";
+                try (BufferedWriter historyWriter = new BufferedWriter(new FileWriter(historyPath))) {
                     List<GameData> history = userData.getHistory();
                     for (GameData gameData : history) {
                         historyWriter.write(gameData.getScore() + "," +
