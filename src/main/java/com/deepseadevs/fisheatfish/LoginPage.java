@@ -46,10 +46,50 @@ public class LoginPage extends BasePage {
         loginButton = new Button("Login");
         loginButton.setFont(new Font("Arial", 14));
         loginButton.setStyle("-fx-background-color: #66ccff; -fx-text-fill: white;");
-        // TODO: beautify newAccount button
+
+        // beautify newAccount button
         newAccountButton = new Button("New Account");
         newAccountButton.setFont(new Font("Arial", 14));
-        newAccountButton.setStyle("-fx-background-color: #0099ff; -fx-text-fill: white;");
+        newAccountButton.setStyle(
+                "-fx-background-color: linear-gradient(#1A7BB6, #48AFCD);" + // Gradient background
+                        "-fx-text-fill: white;" +                                   // White text
+                        "-fx-padding: 10 20;" +                                     // Padding for better clickability
+                        "-fx-background-radius: 8;" +                               // Rounded corners
+                        "-fx-border-radius: 8;" +                                   // Rounded border
+                        "-fx-border-color: #8BD5DE;" +                              // Border color
+                        "-fx-border-width: 2;" +                                    // Border width
+                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 4, 0, 2, 2);" + // Text shadow
+                        "-fx-font-weight: bold;" +                                  // Bold text
+                        "-fx-text-fill: linear-gradient(#FFFFFF, #E0E0E0);" +       // Gradient text color
+                        "-fx-letter-spacing: 1.5px;"                                // Letter spacing for better readability
+        );
+        newAccountButton.setOnMouseEntered(e -> newAccountButton.setStyle(
+                "-fx-background-color: linear-gradient(#48AFCD, #8BD5DE);" + // Lighter gradient on hover
+                        "-fx-text-fill: white;" +
+                        "-fx-padding: 10 20;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-border-radius: 8;" +
+                        "-fx-border-color: #8BD5DE;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 6, 0, 2, 2);" + // Stronger shadow on hover
+                        "-fx-font-weight: bold;" +
+                        "-fx-text-fill: linear-gradient(#FFFFFF, #E0E0E0);" +
+                        "-fx-letter-spacing: 1.5px;"
+        ));
+        newAccountButton.setOnMouseExited(e -> newAccountButton.setStyle(
+                "-fx-background-color: linear-gradient(#1A7BB6, #48AFCD);" + // Revert to default on exit
+                        "-fx-text-fill: white;" +
+                        "-fx-padding: 10 20;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-border-radius: 8;" +
+                        "-fx-border-color: #8BD5DE;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 4, 0, 2, 2);" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-text-fill: linear-gradient(#FFFFFF, #E0E0E0);" +
+                        "-fx-letter-spacing: 1.5px;"
+        ));
+        // feedback text
         feedbackText = new Text();
         feedbackText.setFont(new Font("Arial", 12));
 
@@ -88,13 +128,15 @@ public class LoginPage extends BasePage {
         return new Scene(outerBox, 400, 300);
     }
 
-    // TODO:
-    //  Apply password hashing using LoginUtils.hashString
+
+    //  Apply password hashing using LoginUtils.hashString done
     private void attemptLogin() {
         String userID = userIDField.getText();
         String password = passwordField.getText();
 
-        if (DatabaseManager.getInstance().isCorrectPassword(userID, password)) {
+        String hashedPassword = LoginUtils.hashString(password);
+
+        if (DatabaseManager.getInstance().isCorrectPassword(userID, hashedPassword)) {
             sessionManager.setUser(userID);
             uiController.gotoMainMenu();
         } else {
