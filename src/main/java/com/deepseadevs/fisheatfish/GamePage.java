@@ -1,5 +1,6 @@
 package com.deepseadevs.fisheatfish;
 
+import com.deepseadevs.fisheatfish.game.GameData;
 import com.deepseadevs.fisheatfish.game.GameEngine;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -21,8 +22,12 @@ public class GamePage extends BasePage {
     }
 
     public GamePage(UIController uiController, SessionManager sessionManager, boolean continueGame) {
+        this(uiController, sessionManager, continueGame? sessionManager.getPreviousGameData(): sessionManager.createNewGameData());
+    }
+
+    public GamePage(UIController uiController, SessionManager sessionManager, GameData gameData) {
         super(uiController, sessionManager);
-        this.gameEngine = new GameEngine(canvas.getGraphicsContext2D(), sessionManager, continueGame);
+        this.gameEngine = new GameEngine(canvas.getGraphicsContext2D(), sessionManager, gameData);
         gameEngine.setGameOverCallback(this::showGameOverScreen);
         scene.setOnKeyPressed(event -> gameEngine.handleKeyPressed(event));
         scene.setOnKeyReleased(event -> gameEngine.handleKeyReleased(event));
