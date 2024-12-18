@@ -5,6 +5,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 
 import java.util.ArrayList;
@@ -18,22 +19,11 @@ public class LeaderboardPage extends BasePage {
     }
 
     protected Scene createScene() {
-        // TODO:
-        //  change the colors
-        //  change the appearance of the grid such that each column is not detached
-        //  if player is not on leaderboard show player name and score at the bottom
-        //  of the leaderboard
-        //  show very small, not obvious userid text below user's name
-
-        // Root container with gradient background
-        StackPane root = new StackPane();
-        root.setStyle("-fx-background-color: linear-gradient(to bottom, #1a2b40, #162733);");
-        root.setPadding(new Insets(20));
-
         // Centered VBox for content
         VBox contentBox = new VBox();
         contentBox.setAlignment(Pos.CENTER);
         contentBox.setSpacing(20);
+        contentBox.setStyle("-fx-background-color: #1a2b40;");
 
         // Welcome label
         Label welcomeLabel = new Label("LEADERBOARD");
@@ -68,8 +58,11 @@ public class LeaderboardPage extends BasePage {
         // Add content to the box
         contentBox.getChildren().addAll(welcomeLabel, leaderboardLayout, backButton);
 
-        // Center content in the window
-        root.getChildren().add(contentBox);
+        // Wrap contentBox in a ScrollPane to allow scrolling for the entire scene
+        ScrollPane root = new ScrollPane(contentBox);
+        root.setFitToWidth(true); // Make the scene's content stretch horizontally
+        root.setStyle("-fx-background-color: #1a2b40;");
+        root.setPadding(new Insets(20));
 
         return new Scene(root, 1000, 700); // Adjust dimensions as necessary
     }
@@ -78,7 +71,7 @@ public class LeaderboardPage extends BasePage {
         VBox leaderboardLayout = new VBox();
         leaderboardLayout.setSpacing(10); // Space between rows
         leaderboardLayout.setPadding(new Insets(15));
-//        leaderboardLayout.setStyle("-fx-background-radius: 10; -fx-background-color: #26364e;");
+        leaderboardLayout.setStyle("-fx-background-radius: 10; -fx-background-color: #26364e;");
         leaderboardLayout.setMaxWidth(500);
         leaderboardLayout.setAlignment(Pos.CENTER);
 
