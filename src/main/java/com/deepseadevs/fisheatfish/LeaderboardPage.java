@@ -61,10 +61,11 @@ public class LeaderboardPage extends BasePage {
         // Wrap contentBox in a ScrollPane to allow scrolling for the entire scene
         ScrollPane root = new ScrollPane(contentBox);
         root.setFitToWidth(true); // Make the scene's content stretch horizontally
+        root.setFitToHeight(true);
         root.setStyle("-fx-background-color: #1a2b40;");
         root.setPadding(new Insets(20));
 
-        return new Scene(root, 1000, 700); // Adjust dimensions as necessary
+        return new Scene(root, 700, 500); // Adjust dimensions as necessary
     }
 
     private VBox createLeaderboardLayout() {
