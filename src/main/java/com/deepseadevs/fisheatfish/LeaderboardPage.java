@@ -1,11 +1,11 @@
 package com.deepseadevs.fisheatfish;
 
-import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 
 import java.util.ArrayList;
@@ -19,121 +19,155 @@ public class LeaderboardPage extends BasePage {
     }
 
     protected Scene createScene() {
-        // TODO:
-        //  change the colors
-        //  change the appearance of the grid such that each column is not detached
-        //  if player is not on leaderboard show player name and score at the bottom
-        //  of the leaderboard
-        //  show very small, not obvious userid text below user's name
-
-        // Root container with gradient background
-        StackPane root = new StackPane();
-        root.setStyle("-fx-background-color: linear-gradient(to bottom, #1e3c72, #2a5298);");
-        root.setPadding(new Insets(20));
-
         // Centered VBox for content
         VBox contentBox = new VBox();
         contentBox.setAlignment(Pos.CENTER);
         contentBox.setSpacing(20);
+        contentBox.setStyle("-fx-background-color: #1a2b40;");
 
         // Welcome label
-        Label welcomeLabel = new Label("Welcome, " + sessionManager.getDisplayName() + "!");
-        welcomeLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
+        Label welcomeLabel = new Label("LEADERBOARD");
+        welcomeLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #b5c7eb;");
 
         // Back button
         Button backButton = new Button("Back");
         backButton.setOnAction(e -> uiController.gotoMainMenu());
-        backButton.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #333; -fx-font-size: 14px; -fx-padding: 5 10; "
-                + "-fx-border-color: #666; -fx-border-width: 1px; -fx-border-radius: 5px;");
-        backButton.setOnMouseEntered(e -> backButton.setStyle("-fx-background-color: #ffcc00; -fx-text-fill: #000; "
-                + "-fx-font-size: 14px; -fx-padding: 5 10; -fx-border-color: #333; -fx-border-radius: 5px;"));
-        backButton.setOnMouseExited(e -> backButton.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #333; "
-                + "-fx-font-size: 14px; -fx-padding: 5 10; -fx-border-color: #666; -fx-border-radius: 5px;"));
+        final String BUTTON_STYLE = """
+            -fx-background-color: #3b82f6;
+            -fx-text-fill: white;
+            -fx-font-size: 16px;
+            -fx-padding: 12px 24px;
+            -fx-background-radius: 8px;
+            -fx-cursor: hand;
+            """;
+        final String BUTTON_HOVER_STYLE = """
+            -fx-background-color: derive(#3b82f6, -20%);
+            -fx-text-fill: white;
+            -fx-font-size: 16px;
+            -fx-padding: 12px 24px;
+            -fx-background-radius: 8px;
+            -fx-cursor: hand;
+            """;
+        backButton.setStyle(BUTTON_STYLE);
+        backButton.setOnMouseEntered(e -> backButton.setStyle(BUTTON_HOVER_STYLE));
+        backButton.setOnMouseExited(e -> backButton.setStyle(BUTTON_STYLE));
 
-        // Leaderboard grid
-        GridPane leaderboardGrid = createLeaderboardGrid();
+        // Leaderboard layout
+        VBox leaderboardLayout = createLeaderboardLayout();
 
         // Add content to the box
-        contentBox.getChildren().addAll(welcomeLabel, leaderboardGrid, backButton);
+        contentBox.getChildren().addAll(welcomeLabel, leaderboardLayout, backButton);
 
-        // Center content in the window
-        root.getChildren().add(contentBox);
+        // Wrap contentBox in a ScrollPane to allow scrolling for the entire scene
+        ScrollPane root = new ScrollPane(contentBox);
+        root.setFitToWidth(true); // Make the scene's content stretch horizontally
+        root.setFitToHeight(true);
+        root.setStyle("-fx-background-color: #1a2b40;");
+        root.setPadding(new Insets(20));
 
         return new Scene(root, 700, 500); // Adjust dimensions as necessary
     }
 
-    private GridPane createLeaderboardGrid() {
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(15));
-        grid.setStyle("-fx-background-color: rgba(255, 255, 255, 0.9); -fx-border-radius: 10; -fx-background-radius: 10;");
-        grid.setMaxWidth(500);
-        grid.setAlignment(Pos.CENTER);
+    private VBox createLeaderboardLayout() {
+        VBox leaderboardLayout = new VBox();
+        leaderboardLayout.setSpacing(10); // Space between rows
+        leaderboardLayout.setPadding(new Insets(15));
+        leaderboardLayout.setStyle("-fx-background-radius: 10; -fx-background-color: #26364e;");
+        leaderboardLayout.setMaxWidth(500);
+        leaderboardLayout.setAlignment(Pos.CENTER);
 
-        // Header row with colored background
-        Label rankHeader = new Label("Rank");
-        Label displayNameHeader = new Label("Username");
-        Label scoreHeader = new Label("High Score");
-        styleHeader(rankHeader);
-        styleHeader(displayNameHeader);
-        styleHeader(scoreHeader);
-
-        grid.add(rankHeader, 0, 0);
-        grid.add(displayNameHeader, 1, 0);
-        grid.add(scoreHeader, 2, 0);
-
-        GridPane.setHalignment(rankHeader, HPos.CENTER);
-        GridPane.setHalignment(displayNameHeader, HPos.CENTER);
-        GridPane.setHalignment(scoreHeader, HPos.CENTER);
+        // Header row
+        HBox headerRow = createRow("Rank", "Username", "High Score", "", true, false);
+        leaderboardLayout.getChildren().add(headerRow);
 
         // Fetch and sort top players
         Collection<UserData> topPlayersRaw = LeaderboardUtils.getTopUsers(10);
         List<UserData> topPlayers = new ArrayList<>(topPlayersRaw);
         topPlayers.sort(Comparator.comparingLong(UserData::getHighScore).reversed());
 
-        if (topPlayers.isEmpty()) {
-            Label noDataLabel = new Label("No players on the leaderboard yet.");
-            noDataLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
-            grid.add(noDataLabel, 0, 1, 3, 1); // Spans all columns
-            GridPane.setHalignment(noDataLabel, HPos.CENTER);
-        } else {
-            int row = 1;
-            int rank = 1;
-            for (UserData user : topPlayers) {
-                Label rankLabel = new Label(String.valueOf(rank));
-                Label displayedNameLabel = new Label(user.getDisplayName());
-                Label scoreLabel = new Label(String.valueOf(user.getHighScore()));
+        boolean isUserOnLeaderboard = false;
 
-                boolean isCurrentUser = user.getUserID().equals(sessionManager.getUserID());
-                styleCell(rankLabel, row, isCurrentUser);
-                styleCell(displayedNameLabel, row, isCurrentUser);
-                styleCell(scoreLabel, row, isCurrentUser);
-
-                grid.add(rankLabel, 0, row);
-                grid.add(displayedNameLabel, 1, row);
-                grid.add(scoreLabel, 2, row);
-
-                GridPane.setHalignment(rankLabel, HPos.CENTER);
-                GridPane.setHalignment(scoreLabel, HPos.CENTER);
-
-                row++;
-                rank++;
+        int rank = 1;
+        for (UserData user : topPlayers) {
+            boolean isCurrentUser = user.getUserID().equals(sessionManager.getUserID());
+            if (isCurrentUser) {
+                isUserOnLeaderboard = true;
             }
+
+            HBox row = createRow(String.valueOf(rank), user.getDisplayName(), String.valueOf(user.getHighScore()), user.getUserID(),false, isCurrentUser);
+            leaderboardLayout.getChildren().add(row);
+            rank++;
         }
 
-        return grid;
+        if (!isUserOnLeaderboard) {
+            UserData currentUser = DatabaseManager.getInstance().getUserData(sessionManager.getUserID());
+            HBox currentUserRow = createRow("N/A", currentUser.getDisplayName(), String.valueOf(currentUser.getHighScore()), currentUser.getUserID(), false, true);
+            leaderboardLayout.getChildren().add(currentUserRow);
+        }
+
+        return leaderboardLayout;
     }
 
-    private void styleHeader(Label label) {
-        label.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #ffffff; -fx-background-color: #007bff; "
-                + "-fx-padding: 10; -fx-border-color: #333; -fx-border-radius: 5px; -fx-border-width: 1;");
+    private HBox createRow(String rank, String username, String score, String userID, boolean isHeader, boolean isHighlighted) {
+        HBox row = new HBox();
+        row.setSpacing(10);
+        row.setAlignment(Pos.CENTER);
+        row.setPadding(new Insets(5));
+
+        // Apply background styles
+        if (isHeader) {
+            row.setStyle("-fx-padding: 10px;");
+        } else {
+            String borderColor = rank.equals("1") ? "#efbf04" : rank.equals("2") ? "#c4c4c4": rank.equals("3") ? "#ce8946" : "null";
+            row.setStyle("-fx-background-color: rgba(255, 255, 255, 0.1); -fx-padding: 10px; -fx-background-radius: 5px; -fx-border-color: " + borderColor + ";");
+        }
+
+        // Create labels for each column
+        Label rankLabel = new Label(rank);
+        Label usernameLabel = new Label(username);
+        Label scoreLabel = new Label(score);
+
+        styleCell(rankLabel, isHeader, isHighlighted, false);
+        styleCell(usernameLabel, isHeader, isHighlighted, false);
+        styleCell(scoreLabel, isHeader, isHighlighted, false);
+
+        // Ensure the labels are properly spaced
+        HBox.setHgrow(rankLabel, Priority.ALWAYS);
+        HBox.setHgrow(usernameLabel, Priority.ALWAYS);
+        HBox.setHgrow(scoreLabel, Priority.ALWAYS);
+
+        double columnWidth = 150; // Adjust as needed
+        rankLabel.setMinWidth(columnWidth);
+        usernameLabel.setMinWidth(columnWidth);
+        scoreLabel.setMinWidth(columnWidth);
+
+        rankLabel.setMaxWidth(Double.MAX_VALUE);
+        usernameLabel.setMaxWidth(Double.MAX_VALUE);
+        scoreLabel.setMaxWidth(Double.MAX_VALUE);
+
+        if (!userID.isEmpty()) {
+            VBox vbox = new VBox();
+            Label userIDLabel = new Label(userID);
+            styleCell(userIDLabel, isHeader, isHighlighted, true);
+            HBox.setHgrow(userIDLabel, Priority.ALWAYS);
+            userIDLabel.setMinWidth(columnWidth);
+            userIDLabel.setMaxWidth(Double.MAX_VALUE);
+            vbox.getChildren().addAll(usernameLabel, userIDLabel);
+            row.getChildren().addAll(rankLabel, vbox, scoreLabel);
+            return row;
+        }
+
+        // Add labels to the row
+        row.getChildren().addAll(rankLabel, usernameLabel, scoreLabel);
+
+        return row;
     }
 
-    private void styleCell(Label label, int row, boolean highlight) {
-        String backgroundColor = highlight ? "#ffcc00" : (row % 2 == 0 ? "#f9f9f9" : "#e0e0e0");
-        String textColor = highlight ? "#000000" : "#333333";
-        label.setStyle("-fx-font-size: 14px; -fx-text-fill: " + textColor + "; -fx-background-color: " + backgroundColor + "; "
-                + "-fx-padding: 5px; -fx-border-color: #ddd; -fx-border-width: 1px;");
+    private void styleCell(Label label, boolean isHeader, boolean isHighlighted, boolean isUserID) {
+        String fontSize = isHeader ? "16px" : isUserID ? "10px" : "14px";
+        String fontWeight = isHeader ? "bold" : "normal";
+        String textColor = isUserID ? "#898989" : isHighlighted ? "#adebb3" : "#ffffff";
+
+        label.setStyle("-fx-font-size: " + fontSize + "; -fx-font-weight: " + fontWeight + "; -fx-text-fill: " + textColor + "; -fx-alignment: center;");
     }
 }
