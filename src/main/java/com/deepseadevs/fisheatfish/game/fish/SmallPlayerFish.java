@@ -8,7 +8,7 @@ import javafx.scene.paint.Color;
 public class SmallPlayerFish extends BasePlayerFish {
     public SmallPlayerFish() {
         super();
-        setArea(700);
+        setArea(600);
     }
     public void drawFishRight(GraphicsContext gc) {
         // Set the fill color for the fish's body
