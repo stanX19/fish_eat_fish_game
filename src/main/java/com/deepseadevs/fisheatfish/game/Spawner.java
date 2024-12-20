@@ -80,22 +80,24 @@ public class Spawner {
     }
 
     private BaseFish configureNewFish(BaseFish newFish) {
+        newFish.setY(random.nextDouble(bound.minY,bound.maxY - newFish.getHeight()));
+        newFish.setXv(random.nextInt(50, 200));
+        newFish.setYv(random.nextInt(0, 20));
+        newFish.setSpeed(newFish.getMaxSpeed());
+
         double buffer = bufferRatio * BUFFER + 1;
-        if (Math.random() > 0.5) {// left side
+        if (Math.random() > 0.5) { // left side
             newFish.setX(random.nextDouble(
                     bound.minX - 2 * buffer - newFish.getWidth(),
                     bound.minX - buffer - newFish.getWidth()
             ));
         } else { // right side
+            newFish.setXv(-newFish.getXv());
             newFish.setX(random.nextDouble(
                     bound.maxX + buffer,
                     bound.maxX + 2 * buffer
             ));
         }
-        newFish.setY(random.nextDouble(bound.minY, bound.maxY));
-        newFish.setXv(random.nextInt(50, 200));
-        newFish.setYv(random.nextInt(0, 20));
-        newFish.setSpeed(newFish.getMaxSpeed());
         return newFish;
     }
 }

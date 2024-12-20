@@ -5,7 +5,7 @@ import javafx.scene.paint.Color;
 
 // TODO:
 //  ADD design and customization, override methods for custom behaviour
-public class SmallPlayerFish extends BaseFish {
+public class SmallPlayerFish extends BasePlayerFish {
     public SmallPlayerFish() {
         super();
         setArea(700);
