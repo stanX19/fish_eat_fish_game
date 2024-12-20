@@ -19,7 +19,7 @@ public class BaseFish extends GameObject {
         this.fishEaten = fishEaten;
     }
 
-    private boolean facingRight = true;
+    protected boolean facingRight = true;
     // TODO
     //  Overwrite render method to draw a fish
     public void render(GraphicsContext gc) {
