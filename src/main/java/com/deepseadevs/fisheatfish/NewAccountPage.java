@@ -169,15 +169,9 @@ public class NewAccountPage extends BasePage {
         } else if (DatabaseManager.getInstance().userExists(userID)) {
             feedbackText.setText("Username already taken.");
             feedbackText.setFill(Color.RED);
-        // Enhanced field validation (length, password strength)
-        } else if (userID.length() > 30) {
-            feedbackText.setText("Username cannot exceed 30 characters.");
-            feedbackText.setFill(Color.RED);
-        } else if (!password.matches("(?=.*[0-9])(?=.*[a-zA-Z]).{8,}")) {
-            feedbackText.setText("Password must be at least 8 characters long and include letters and numbers.");
-            feedbackText.setFill(Color.RED);
         } else {
             disableCreateAccountInputs();
+            // password hashing
             String hashedPassword = LoginUtils.hashString(password);
             DatabaseManager.getInstance().createNewUser(userID, displayedName, hashedPassword);
             successOverlay.setDisable(false);
