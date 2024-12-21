@@ -4,24 +4,35 @@ import javafx.scene.paint.Color;
 
 
 public class BaseFish extends GameObject {
+    protected boolean facingRight;
     private int fishEaten;
+    private int weight;
 
     public BaseFish() {
         this(100, 60, 40);
     }
 
     public BaseFish(double maxSpeed, double width, double height) {
-        this(0, 0, maxSpeed, width, height, 0);
+        this(maxSpeed, width, height, 0, 0, 0, 0);
     }
 
-    public BaseFish(double x, double y, double maxSpeed, double width, double height, int fishEaten) {
+    public BaseFish(double maxSpeed, double width, double height, int fishEaten, int weight) {
+        this(maxSpeed, width, height, fishEaten, weight, 0, 0);
+    }
+
+    public BaseFish(double maxSpeed, double width, double height, int fishEaten, int weight, double x, double y) {
         super(x, y, maxSpeed, width, height);
+        this.facingRight = true;
         this.fishEaten = fishEaten;
+        this.weight = weight;
     }
 
-    private boolean facingRight = true;
-    // TODO
-    //  Overwrite render method to draw a fish
+    public boolean isBiggerThan(BaseFish other) {
+        if (this.getArea() == other.getArea())
+            return this.getWeight() > other.getWeight();
+        return this.getArea() > other.getArea();
+    }
+
     public void render(GraphicsContext gc) {
         if(getXv() < 0){
             facingRight = false;
@@ -91,5 +102,13 @@ public class BaseFish extends GameObject {
 
     public void incrementFishEaten() {
         fishEaten += 1;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
     }
 }

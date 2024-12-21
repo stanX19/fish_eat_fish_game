@@ -3,8 +3,7 @@ module com.deepseadevs.fisheatfish {
     requires javafx.fxml;
     requires java.desktop;
 
-
-    opens com.deepseadevs.fisheatfish to javafx.fxml;
+    opens com.deepseadevs.fisheatfish;
+    opens com.deepseadevs.fisheatfish.game;
     exports com.deepseadevs.fisheatfish;
-    exports com.deepseadevs.fisheatfish.game;
 }

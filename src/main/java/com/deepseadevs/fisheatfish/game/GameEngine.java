@@ -2,7 +2,6 @@ package com.deepseadevs.fisheatfish.game;
 
 import com.deepseadevs.fisheatfish.SessionManager;
 import com.deepseadevs.fisheatfish.game.fish.BaseFish;
-import com.deepseadevs.fisheatfish.game.fish.SmallPlayerFish;
 import com.deepseadevs.fisheatfish.game.level.LevelHandler;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.GraphicsContext;
@@ -23,13 +22,10 @@ public class GameEngine {
     private Runnable gameOverCallback;
     private final GameData gameData;
 
-    // TODO:
-    //  Add music to game
-    //  Add sound effects to game
-    public GameEngine(GraphicsContext gc, SessionManager sessionManager, boolean continueGame) {
+    public GameEngine(GraphicsContext gc, SessionManager sessionManager, GameData gameData) {
         this.gc = gc;
         this.sessionManager = sessionManager;
-        this.gameData = sessionManager.createNewGameData(); // TODO: use previous game data if continueGame
+        this.gameData = gameData;
         this.bound = new Bound(0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
         this.spawner = new Spawner(this.bound);
         this.fishHandler = new FishHandler(this.bound);
@@ -118,12 +114,9 @@ public class GameEngine {
     }
 
     private void syncGameData(double deltaTime) {
-        // TODO:
-        //  use a better way to determine score
-        //  instead of using area, if there is one
         gameData.setFishEaten(playerHandler.getAccumulatedFishEaten());
         gameData.setLevelFishEaten(player.getFishEaten());
-        gameData.setScore((int)player.getArea() * 100L);
+        gameData.setScore((int)player.getArea() + player.getFishEaten() * 100L);
         gameData.updateDuration(deltaTime);
         sessionManager.updateHighScore(gameData.getScore());
         sessionManager.commit();

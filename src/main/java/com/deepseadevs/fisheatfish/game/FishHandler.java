@@ -9,11 +9,13 @@ import java.util.List;
 
 public class FishHandler {
     Bound bound;
+    private final int xRemoveBuffer;
     private final List<BaseFish> allFish;
 
     public FishHandler(Bound bound) {
         this.allFish = new ArrayList<>();
         this.bound = bound;
+        this.xRemoveBuffer = 100;
     }
 
     public void addFish(BaseFish fish) {
@@ -43,17 +45,22 @@ public class FishHandler {
     }
 
     public void updateAll(double deltaTime) {
-        for (BaseFish fish: allFish) {
+        for (int i = 0; i < allFish.size(); i++) {
+            BaseFish fish = allFish.get(i);
             boundFishMovements(fish);
+            removeIfOutOfBound(fish);
             fish.update(deltaTime);
         }
     }
 
+    private void removeIfOutOfBound(BaseFish fish) {
+        if (fish.getX() > bound.maxX + xRemoveBuffer && fish.getXv() > 0)
+            removeFish(fish);
+        if (fish.getX() + fish.getWidth() < bound.minX - xRemoveBuffer && fish.getXv() < 0)
+            removeFish(fish);
+    }
+
     private void boundFishMovements(BaseFish fish) {
-        if (fish.getX() + fish.getWidth() > bound.maxX && fish.getXv() > 0)
-            fish.setXv(-fish.getXv());
-        if (fish.getX() < bound.minX && fish.getXv() < 0)
-            fish.setXv(-fish.getXv());
         if (fish.getY() + fish.getHeight() > bound.maxY && fish.getYv() > 0)
             fish.setYv(-fish.getYv());
         if (fish.getY() < bound.minY && fish.getYv() < 0)
@@ -73,7 +80,7 @@ public class FishHandler {
     }
 
     private void handleFishFishCollision(BaseFish fish1, BaseFish fish2) {
-        if (fish1.getArea() > fish2.getArea()) {
+        if (fish1.isBiggerThan(fish2)) {
             handleFishFishCollision(fish2, fish1);
         } else {
             allFish.remove(fish1);
