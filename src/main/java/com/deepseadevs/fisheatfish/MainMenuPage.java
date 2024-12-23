@@ -14,11 +14,7 @@ import javafx.scene.control.Alert;
 
 import javafx.scene.control.Alert.AlertType;
 
-// TODO:
-//  if sessionManager.hasOngoingGame()
-//   Add continue button on menu page, to continue previous game
-//   using uiController.gotoGamePage(true);
-//  Add history button to go to history page
+
 public class MainMenuPage extends BasePage {
 
     public MainMenuPage(UIController uiController, SessionManager sessionManager) {
@@ -49,16 +45,22 @@ public class MainMenuPage extends BasePage {
         highScoreLabel.setTextFill(Color.web("#fbbf24")); // Gold text
 
         // Create Key Function
-        Button startGameButton = createMainButton("Start Game", "#22c55e"); // Green start button
+        Button startGameButton = createMainButton("Start Game");
         startGameButton.setOnAction(e -> uiController.gotoGamePage());
 
-        Button leaderboardButton = createMainButton("Leaderboard", "#3b82f6"); // Blue leaderboard button
-        leaderboardButton.setOnAction(e -> handleLeaderboard());
+        Button continueButton = createMainButton("Continue Game");
+        continueButton.setOnAction(e -> uiController.gotoGamePage(true));
 
-        Button profileButton = createMainButton("Profile", "#9333ea"); // Purple profile button
+        Button leaderboardButton = createMainButton("Leaderboard");
+        leaderboardButton.setOnAction(e -> uiController.gotoLeaderBoard());
+
+        Button historyButton = createMainButton("Game History");
+        historyButton.setOnAction(e -> uiController.gotoHistoryPage());
+
+        Button profileButton = createMainButton("Profile");
         profileButton.setOnAction(e -> handleProfile());
 
-        // Create tool buttons
+        // Create utility buttons row
         HBox utilityButtonsRow = new HBox(20);
         utilityButtonsRow.setAlignment(Pos.CENTER);
 
@@ -70,17 +72,26 @@ public class MainMenuPage extends BasePage {
 
         utilityButtonsRow.getChildren().addAll(settingsButton, helpButton);
 
-        // Create a logout button
-        Button logoutButton = createMainButton("Logout", "#dc2626"); // Red logout button
+        // Create logout button
+        Button logoutButton = createMainButton("Logout");
         logoutButton.setOnAction(e -> uiController.logout());
 
-        // add all elements to the main container
+        // Add all elements to the main container
         root.getChildren().addAll(
                 titleLabel,
                 welcomeLabel,
                 highScoreLabel,
-                startGameButton,
+                startGameButton
+        );
+
+        // Add Continue Game button if there's an ongoing game
+        if (sessionManager.hasOngoingGame()) {
+            root.getChildren().add(continueButton);
+        }
+
+        root.getChildren().addAll(
                 leaderboardButton,
+                historyButton,
                 profileButton,
                 utilityButtonsRow,
                 logoutButton
@@ -92,7 +103,7 @@ public class MainMenuPage extends BasePage {
 
     // by button style - gray background
     private static final String BUTTON_STYLE = """
-            -fx-background-color: #4a5568;
+            -fx-background-color: #3b82f6;
             -fx-text-fill: white;
             -fx-font-size: 16px;
             -fx-padding: 12px 24px;
@@ -102,7 +113,7 @@ public class MainMenuPage extends BasePage {
 
     // Button hover style - Dark gray background
     private static final String BUTTON_HOVER_STYLE = """
-            -fx-background-color: #2d3748;
+            -fx-background-color: #2563eb;
             -fx-text-fill: white;
             -fx-font-size: 16px;
             -fx-padding: 12px 24px;
@@ -110,43 +121,15 @@ public class MainMenuPage extends BasePage {
             -fx-cursor: hand;
             """;
 
-    /**
-     * createMainButton
-     */
-    private Button createMainButton(String text, String color) {
+    private Button createMainButton(String text) {
         Button button = new Button(text);
-        // Set the basic style of buttons
-        button.setStyle(String.format("""
-                -fx-background-color: %s;
-                -fx-text-fill: white;
-                -fx-font-size: 16px;
-                -fx-padding: 12px 24px;
-                -fx-background-radius: 8px;
-                -fx-min-width: 300px;
-                -fx-cursor: hand;
-                """, color));
+        button.setStyle(BUTTON_STYLE + "-fx-min-width: 300px;");
 
-        // Set the mouse hover effect
-        button.setOnMouseEntered(e -> button.setStyle(String.format("""
-                -fx-background-color: derive(%s, -20%%);
-                -fx-text-fill: white;
-                -fx-font-size: 16px;
-                -fx-padding: 12px 24px;
-                -fx-background-radius: 8px;
-                -fx-min-width: 300px;
-                -fx-cursor: hand;
-                """, color)));
+        button.setOnMouseEntered(e ->
+                button.setStyle(BUTTON_HOVER_STYLE + "-fx-min-width: 300px;"));
 
-        //Resort original style
-        button.setOnMouseExited(e -> button.setStyle(String.format("""
-                -fx-background-color: %s;
-                -fx-text-fill: white;
-                -fx-font-size: 16px;
-                -fx-padding: 12px 24px;
-                -fx-background-radius: 8px;
-                -fx-min-width: 300px;
-                -fx-cursor: hand;
-                """, color)));
+        button.setOnMouseExited(e ->
+                button.setStyle(BUTTON_STYLE + "-fx-min-width: 300px;"));
 
         return button;
     }
@@ -156,11 +139,13 @@ public class MainMenuPage extends BasePage {
      */
     private Button createUtilityButton(String text) {
         Button button = new Button(text);
-        button.setStyle(BUTTON_STYLE);
-        button.setMinWidth(140);
+        button.setStyle(BUTTON_STYLE + "-fx-min-width: 140px;");
 
-        button.setOnMouseEntered(e -> button.setStyle(BUTTON_HOVER_STYLE + "-fx-min-width: 140px;"));
-        button.setOnMouseExited(e -> button.setStyle(BUTTON_STYLE + "-fx-min-width: 140px;"));
+        button.setOnMouseEntered(e ->
+                button.setStyle(BUTTON_HOVER_STYLE + "-fx-min-width: 140px;"));
+
+        button.setOnMouseExited(e ->
+                button.setStyle(BUTTON_STYLE + "-fx-min-width: 140px;"));
 
         return button;
     }
@@ -176,15 +161,12 @@ public class MainMenuPage extends BasePage {
             -fx-background-color: #1a202c;
             """);
 
-        // Get the content area and set the text to white
         alert.getDialogPane().lookup(".content.label").setStyle("""
             -fx-text-fill: #ffffff;
             -fx-font-size: 14px;
             -fx-font-family: System;
             """);
 
-        // Set the button style
-        // changed getFirst to get(0)
         alert.getDialogPane().lookupButton(alert.getButtonTypes().get(0)).setStyle(""" 
             -fx-background-color: #3b82f6;
             -fx-text-fill: white;
