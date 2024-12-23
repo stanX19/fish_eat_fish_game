@@ -16,13 +16,14 @@ public class GamePage extends BasePage {
     private Button restartButton;
     private Button backButton;
     private Pane gameOverOverlay;
+    private Pane pauseOverlay;
 
     public GamePage(UIController uiController, SessionManager sessionManager) {
         this(uiController, sessionManager, false);
     }
 
     public GamePage(UIController uiController, SessionManager sessionManager, boolean continueGame) {
-        this(uiController, sessionManager, continueGame? sessionManager.getPreviousGameData(): sessionManager.createNewGameData());
+        this(uiController, sessionManager, continueGame ? sessionManager.getPreviousGameData() : sessionManager.createNewGameData());
     }
 
     public GamePage(UIController uiController, SessionManager sessionManager, GameData gameData) {
@@ -34,12 +35,6 @@ public class GamePage extends BasePage {
         this.gameEngine.start();
     }
 
-    // TODO:
-    //  add button to pause, and show overlay that contains
-    //  buttons for continue or quit mid game
-    // TODO:
-    //  remake ending screen
-    //  - goto leaderboard, retry, back to menu
     @Override
     protected Scene createScene() {
         StackPane root = new StackPane();
@@ -48,23 +43,23 @@ public class GamePage extends BasePage {
         this.canvas = new Canvas(1280, 720);
         root.getChildren().add(canvas);
 
+        // Pause Button
+        Pane pauseButtonContainer = new Pane();
+        Button pauseButton = new Button("Pause");
+        pauseButton.setFont(new Font(20));
+        pauseButton.setOnAction(e -> showPauseOverlay());
+        pauseButton.setLayoutX(canvas.getWidth() - 90); // Position 10px from the right
+        pauseButton.setLayoutY(10);                    // Position 10px from the top
+        pauseButtonContainer.getChildren().add(pauseButton);
+        root.getChildren().add(pauseButtonContainer);
+
+        // Pause screen
+        createPauseOverlay();
+        root.getChildren().add(pauseOverlay);
+
         // Game over screen
-        gameOverOverlay = new Pane();
-        gameOverOverlay.setVisible(false); // Only visible on game over
-        gameOverOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);"); // semi-transparent black background
-        gameOverOverlay.setPrefSize(canvas.getWidth(), canvas.getHeight());
-        restartButton = new Button("Restart");
-        restartButton.setOnAction(e -> uiController.gotoGamePage());
-        restartButton.setFont(new Font(20));
-        restartButton.setLayoutX(300);
-        restartButton.setLayoutY(250);
-        backButton = new Button("Back");
-        backButton.setOnAction(e -> uiController.gotoMainMenu());
-        backButton.setFont(new Font(20));
-        backButton.setLayoutX(300);
-        backButton.setLayoutY(320);
-        gameOverOverlay.getChildren().addAll(restartButton, backButton);
-        root.getChildren().addAll(gameOverOverlay);
+        createGameOverOverlay();
+        root.getChildren().add(gameOverOverlay);
 
         Scene scene = new Scene(root);
         scene.setFill(Color.BLACK);
@@ -72,7 +67,72 @@ public class GamePage extends BasePage {
         return scene;
     }
 
+
+    private void createGameOverOverlay() {
+        gameOverOverlay = new Pane();
+        gameOverOverlay.setVisible(false); // Only visible on game over
+        gameOverOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);"); // Semi-transparent black background
+        gameOverOverlay.setPrefSize(canvas.getWidth(), canvas.getHeight());
+
+        // Leaderboard Button
+        Button leaderboardButton = new Button("Leaderboard");
+        leaderboardButton.setFont(new Font(20));
+        leaderboardButton.setLayoutX(300);
+        leaderboardButton.setLayoutY(200);
+        leaderboardButton.setOnAction(e -> uiController.gotoLeaderBoard());
+
+        // Restart Button
+        restartButton = new Button("Retry");
+        restartButton.setFont(new Font(20));
+        restartButton.setLayoutX(300);
+        restartButton.setLayoutY(270);
+        restartButton.setOnAction(e -> uiController.gotoGamePage());
+
+        // Back to Menu Button
+        backButton = new Button("Back to Menu");
+        backButton.setFont(new Font(20));
+        backButton.setLayoutX(300);
+        backButton.setLayoutY(340);
+        backButton.setOnAction(e -> uiController.gotoMainMenu());
+
+        gameOverOverlay.getChildren().addAll(leaderboardButton, restartButton, backButton);
+    }
+
+    private void createPauseOverlay() {
+        pauseOverlay = new Pane();
+        pauseOverlay.setVisible(false); // Only visible when paused
+        pauseOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);"); // Semi-transparent black background
+        pauseOverlay.setPrefSize(canvas.getWidth(), canvas.getHeight());
+
+        // Continue Button
+        Button continueButton = new Button("Continue");
+        continueButton.setFont(new Font(20));
+        continueButton.setLayoutX(300);
+        continueButton.setLayoutY(250);
+        continueButton.setOnAction(e -> hidePauseOverlay());
+
+        // Quit Button
+        Button quitButton = new Button("Quit");
+        quitButton.setFont(new Font(20));
+        quitButton.setLayoutX(300);
+        quitButton.setLayoutY(320);
+        quitButton.setOnAction(e -> uiController.gotoMainMenu());
+
+        pauseOverlay.getChildren().addAll(continueButton, quitButton);
+    }
+
     private void showGameOverScreen() {
         gameOverOverlay.setVisible(true);
+        gameEngine.stop();
+    }
+
+    private void showPauseOverlay() {
+        pauseOverlay.setVisible(true);
+        gameEngine.pause();
+    }
+
+    private void hidePauseOverlay() {
+        pauseOverlay.setVisible(false);
+        gameEngine.resume();
     }
 }
