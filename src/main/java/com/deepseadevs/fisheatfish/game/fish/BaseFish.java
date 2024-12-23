@@ -3,6 +3,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 
+
 public class BaseFish extends GameObject {
     protected boolean facingRight;
     private int fishEaten;
@@ -68,6 +69,7 @@ public class BaseFish extends GameObject {
 
         // Draw the fish's eye as a circle, positioned on the left side of the body
         gc.fillOval(getX() + getWidth() / 1.5, getY() + getHeight() / 3, getWidth() / 6, getHeight() / 7);
+
     }
 
     public void drawFishLeft(GraphicsContext gc) {
