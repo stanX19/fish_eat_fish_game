@@ -49,6 +49,7 @@ public class SessionManager {
 
     public void setUserFishType(FishTypes fishType) {
         this.currentUser.setFishType(fishType);
+        commit();
     }
 
     public void updateHighScore(long score) {

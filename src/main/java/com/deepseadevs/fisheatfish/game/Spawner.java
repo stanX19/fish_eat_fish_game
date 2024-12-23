@@ -13,6 +13,10 @@ public class Spawner {
     private final Bound bound;
     private final Random random;
 
+    public Spawner() {
+        this(new Bound(0, 0, 1, 1));
+    }
+
     public Spawner(Bound bound) {
         this.bound = bound;
         this.random = new Random();
@@ -80,7 +84,7 @@ public class Spawner {
     }
 
     private BaseFish configureNewFish(BaseFish newFish) {
-        newFish.setY(random.nextDouble(bound.minY,bound.maxY - newFish.getHeight()));
+        newFish.setY(random.nextDouble(bound.minY, Math.max(bound.minY + 1, bound.maxY - newFish.getHeight())));
         newFish.setXv(random.nextInt(50, 200));
         newFish.setYv(random.nextInt(0, 20));
         newFish.setSpeed(newFish.getMaxSpeed());
