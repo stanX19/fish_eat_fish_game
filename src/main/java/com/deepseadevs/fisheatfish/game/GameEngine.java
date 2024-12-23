@@ -21,6 +21,7 @@ public class GameEngine {
     private AnimationTimer gameLoop;
     private Runnable gameOverCallback;
     private final GameData gameData;
+    private boolean isPaused;
 
     public GameEngine(GraphicsContext gc, SessionManager sessionManager, GameData gameData) {
         this.gc = gc;
@@ -50,15 +51,35 @@ public class GameEngine {
     }
 
     public void start() {
+        isPaused = false;
         gameLoop.start();
     }
 
+    public void stop() {
+        if (gameLoop != null) {
+            gameLoop.stop();
+        }
+        isPaused = false;
+    }
+
+    public void pause() {
+        isPaused = true;
+    }
+
+    public void resume() {
+        isPaused = false;
+    }
+
     public void handleKeyPressed(KeyEvent event) {
-        playerHandler.handleKeyPressed(event);
+        if (!isPaused) {
+            playerHandler.handleKeyPressed(event);
+        }
     }
 
     public void handleKeyReleased(KeyEvent event) {
-        playerHandler.handleKeyReleased(event);
+        if (!isPaused) {
+            playerHandler.handleKeyReleased(event);
+        }
     }
 
     private void initializeGameLoop() {
@@ -67,8 +88,7 @@ public class GameEngine {
 
             @Override
             public void handle(long now) {
-                if (gameData.isEnded())
-                    return;
+                if (gameData.isEnded()) return;
                 double deltaTime = (now - lastTime) / 1_000_000_000.0;
                 lastTime = now;
 
@@ -87,8 +107,9 @@ public class GameEngine {
         }
     }
 
-
     private void update(double deltaTime) {
+        if (isPaused)
+            return;
         playerHandler.updatePlayerVelocity(deltaTime);
         levelHandler.updateProgress();
         fishHandler.updateAll(deltaTime);
@@ -101,7 +122,6 @@ public class GameEngine {
         if (!fishHandler.containsFish(player)) {
             triggerGameOver();
         }
-
     }
 
     private void checkLevelProgression() {
@@ -116,7 +136,7 @@ public class GameEngine {
     private void syncGameData(double deltaTime) {
         gameData.setFishEaten(playerHandler.getAccumulatedFishEaten());
         gameData.setLevelFishEaten(player.getFishEaten());
-        gameData.setScore((int)player.getArea() + player.getFishEaten() * 100L);
+        gameData.setScore((int) player.getArea() + player.getFishEaten() * 100L);
         gameData.updateDuration(deltaTime);
         sessionManager.updateHighScore(gameData.getScore());
         sessionManager.commit();
