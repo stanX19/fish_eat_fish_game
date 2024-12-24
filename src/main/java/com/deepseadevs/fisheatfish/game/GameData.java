@@ -22,12 +22,12 @@ public class GameData {
     }
 
     public GameData(long score, int level, int fishEaten, int size) {
-        this(score, level, fishEaten, size, false, Instant.now(), Instant.now(), Duration.ZERO, Duration.ZERO);
+        this(score, level, fishEaten, size, false, Instant.now(), Instant.now(), Duration.ZERO);
     }
     public GameData(long score, int level, int fishEaten, int size, boolean ended, Instant startTime, Instant endTime, Duration gameDuration) {
-        this(score, level, fishEaten, size, ended, startTime, endTime, gameDuration, Duration.ZERO);
+        this(score, level, fishEaten, size, ended, startTime, endTime, gameDuration, 0, Duration.ZERO, 0);
     }
-    public GameData(long score, int level, int fishEaten, int size, boolean ended, Instant startTime, Instant endTime, Duration gameDuration, Duration levelDuration) {
+    public GameData(long score, int level, int fishEaten, int size, boolean ended, Instant startTime, Instant endTime, Duration gameDuration, int levelFishEaten, Duration levelDuration, double levelProgress) {
         this.score = score;
         this.level = level;
         this.fishEaten = fishEaten;
@@ -36,7 +36,9 @@ public class GameData {
         this.startTime = startTime;
         this.endTime = endTime;
         this.gameDuration = gameDuration;
+        this.levelFishEaten = levelFishEaten;
         this.levelDuration = levelDuration;
+        this.levelProgress = levelProgress;
     }
 
     public void updateDuration(double deltaTime) {
