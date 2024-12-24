@@ -26,4 +26,12 @@ public class Bound {
     public boolean contains(double x, double y) {
         return (x >= minX && x <= maxX && y >= minY && y <= maxY);
     }
+
+    public double getWidth() {
+        return maxX - minX;
+    }
+
+    public double getHeight() {
+        return maxY - minY;
+    }
 }

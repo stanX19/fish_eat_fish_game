@@ -2,8 +2,6 @@ package com.deepseadevs.fisheatfish.game.fish;
 import com.deepseadevs.fisheatfish.game.Animation;
 import javafx.scene.canvas.GraphicsContext;
 
-import javafx.scene.paint.Color;
-
 public class BaseFish extends GameObject {
     protected boolean facingRight;
     private int fishEaten;
@@ -30,8 +28,8 @@ public class BaseFish extends GameObject {
         this.facingRight = true;
         this.fishEaten = fishEaten;
         this.weight = weight;
-        this.leftFishAnimation = new Animation("file:src/main/java/sprites/redleftsprite.png");
-        this.rightFishAnimation = new Animation("file:src/main/java/sprites/redrightsprite.png");
+        this.leftFishAnimation = new Animation("file:src/main/assets/sprites/redleftsprite.png");
+        this.rightFishAnimation = new Animation("file:src/main/assets/sprites/redrightsprite.png");
     }
 
     public boolean isBiggerThan(BaseFish other) {
@@ -56,32 +54,21 @@ public class BaseFish extends GameObject {
     }
 
     public void drawFishRight(GraphicsContext gc) {
-        rightFishAnimation.render(gc, this.getX(), this.getY());
+        callAnimationRender(gc, rightFishAnimation);
     }
 
-
     public void drawFishLeft(GraphicsContext gc) {
-        leftFishAnimation.render(gc, this.getX(), this.getY());
+        callAnimationRender(gc, leftFishAnimation);
+    }
+
+    private void callAnimationRender(GraphicsContext gc, Animation animation) {
+        animation.render(gc, this.getX(), this.getY(), this.getWidth(), this.getHeight());
     }
 
     public void update(double deltaTime) {
         super.update(deltaTime);
         leftFishAnimation.update(deltaTime);
         rightFishAnimation.update(deltaTime);
-    }
-
-    public void grow(double newWidth, double newHeight) {
-        // Update the fish's size
-        this.setWidth(newWidth);
-        this.setHeight(newHeight);
-
-        // Update the animations to match the new size
-        updateAnimationDimensions();
-    }
-
-    private void updateAnimationDimensions() {
-        leftFishAnimation.setRenderDimensions(this.getWidth(), this.getHeight());
-        rightFishAnimation.setRenderDimensions(this.getWidth(), this.getHeight());
     }
 
     public int getFishEaten() {

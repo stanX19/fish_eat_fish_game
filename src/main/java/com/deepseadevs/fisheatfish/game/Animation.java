@@ -4,40 +4,70 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.WritableImage;
-import javafx.scene.transform.Affine;
 
 public class Animation {
-    private WritableImage[] frames;
-    private int currentFrame;
-    private double frameTime; // Seconds per frame
-    private double elapsedTime;
+    private final WritableImage[] frames;
     private final int totalFrames;
-    private double renderWidth;  // Desired width of the sprite
-    private double renderHeight; // Desired height of the sprite
-
-    // TODO:
-    //  add image resizing to make rendered image grow with fish size
-    //  sprite width != fish width, need to consider the offset
+    private final Bound spriteDimension;
+    private int currentFrame;
+    private final double frameTime; // Seconds per frame
+    private double elapsedTime;
 
     public Animation(String spritePath) {
         this(spritePath, 0.5);
     }
 
     public Animation(String spritePath, double frameTime) {
+        this(spritePath, frameTime, null);
+    }
+
+    public Animation(String spritePath, double frameTime, Bound spriteDimension) {
         this.frameTime = frameTime;
         Image spriteSheet = new Image(spritePath);
+
         int frameWidth = (int) spriteSheet.getWidth();
-        totalFrames = (int) (spriteSheet.getHeight() / frameWidth);
+        int frameHeight = frameWidth; // Assuming square frames
+        totalFrames = (int) (spriteSheet.getHeight() / frameHeight);
+
+        if (spriteSheet.getHeight() < frameWidth) {
+            throw new IllegalArgumentException("Cannot process sprite sheet with height < width");
+        }
 
         frames = new WritableImage[totalFrames];
         PixelReader reader = spriteSheet.getPixelReader();
         for (int i = 0; i < totalFrames; i++) {
-            frames[i] = new WritableImage(reader, 0, i * frameWidth, frameWidth, frameWidth);
+            frames[i] = new WritableImage(reader, 0, i * frameHeight, frameWidth, frameHeight);
         }
+        this.spriteDimension = spriteDimension != null ? spriteDimension : generateDimension(frames[0]);
+        double renderWidth = this.spriteDimension.getWidth();
+        double renderHeight = this.spriteDimension.getHeight();
+        if (renderWidth > frameWidth || renderHeight > frameHeight) {
+            throw new IllegalArgumentException("Sprite dimension exceeds detected bounds");
+        }
+    }
 
-        // Default render dimensions match the sprite's intrinsic dimensions
-        renderWidth = frames[0].getWidth();
-        renderHeight = frames[0].getHeight();
+    // Generate bounds based on first and last non-transparent pixels
+    // on the x-axis and y-axis
+    public Bound generateDimension(Image frame) {
+        PixelReader pixelReader = frame.getPixelReader();
+        int frameWidth = (int) frame.getWidth();
+        int frameHeight = (int) frame.getHeight();
+        int minX = frameWidth;
+        int minY = frameHeight;
+        int maxX = 0;
+        int maxY = 0;
+
+        for (int y = 0; y < frameHeight; y++) {
+            for (int x = 0; x < frameWidth; x++) {
+                if (pixelReader.getColor(x, y).getOpacity() > 0) {
+                    if (x < minX) minX = x;
+                    if (y < minY) minY = y;
+                    if (x > maxX) maxX = x;
+                    if (y > maxY) maxY = y;
+                }
+            }
+        }
+        return new Bound(minX, minY, maxX, maxY);
     }
 
     public void update(double deltaTime) {
@@ -49,76 +79,21 @@ public class Animation {
     }
 
     public void render(GraphicsContext gc, double x, double y) {
-        gc.save(); // Save the current state of the GraphicsContext
+        render(gc, x, y, spriteDimension.getWidth(), spriteDimension.getHeight());
+    }
 
-        // Apply transformations to scale and position the sprite
-        Affine transform = new Affine();
-        transform.appendTranslation(x, y);
-        transform.appendScale(renderWidth / frames[currentFrame].getWidth(),
-                renderHeight / frames[currentFrame].getHeight());
-        gc.setTransform(transform);
+    public void render(GraphicsContext gc, double x, double y, double width, double height) {
+        double scaleX = width / spriteDimension.getWidth();
+        double scaleY = height / spriteDimension.getHeight();
 
-        // Draw the current frame
+        gc.save();
+        gc.translate(x - spriteDimension.minX, y - spriteDimension.minY);
+        gc.scale(scaleX, scaleY);
         gc.drawImage(frames[currentFrame], 0, 0);
-
-        gc.restore(); // Restore the original state of the GraphicsContext
+        gc.restore();
     }
 
-    // Getter and Setter for render dimensions
-    public double getRenderWidth() {
-        return renderWidth;
-    }
-
-    public void setRenderWidth(double renderWidth) {
-        this.renderWidth = renderWidth;
-    }
-
-    public double getRenderHeight() {
-        return renderHeight;
-    }
-
-    public void setRenderHeight(double renderHeight) {
-        this.renderHeight = renderHeight;
-    }
-
-    public void setRenderDimensions(double width, double height) {
-        this.renderWidth = width;
-        this.renderHeight = height;
+    public Bound getSpriteDimension() {
+        return this.spriteDimension;
     }
 }
-//private WritableImage[] frames;
-//private int currentFrame;
-//private double frameTime; // Seconds per frame
-//private double elapsedTime;
-//private final int totalFrames;
-//
-
-//public Animation(String spritePath) {
-//    this(spritePath, 0.5);
-//}
-//
-//public Animation(String spritePath, double frameTime) {
-//    this.frameTime = frameTime;
-//    Image spriteSheet = new Image(spritePath);
-//    int frameWidth = (int) spriteSheet.getWidth();
-//    // Assuming square frames
-//    totalFrames = (int) (spriteSheet.getHeight() / frameWidth);
-//
-//    frames = new WritableImage[totalFrames];
-//    PixelReader reader = spriteSheet.getPixelReader();
-//    for (int i = 0; i < totalFrames; i++) {
-//        frames[i] = new WritableImage(reader, 0, i * frameWidth, frameWidth, frameWidth);
-//    }
-//}
-//
-//public void update(double deltaTime) {
-//    elapsedTime += deltaTime;
-//    if (elapsedTime >= frameTime) {
-//        currentFrame = (currentFrame + (int)(elapsedTime / frameTime)) % totalFrames;
-//        elapsedTime %= frameTime;
-//    }
-//}
-//
-//public void render(GraphicsContext gc, double x, double y) {
-//    gc.drawImage(frames[currentFrame], x, y);
-//}
