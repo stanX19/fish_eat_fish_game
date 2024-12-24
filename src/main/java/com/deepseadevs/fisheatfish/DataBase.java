@@ -1,5 +1,6 @@
 package com.deepseadevs.fisheatfish;
 
+import com.deepseadevs.fisheatfish.game.FishTypes;
 import com.deepseadevs.fisheatfish.game.GameData;
 
 import java.io.*;
@@ -77,7 +78,8 @@ class DataBase {
                         accountsCol[1],
                         accountsCol[2],
                         Long.parseLong(accountsCol[3]),
-                        history));
+                        history,
+                        FishTypes.valueOf(accountsCol[4])));
             }
         } catch (FileNotFoundException e) {
             System.out.println(accountsPath + " not found. Creating empty file.");
@@ -102,7 +104,8 @@ class DataBase {
                 accountsWriter.write(userData.getUserID() + "," +
                         userData.getDisplayName() + "," +
                         userData.getPassword() + "," +
-                        userData.getHighScore());
+                        userData.getHighScore() + "," +
+                        userData.getFishType());
                 accountsWriter.newLine();
 
                 String historyPath = dataPath + "/history/" + userData.getUserID() + ".csv";
