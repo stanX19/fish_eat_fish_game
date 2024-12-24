@@ -12,7 +12,10 @@ public class UIController {
     }
 
     public void showPage(BasePage page) {
+        boolean isMaximised = stage.isMaximized();
+        stage.setMaximized(false);
         stage.setScene(page.getScene());
+        stage.setMaximized(isMaximised);
     }
 
     public void gotoLogin() {
