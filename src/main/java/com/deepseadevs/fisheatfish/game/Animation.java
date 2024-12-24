@@ -1,64 +1,43 @@
 package com.deepseadevs.fisheatfish.game;
 
-import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.WritableImage;
 
 public class Animation {
-    private Image spriteSheet;
     private WritableImage[] frames;
     private int currentFrame;
-    private double frameTime;
+    private double frameTime; // Seconds per frame
     private double elapsedTime;
-    private AnimationTimer animationTimer;
-    private final int frameWidth;
-    private final int frameHeight;
     private final int totalFrames;
 
+    // TODO:
+    //  add image resizing to make rendered image grow with fish size
+    //  sprite width != fish width, need to consider the offset
     public Animation(String spritePath) {
-        this.spriteSheet = new Image(spritePath);
-        this.frameWidth = (int) spriteSheet.getWidth();
-        this.frameHeight = frameWidth;
-        this.totalFrames = (int) (spriteSheet.getHeight() / frameHeight);
+        this(spritePath, 0.5);
+    }
 
-        this.frames = new WritableImage[totalFrames];
+    public Animation(String spritePath, double frameTime) {
+        this.frameTime = frameTime;
+        Image spriteSheet = new Image(spritePath);
+        int frameWidth = (int) spriteSheet.getWidth();
+        // Assuming square frames
+        totalFrames = (int) (spriteSheet.getHeight() / frameWidth);
 
-        // Extract frames from the sprite sheet
+        frames = new WritableImage[totalFrames];
         PixelReader reader = spriteSheet.getPixelReader();
         for (int i = 0; i < totalFrames; i++) {
-            this.frames[i] = new WritableImage(reader, 0, i * frameHeight, frameWidth, frameHeight);
+            frames[i] = new WritableImage(reader, 0, i * frameWidth, frameWidth, frameWidth);
         }
-
-        this.currentFrame = 0;
-        this.frameTime = 0.5; // 0.5 seconds per frame for 2 frames per second
-        this.elapsedTime = 0;
-
-        this.animationTimer = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                double deltaTime = (now - previousTime) / 1_000_000_000.0;
-                update(deltaTime);
-                previousTime = now;
-            }
-            private long previousTime = System.nanoTime();
-        };
-    }
-
-    public void start() {
-        animationTimer.start();
-    }
-
-    public void stop() {
-        animationTimer.stop();
     }
 
     public void update(double deltaTime) {
         elapsedTime += deltaTime;
         if (elapsedTime >= frameTime) {
-            elapsedTime = 0;
-            currentFrame = (currentFrame + 1) % totalFrames;
+            currentFrame = (currentFrame + (int)(elapsedTime / frameTime)) % totalFrames;
+            elapsedTime %= frameTime;
         }
     }
 
@@ -66,5 +45,3 @@ public class Animation {
         gc.drawImage(frames[currentFrame], x, y);
     }
 }
-
-
