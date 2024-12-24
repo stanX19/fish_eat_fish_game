@@ -5,9 +5,7 @@ import com.deepseadevs.fisheatfish.game.GameData;
 import com.deepseadevs.fisheatfish.game.PlayerHandler;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 
 public class LevelHandler {
@@ -33,7 +31,7 @@ public class LevelHandler {
     public List<FishTypes> getFishTypes() {
         ArrayList<FishTypes> currentFish = new ArrayList<>(getCurrentLevel().getFishTypes());
         if (gameData.getProgress() >= 0.5) {
-            currentFish.addAll(getNextLevel().getFishTypes());
+            currentFish.addAll(new HashSet<>((getNextLevel().getFishTypes())));
         }
         return currentFish;
     }

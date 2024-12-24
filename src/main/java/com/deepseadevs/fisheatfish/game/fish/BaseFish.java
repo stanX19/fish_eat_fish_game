@@ -30,6 +30,10 @@ public class BaseFish extends GameObject {
         this.weight = weight;
         this.leftFishAnimation = new Animation("file:src/main/assets/sprites/redleftsprite.png");
         this.rightFishAnimation = new Animation("file:src/main/assets/sprites/redrightsprite.png");
+        double area = getArea();
+        this.setWidth(leftFishAnimation.getSpriteDimension().getWidth());
+        this.setHeight(leftFishAnimation.getSpriteDimension().getHeight());
+        this.setArea(area);
     }
 
     public boolean isBiggerThan(BaseFish other) {

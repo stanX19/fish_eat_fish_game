@@ -5,4 +5,9 @@ public class BasePlayerFish extends BaseFish {
         super();
         setWeight(999);  // Just an arbitrary large number to give priority
     }
+
+    @Override
+    public double getMaxSpeed() {
+        return getWidth() * 3;
+    }
 }

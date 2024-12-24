@@ -15,6 +15,11 @@ public class Level1 extends Level {
         return gameData.getLevelFishEaten() / 30.0;
     }
 
+    @Override
+    public int getMaxFishCount() {
+        return 12;
+    }
+
     public List<FishTypes> getFishTypes() {
         return List.of(FishTypes.SMALL);
     }
