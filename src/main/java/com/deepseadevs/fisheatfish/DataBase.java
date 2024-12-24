@@ -58,7 +58,10 @@ class DataBase {
                                 Boolean.parseBoolean(historyCol[4]),
                                 Instant.parse(historyCol[5]),
                                 Instant.parse(historyCol[6]),
-                                Duration.parse(historyCol[7])));
+                                Duration.parse(historyCol[7]),
+                                Integer.parseInt(historyCol[8]),
+                                Duration.parse(historyCol[9]),
+                                Double.parseDouble(historyCol[10])));
                     }
                 } catch (FileNotFoundException e) {
                     System.out.println(historyPath + " not found. Creating empty file.");
@@ -119,7 +122,10 @@ class DataBase {
                                 gameData.isEnded() + "," +
                                 gameData.getStartTime() + "," +
                                 gameData.getEndTime() + "," +
-                                gameData.getGameDuration());
+                                gameData.getGameDuration() + "," +
+                                gameData.getLevelFishEaten() + "," +
+                                gameData.getLevelDuration() + "," +
+                                gameData.getProgress());
                         historyWriter.newLine();
                     }
                 } catch (IOException e) {
