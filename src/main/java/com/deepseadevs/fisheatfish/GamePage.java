@@ -2,6 +2,7 @@ package com.deepseadevs.fisheatfish;
 
 import com.deepseadevs.fisheatfish.game.GameData;
 import com.deepseadevs.fisheatfish.game.GameEngine;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.StackPane;
@@ -9,6 +10,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.control.Button;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.stage.Screen;
+
+import java.awt.*;
 
 public class GamePage extends BasePage {
     private Canvas canvas;
@@ -40,7 +44,8 @@ public class GamePage extends BasePage {
         StackPane root = new StackPane();
 
         // Main game canvas
-        this.canvas = new Canvas(1280, 720);
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        this.canvas = new Canvas(screenSize.getWidth() * 0.75, screenSize.getHeight() * 0.75);
         root.getChildren().add(canvas);
 
         // Pause Button
