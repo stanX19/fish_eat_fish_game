@@ -7,23 +7,21 @@ import javafx.scene.input.KeyEvent;
 import java.util.HashSet;
 import java.util.Set;
 
-// TODO:
-//  bound player movement if moving out of bounds
-//  prob need take in class Bound
-//  bound by setting respective velocity to zero
 public class PlayerHandler {
     private final GameData gameData;
     private final BaseFish player;
     private int prevFishEaten;
     private final Set<KeyCode> keysPressed;
+    private final Bound bound;
 
-    public PlayerHandler(GameData data, BaseFish player) {
+    public PlayerHandler(GameData data, BaseFish player, Bound bound) {
         this.gameData = data;
         this.player = player;
         player.setFishEaten(data.getLevelFishEaten());
         player.setArea(data.getSize());
         this.keysPressed = new HashSet<>();
         this.prevFishEaten = player.getFishEaten();
+        this.bound = bound;
     }
 
     public void handleKeyPressed(KeyEvent event) {
@@ -68,8 +66,16 @@ public class PlayerHandler {
         double dx = calculateHorizontalMovement();
         double dy = calculateVerticalMovement();
 
+        if (!bound.contains(player.getX() + dx * 2, player.getY())) {
+            dx = 0;
+        }
+        if (!bound.contains(player.getX(), player.getY() + dy * 2)) {
+            dy = 0;
+        }
+
         player.setXv(dx);
         player.setYv(dy);
+
         if (player.getSpeed() > player.getMaxSpeed() || dy != 0 || dx != 0)
             player.setSpeed(player.getMaxSpeed());
     }
