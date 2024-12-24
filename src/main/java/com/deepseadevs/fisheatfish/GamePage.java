@@ -105,20 +105,25 @@ public class GamePage extends BasePage {
         pauseOverlay.setPrefSize(canvas.getWidth(), canvas.getHeight());
 
         // Continue Button
-        Button continueButton = new Button("Continue");
+        Button continueButton = new Button("Resume");
         continueButton.setFont(new Font(20));
         continueButton.setLayoutX(300);
         continueButton.setLayoutY(250);
         continueButton.setOnAction(e -> hidePauseOverlay());
 
         // Quit Button
-        Button quitButton = new Button("Quit");
+        Button quitButton = new Button("Save and quit");
         quitButton.setFont(new Font(20));
         quitButton.setLayoutX(300);
         quitButton.setLayoutY(320);
-        quitButton.setOnAction(e -> uiController.gotoMainMenu());
+        quitButton.setOnAction(e -> save_and_quit());
 
         pauseOverlay.getChildren().addAll(continueButton, quitButton);
+    }
+
+    private void save_and_quit() {
+        sessionManager.commit();
+        uiController.gotoMainMenu();
     }
 
     private void showGameOverScreen() {

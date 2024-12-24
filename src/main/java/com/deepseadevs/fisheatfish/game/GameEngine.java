@@ -36,6 +36,7 @@ public class GameEngine {
         this.player = this.spawner.spawnFish(sessionManager.getUserFishType());
         this.player.setX(this.bound.getMidX());
         this.player.setY(this.bound.getMidY());
+        this.player.setArea(gameData.getSize());
         this.fishHandler.addFish(player);
         this.playerHandler = new PlayerHandler(player);
         this.levelHandler = new LevelHandler(this.gameData, this.playerHandler);
@@ -59,7 +60,6 @@ public class GameEngine {
         if (gameLoop != null) {
             gameLoop.stop();
         }
-        isPaused = false;
     }
 
     public void pause() {
@@ -136,7 +136,7 @@ public class GameEngine {
     private void syncGameData(double deltaTime) {
         gameData.setFishEaten(playerHandler.getAccumulatedFishEaten());
         gameData.setLevelFishEaten(player.getFishEaten());
-        gameData.setScore((int) player.getArea() + player.getFishEaten() * 100L);
+        gameData.setScore((int) player.getArea() + gameData.getFishEaten() * 100L);
         gameData.updateDuration(deltaTime);
         sessionManager.updateHighScore(gameData.getScore());
         sessionManager.commit();

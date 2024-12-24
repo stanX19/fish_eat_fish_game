@@ -17,9 +17,8 @@ public class GameData {
     private Duration levelDuration;
     private double levelProgress;
 
-
     public GameData() {
-        this(0, 1, 0, 0);
+        this(0, 1, 0, 600);
     }
 
     public GameData(long score, int level, int fishEaten, int size) {
