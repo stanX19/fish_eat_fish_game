@@ -3,6 +3,7 @@ package com.deepseadevs.fisheatfish;
 import com.deepseadevs.fisheatfish.game.FishTypes;
 import com.deepseadevs.fisheatfish.game.GameData;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SessionManager {
@@ -66,18 +67,17 @@ public class SessionManager {
     }
 
     public boolean hasOngoingGame() {
-        // TODO:
-        //   search in session.history for most recent game
-        //   if its paused, return true
-        return false;
+        return !getPreviousGameData().isEnded();
     }
 
     public GameData getPreviousGameData() {
-        // TODO:
-        //   search in session.history for most recent games
-        //   return the most recent game if its paused
-        //   use case: game page -> continue playing -> ...
-        return new GameData();
+        ArrayList<GameData> history = (ArrayList<GameData>)currentUser.getHistory();
+        if (history.isEmpty()) {
+            GameData dummy = new GameData();
+            dummy.setEnded(true);
+            return dummy;
+        }
+        return history.get(history.size() - 1);
     }
 
     public List<GameData> getGameHistory() {
