@@ -70,6 +70,20 @@ public class BaseFish extends GameObject {
         rightFishAnimation.update(deltaTime);
     }
 
+    public void grow(double newWidth, double newHeight) {
+        // Update the fish's size
+        this.setWidth(newWidth);
+        this.setHeight(newHeight);
+
+        // Update the animations to match the new size
+        updateAnimationDimensions();
+    }
+
+    private void updateAnimationDimensions() {
+        leftFishAnimation.setRenderDimensions(this.getWidth(), this.getHeight());
+        rightFishAnimation.setRenderDimensions(this.getWidth(), this.getHeight());
+    }
+
     public int getFishEaten() {
         return fishEaten;
     }
