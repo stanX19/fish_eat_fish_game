@@ -13,8 +13,7 @@ public class BaseFish extends GameObject {
 
     public BaseFish() {
         this(100, 60, 40);
-        this.leftFishAnimation = new Animation("file:src/main/java/sprites/redleftsprite.png");
-        this.rightFishAnimation = new Animation("file:src/main/java/sprites/redrightsprite.png");
+
     }
 
     public BaseFish(double maxSpeed, double width, double height) {
@@ -31,8 +30,9 @@ public class BaseFish extends GameObject {
         this.facingRight = true;
         this.fishEaten = fishEaten;
         this.weight = weight;
+        this.leftFishAnimation = new Animation("file:src/main/java/sprites/redleftsprite.png");
+        this.rightFishAnimation = new Animation("file:src/main/java/sprites/redrightsprite.png");
     }
-
 
     public boolean isBiggerThan(BaseFish other) {
         if (this.getArea() == other.getArea())
@@ -69,50 +69,6 @@ public class BaseFish extends GameObject {
         leftFishAnimation.update(deltaTime);
         rightFishAnimation.update(deltaTime);
     }
-
-//    public void drawFishRight(GraphicsContext gc) {
-//        // Set the fill color for the fish's body
-//        gc.setFill(Color.ORANGE);
-//
-//        // Draw the fish's body as an oval, facing right
-//        gc.fillOval(getX(), getY(), getWidth(), getHeight());
-//
-//        // Set the fill color for the fish's tail
-//        gc.setFill(Color.RED);
-//
-//        // Draw the fish's tail as a triangle, facing right
-//        double[] tailX = {getX(), getX() - getWidth() * 0.2, getX()};
-//        double[] tailY = {getY() + getHeight() / 2, getY() + getHeight() * 0.8, getY() + getHeight()};
-//        gc.fillPolygon(tailX, tailY, 3);
-//
-//        // Set the fill color for the fish's eye
-//        gc.setFill(Color.BLACK);
-//
-//        // Draw the fish's eye as a circle, positioned on the left side of the body
-//        gc.fillOval(getX() + getWidth() / 1.5, getY() + getHeight() / 3, getWidth() / 6, getHeight() / 7);
-//    }
-//
-//    public void drawFishLeft(GraphicsContext gc) {
-//        // Set the fill color for the fish's body
-//        gc.setFill(Color.CORAL);
-//
-//        // Draw the fish's body as an oval, facing left
-//        gc.fillOval(getX(), getY(), getWidth(), getHeight());
-//
-//        // Set the fill color for the fish's tail
-//        gc.setFill(Color.RED);
-//
-//        // Draw the fish's tail as a triangle, facing left
-//        double[] tailX = {getX() + getWidth(), getX() + getWidth() * 1.2, getX() + getWidth()};
-//        double[] tailY = {getY() + getHeight() / 2, getY() + getHeight() * 0.8, getY() + getHeight()};
-//        gc.fillPolygon(tailX, tailY, 3);
-//
-//        // Set the fill color for the fish's eye
-//        gc.setFill(Color.BLACK);
-//
-//        // Draw the fish's eye as a circle, positioned on the right side of the body
-//        gc.fillOval(getX() + getWidth() / 4.5, getY() + getHeight() / 3, getWidth() / 6, getHeight() / 7);
-//    }
 
     public int getFishEaten() {
         return fishEaten;
