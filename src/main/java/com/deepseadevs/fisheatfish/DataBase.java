@@ -1,5 +1,6 @@
 package com.deepseadevs.fisheatfish;
 
+import com.deepseadevs.fisheatfish.game.FishTypes;
 import com.deepseadevs.fisheatfish.game.GameData;
 
 import java.io.*;
@@ -57,7 +58,10 @@ class DataBase {
                                 Boolean.parseBoolean(historyCol[4]),
                                 Instant.parse(historyCol[5]),
                                 Instant.parse(historyCol[6]),
-                                Duration.parse(historyCol[7])));
+                                Duration.parse(historyCol[7]),
+                                Integer.parseInt(historyCol[8]),
+                                Duration.parse(historyCol[9]),
+                                Double.parseDouble(historyCol[10])));
                     }
                 } catch (FileNotFoundException e) {
                     System.out.println(historyPath + " not found. Creating empty file.");
@@ -77,7 +81,8 @@ class DataBase {
                         accountsCol[1],
                         accountsCol[2],
                         Long.parseLong(accountsCol[3]),
-                        history));
+                        history,
+                        FishTypes.valueOf(accountsCol[4])));
             }
         } catch (FileNotFoundException e) {
             System.out.println(accountsPath + " not found. Creating empty file.");
@@ -102,7 +107,8 @@ class DataBase {
                 accountsWriter.write(userData.getUserID() + "," +
                         userData.getDisplayName() + "," +
                         userData.getPassword() + "," +
-                        userData.getHighScore());
+                        userData.getHighScore() + "," +
+                        userData.getFishType());
                 accountsWriter.newLine();
 
                 String historyPath = dataPath + "/history/" + userData.getUserID() + ".csv";
@@ -116,7 +122,10 @@ class DataBase {
                                 gameData.isEnded() + "," +
                                 gameData.getStartTime() + "," +
                                 gameData.getEndTime() + "," +
-                                gameData.getGameDuration());
+                                gameData.getGameDuration() + "," +
+                                gameData.getLevelFishEaten() + "," +
+                                gameData.getLevelDuration() + "," +
+                                gameData.getProgress());
                         historyWriter.newLine();
                     }
                 } catch (IOException e) {

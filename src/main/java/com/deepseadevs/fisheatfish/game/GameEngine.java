@@ -37,7 +37,7 @@ public class GameEngine {
         this.player.setX(this.bound.getMidX());
         this.player.setY(this.bound.getMidY());
         this.fishHandler.addFish(player);
-        this.playerHandler = new PlayerHandler(player);
+        this.playerHandler = new PlayerHandler(this.gameData, player);
         this.levelHandler = new LevelHandler(this.gameData, this.playerHandler);
 
         this.gameData.setEnded(false);
@@ -59,7 +59,6 @@ public class GameEngine {
         if (gameLoop != null) {
             gameLoop.stop();
         }
-        isPaused = false;
     }
 
     public void pause() {
@@ -110,18 +109,26 @@ public class GameEngine {
     private void update(double deltaTime) {
         if (isPaused)
             return;
-        playerHandler.updatePlayerVelocity(deltaTime);
+        playerHandler.updatePlayerVelocity();
+        playerHandler.syncPlayerStats();
         levelHandler.updateProgress();
         fishHandler.updateAll(deltaTime);
         fishHandler.collideAll();
         gameRenderer.render();
+        updateGameScore(deltaTime);
         spawnFishes();
         checkLevelProgression();
-        syncGameData(deltaTime);
 
         if (!fishHandler.containsFish(player)) {
             triggerGameOver();
         }
+    }
+
+    private void updateGameScore(double deltaTime) {
+        gameData.updateDuration(deltaTime);
+        gameData.setScore(gameData.getSize() + gameData.getFishEaten() * 100L);
+        sessionManager.updateHighScore(gameData.getScore());
+        sessionManager.commit();
     }
 
     private void checkLevelProgression() {
@@ -131,15 +138,6 @@ public class GameEngine {
             else
                 levelHandler.incrementLevel();
         }
-    }
-
-    private void syncGameData(double deltaTime) {
-        gameData.setFishEaten(playerHandler.getAccumulatedFishEaten());
-        gameData.setLevelFishEaten(player.getFishEaten());
-        gameData.setScore((int) player.getArea() + player.getFishEaten() * 100L);
-        gameData.updateDuration(deltaTime);
-        sessionManager.updateHighScore(gameData.getScore());
-        sessionManager.commit();
     }
 
     private void triggerGameOver() {

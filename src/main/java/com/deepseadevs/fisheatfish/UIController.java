@@ -3,8 +3,8 @@ package com.deepseadevs.fisheatfish;
 import javafx.stage.Stage;
 
 public class UIController {
-    private Stage stage;
-    private SessionManager sessionManager;
+    private final Stage stage;
+    private final SessionManager sessionManager;
 
     public UIController(Stage stage, SessionManager sessionManager) {
         this.stage = stage;
@@ -38,6 +38,11 @@ public class UIController {
     public void gotoGamePage(boolean continueGame) {
         GamePage gamePage = new GamePage(this, sessionManager, continueGame);
         showPage(gamePage);
+    }
+
+    public void gotoFishSelectionPage() {
+        FishSelectionPage fishSelectionPage = new FishSelectionPage(this, sessionManager);
+        showPage(fishSelectionPage);
     }
 
     public void gotoLeaderBoard() {

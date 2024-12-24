@@ -12,16 +12,18 @@ import java.util.Set;
 //  prob need take in class Bound
 //  bound by setting respective velocity to zero
 public class PlayerHandler {
+    private final GameData gameData;
     private final BaseFish player;
     private int prevFishEaten;
-    private int totalFishEaten;
     private final Set<KeyCode> keysPressed;
 
-    public PlayerHandler(BaseFish player) {
+    public PlayerHandler(GameData data, BaseFish player) {
+        this.gameData = data;
         this.player = player;
+        player.setFishEaten(data.getLevelFishEaten());
+        player.setArea(data.getSize());
         this.keysPressed = new HashSet<>();
         this.prevFishEaten = player.getFishEaten();
-        this.totalFishEaten = player.getFishEaten();
     }
 
     public void handleKeyPressed(KeyEvent event) {
@@ -34,7 +36,7 @@ public class PlayerHandler {
 
     public int getAccumulatedFishEaten() {
         updateTotalFishEaten();
-        return totalFishEaten;
+        return gameData.getFishEaten();
     }
 
     public int getCurrentFishEaten() {
@@ -48,15 +50,21 @@ public class PlayerHandler {
         prevFishEaten = 0;
     }
 
-    private void updateTotalFishEaten() {
+    public void syncPlayerStats() {
+        updateTotalFishEaten();
+        gameData.setLevelFishEaten(player.getFishEaten());
+        gameData.setSize((int) player.getArea());
+    }
+
+    public void updateTotalFishEaten() {
         int newFishEaten = player.getFishEaten() - prevFishEaten;
         prevFishEaten = player.getFishEaten();
         if (newFishEaten <= 0)
             return;
-        totalFishEaten += newFishEaten;
+        gameData.setFishEaten(gameData.getFishEaten() + newFishEaten);
     }
 
-    public void updatePlayerVelocity(double deltaTime) {
+    public void updatePlayerVelocity() {
         double dx = calculateHorizontalMovement();
         double dy = calculateVerticalMovement();
 
