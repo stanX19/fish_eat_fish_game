@@ -37,7 +37,7 @@ public class GameEngine {
         this.player.setX(this.bound.getMidX());
         this.player.setY(this.bound.getMidY());
         this.fishHandler.addFish(player);
-        this.playerHandler = new PlayerHandler(this.gameData, player);
+        this.playerHandler = new PlayerHandler(this.gameData, player, this.bound);
         this.levelHandler = new LevelHandler(this.gameData, this.playerHandler);
 
         this.gameData.setEnded(false);
