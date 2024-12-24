@@ -66,11 +66,17 @@ public class PlayerHandler {
         double dx = calculateHorizontalMovement();
         double dy = calculateVerticalMovement();
 
-        if (!bound.contains(player.getX() + dx * 2, player.getY())) {
-            dx = 0;
+        if (player.getX() <= bound.minX) { // Left
+            player.setX(bound.minX);
         }
-        if (!bound.contains(player.getX(), player.getY() + dy * 2)) {
-            dy = 0;
+        if (player.getX() + player.getWidth() >= bound.maxX) { // Right
+            player.setX(bound.maxX - player.getWidth());
+        }
+        if (player.getY() <= bound.minY) { // Up
+            player.setY(bound.minY);
+        }
+        if (player.getY() + player.getHeight() >= bound.maxY) { // Down
+            player.setY(bound.maxY - player.getHeight());
         }
 
         player.setXv(dx);
