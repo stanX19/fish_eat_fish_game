@@ -15,3 +15,4 @@ public class Level4 extends Level {
         return List.of(FishTypes.GIANT, FishTypes.LARGE, FishTypes.MEDIUM);
     }
 }
+                 
