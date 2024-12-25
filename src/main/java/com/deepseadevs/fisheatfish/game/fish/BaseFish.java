@@ -1,5 +1,6 @@
 package com.deepseadevs.fisheatfish.game.fish;
 import com.deepseadevs.fisheatfish.game.Animation;
+import com.deepseadevs.fisheatfish.game.Bound;
 import javafx.scene.canvas.GraphicsContext;
 
 public class BaseFish extends GameObject {
