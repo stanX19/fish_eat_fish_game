@@ -6,4 +6,5 @@ module com.deepseadevs.fisheatfish {
     opens com.deepseadevs.fisheatfish;
     opens com.deepseadevs.fisheatfish.game;
     exports com.deepseadevs.fisheatfish;
+    exports com.deepseadevs.fisheatfish.game;
 }
