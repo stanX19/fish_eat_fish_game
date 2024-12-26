@@ -1,6 +1,7 @@
 package com.deepseadevs.fisheatfish;
 
-import com.deepseadevs.fisheatfish.widgets.StyledButton;
+import com.deepseadevs.fisheatfish.widgets.ColoredButton;
+import com.deepseadevs.fisheatfish.widgets.ColoredButton;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -50,8 +51,11 @@ public class LoginPage extends BasePage {
         );
 
         userIDLabel = new Label("Username:");
-        userIDLabel.setFont(new Font("Arial", 16));
-        userIDLabel.setTextFill(Color.WHITE);
+        userIDLabel.setStyle("""
+            -fx-font-size: 14px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #b5c7eb;
+        """);
 
         // Password Input
         passwordField = new PasswordField();
@@ -67,12 +71,15 @@ public class LoginPage extends BasePage {
         );
 
         passwordLabel = new Label("Password:");
-        passwordLabel.setFont(new Font("Arial", 16));
-        passwordLabel.setTextFill(Color.WHITE);
+        passwordLabel.setStyle("""
+            -fx-font-size: 14px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #b5c7eb;
+        """);
 
         // Styled Buttons
-        loginButton = new StyledButton("Login");
-        newAccountButton = new StyledButton("New Account");
+        loginButton = new ColoredButton("Login");
+        newAccountButton = new ColoredButton("New Account");
 
         // Feedback Text
         feedbackText = new Text();
