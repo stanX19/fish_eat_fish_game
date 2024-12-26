@@ -1,5 +1,6 @@
 package com.deepseadevs.fisheatfish;
 
+import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -33,43 +34,73 @@ public class LoginPage extends BasePage {
         gridPane.setVgap(15);
         gridPane.setHgap(15);
         gridPane.setAlignment(Pos.CENTER);
+        gridPane.setStyle("-fx-background-color: #1a202c;");
 
-        // widgets and design
-        userIDLabel = new Label("Username:");
-        userIDLabel.setFont(new Font("Arial", 16));
+        // Username Input
         userIDField = new TextField();
+        userIDField.setPromptText("Enter your username");
         userIDField.setFont(new Font("Arial", 14));
-        passwordLabel = new Label("Password:");
-        passwordLabel.setFont(new Font("Arial", 16));
+        userIDField.setStyle(
+                "-fx-background-color: #1a202c;" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-radius: 10;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-prompt-text-fill: gray;" +
+                        "-fx-padding: 10;"
+        );
+
+        userIDLabel = new Label("Username:");
+        userIDLabel.setStyle("""
+            -fx-font-size: 14px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #b5c7eb;
+        """);
+
+        // Password Input
         passwordField = new PasswordField();
+        passwordField.setPromptText("Enter your password");
         passwordField.setFont(new Font("Arial", 14));
-        loginButton = new Button("Login");
-        loginButton.setFont(new Font("Arial", 14));
-        loginButton.setStyle("-fx-background-color: #66ccff; -fx-text-fill: white;");
-        // TODO: beautify newAccount button
-        newAccountButton = new Button("New Account");
-        newAccountButton.setFont(new Font("Arial", 14));
-        newAccountButton.setStyle("-fx-background-color: #0099ff; -fx-text-fill: white;");
+        passwordField.setStyle(
+                "-fx-background-color: #1a202c;" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-radius: 10;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-prompt-text-fill: gray;" +
+                        "-fx-padding: 10;"
+        );
+
+        passwordLabel = new Label("Password:");
+        passwordLabel.setStyle("""
+            -fx-font-size: 14px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #b5c7eb;
+        """);
+
+        // Styled Buttons
+        loginButton = new MainButton("Login");
+        newAccountButton = new MainButton("New Account");
+
+        // Feedback Text
         feedbackText = new Text();
         feedbackText.setFont(new Font("Arial", 12));
+        feedbackText.setFill(Color.RED);
+        feedbackText.setStyle("-fx-padding: 10;");
 
-        // hooks
+        // Hooks
         loginButton.setOnAction(e -> this.attemptLogin());
         newAccountButton.setOnAction(e -> uiController.gotoNewAccount());
-        // Move focus to password field when "Enter" is pressed
         userIDField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 passwordField.requestFocus();
             }
         });
-        // Trigger login button when "Enter" is pressed
         passwordField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 loginButton.fire();
             }
         });
 
-        // Add nodes to grid
+        // Add components to grid
         gridPane.add(userIDLabel, 0, 0);
         gridPane.add(userIDField, 1, 0);
         gridPane.add(passwordLabel, 0, 1);
@@ -81,20 +112,22 @@ public class LoginPage extends BasePage {
         // Outer container
         VBox outerBox = new VBox(gridPane);
         outerBox.setPadding(new Insets(30));
-        outerBox.setStyle("-fx-background-color: #F0F8FF; -fx-border-color: #B0C4DE;" +
-                          "-fx-background-radius: 10;");
+        outerBox.setStyle("-fx-background-color: #1a202c;");
         outerBox.setAlignment(Pos.CENTER);
 
-        return new Scene(outerBox, 400, 300);
+        return new Scene(outerBox, 400, 350);
+
     }
 
-    // TODO:
-    //  Apply password hashing using LoginUtils.hashString
+
+    //  Apply password hashing using LoginUtils.hashString done
     private void attemptLogin() {
         String userID = userIDField.getText();
         String password = passwordField.getText();
 
-        if (DatabaseManager.getInstance().isCorrectPassword(userID, password)) {
+        String hashedPassword = LoginUtils.hashString(password);
+
+        if (DatabaseManager.getInstance().isCorrectPassword(userID, hashedPassword)) {
             sessionManager.setUser(userID);
             uiController.gotoMainMenu();
         } else {
@@ -103,3 +136,5 @@ public class LoginPage extends BasePage {
         }
     }
 }
+
+

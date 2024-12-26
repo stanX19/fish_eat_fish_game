@@ -49,7 +49,6 @@ public class GameData {
         endTime = Instant.now();
     }
 
-
     public int getFishEaten() {
         return fishEaten;
     }
