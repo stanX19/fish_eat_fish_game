@@ -15,8 +15,16 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class HistoryPage extends BasePage {
+    private List<GameData> history;
+
     public HistoryPage(UIController uiController, SessionManager sessionManager) {
         super(uiController, sessionManager);
+        this.history = sessionManager.getGameHistory();
+    }
+
+    public HistoryPage(UIController uiController, SessionManager sessionManager, UserData userData) {
+        super(uiController, sessionManager);
+        this.history = userData.getHistory();
     }
 
     protected Scene createScene() {
@@ -70,7 +78,7 @@ public class HistoryPage extends BasePage {
     }
 
     private VBox createHistoryLayout() {
-        List<GameData> history = sessionManager.getGameHistory();
+//        List<GameData> history = sessionManager.getGameHistory();
 
         VBox historyLayout = new VBox();
         historyLayout.setSpacing(10); // Space between rows
