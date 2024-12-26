@@ -29,7 +29,6 @@ public class GameRenderer {
         renderBackground();
         renderFish();
         renderGameStats();
-        christmasTreeRenderer.drawDecorations(); // Render decorations
     }
 
     private void renderBackground() {
@@ -38,6 +37,7 @@ public class GameRenderer {
         drawWavyBackground();
         drawLightRays();
         drawSand();
+//        christmasTreeRenderer.drawDecorations();
     }
 
     private void clearCanvas() {

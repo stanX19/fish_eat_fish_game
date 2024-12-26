@@ -1,6 +1,6 @@
 package com.deepseadevs.fisheatfish;
 
-import com.deepseadevs.fisheatfish.widgets.ColoredButton;
+import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -94,15 +94,8 @@ public class NewAccountPage extends BasePage {
         confirmPasswordField = new PasswordField();
         confirmPasswordField.setFont(new Font("Arial", 14));
 
-        createAccountButton = new Button("Sign Up");
-        createAccountButton.setFont(new Font("Arial", 14));
-        createAccountButton.setStyle("-fx-background-color: #66ccff; -fx-text-fill: white;");
-        createAccountButton = new ColoredButton("Sign Up");
-
-        backToLoginButton = new Button("Back to Login");
-        backToLoginButton.setFont(new Font("Arial", 14));
-        backToLoginButton = new ColoredButton("Sign In");
-
+        createAccountButton = new MainButton("Create Account");
+        backToLoginButton = new MainButton("Back to Login");
         feedbackText = new Text();
         feedbackText.setFont(new Font("Arial", 12));
 

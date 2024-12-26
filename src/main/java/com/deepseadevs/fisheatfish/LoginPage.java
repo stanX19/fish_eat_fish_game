@@ -1,7 +1,6 @@
 package com.deepseadevs.fisheatfish;
 
-import com.deepseadevs.fisheatfish.widgets.ColoredButton;
-import com.deepseadevs.fisheatfish.widgets.ColoredButton;
+import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -78,8 +77,8 @@ public class LoginPage extends BasePage {
         """);
 
         // Styled Buttons
-        loginButton = new ColoredButton("Login");
-        newAccountButton = new ColoredButton("New Account");
+        loginButton = new MainButton("Login");
+        newAccountButton = new MainButton("New Account");
 
         // Feedback Text
         feedbackText = new Text();

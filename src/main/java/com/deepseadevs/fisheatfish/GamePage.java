@@ -2,7 +2,8 @@ package com.deepseadevs.fisheatfish;
 
 import com.deepseadevs.fisheatfish.game.GameData;
 import com.deepseadevs.fisheatfish.game.GameEngine;
-import javafx.geometry.Rectangle2D;
+import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
+import com.deepseadevs.fisheatfish.widgets.buttons.SecondaryButton;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.StackPane;
@@ -10,7 +11,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.control.Button;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.stage.Screen;
 
 import java.awt.*;
 
@@ -50,8 +50,7 @@ public class GamePage extends BasePage {
 
         // Pause Button
         Pane pauseButtonContainer = new Pane();
-        Button pauseButton = new Button("Pause");
-        pauseButton.setFont(new Font(20));
+        Button pauseButton = new MainButton("Pause");
         pauseButton.setOnAction(e -> showPauseOverlay());
         pauseButton.setLayoutX(canvas.getWidth() - 90); // Position 10px from the right
         pauseButton.setLayoutY(10);                    // Position 10px from the top
@@ -80,21 +79,21 @@ public class GamePage extends BasePage {
         gameOverOverlay.setPrefSize(canvas.getWidth(), canvas.getHeight());
 
         // Leaderboard Button
-        Button leaderboardButton = new Button("Leaderboard");
+        Button leaderboardButton = new MainButton("Leaderboard");
         leaderboardButton.setFont(new Font(20));
         leaderboardButton.setLayoutX(300);
         leaderboardButton.setLayoutY(200);
         leaderboardButton.setOnAction(e -> uiController.gotoLeaderBoard());
 
         // Restart Button
-        restartButton = new Button("Retry");
+        restartButton = new MainButton("Retry");
         restartButton.setFont(new Font(20));
         restartButton.setLayoutX(300);
         restartButton.setLayoutY(270);
         restartButton.setOnAction(e -> uiController.gotoGamePage());
 
         // Back to Menu Button
-        backButton = new Button("Back to Menu");
+        backButton = new MainButton("Back to Menu");
         backButton.setFont(new Font(20));
         backButton.setLayoutX(300);
         backButton.setLayoutY(340);
@@ -110,14 +109,14 @@ public class GamePage extends BasePage {
         pauseOverlay.setPrefSize(canvas.getWidth(), canvas.getHeight());
 
         // Continue Button
-        Button continueButton = new Button("Resume");
+        Button continueButton = new MainButton("Resume");
         continueButton.setFont(new Font(20));
         continueButton.setLayoutX(300);
         continueButton.setLayoutY(250);
         continueButton.setOnAction(e -> hidePauseOverlay());
 
         // Quit Button
-        Button quitButton = new Button("Save and quit");
+        Button quitButton = new SecondaryButton("Save and quit");
         quitButton.setFont(new Font(20));
         quitButton.setLayoutX(300);
         quitButton.setLayoutY(320);
