@@ -3,6 +3,7 @@ package com.deepseadevs.fisheatfish;
 import com.deepseadevs.fisheatfish.game.FishTypes;
 import com.deepseadevs.fisheatfish.game.Spawner;
 import com.deepseadevs.fisheatfish.game.fish.BaseFish;
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
 import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Pos;
@@ -61,6 +62,7 @@ public class FishSelectionPage extends BasePage {
     protected Scene createScene() {
         StackPane root = new StackPane();
 
+        root.setStyle("-fx-background-color: skyblue;");
         // Canvas for fish rendering
         canvas = new Canvas(540, 360);
         gc = canvas.getGraphicsContext2D();
@@ -120,7 +122,7 @@ public class FishSelectionPage extends BasePage {
     private void renderCurrentFish(double deltaTime) {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         gc.setFill(Color.SKYBLUE);
-        gc.fill();
+        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         BaseFish currentFish = getCurrentFish();
         currentFish.update(deltaTime);
         currentFish.setX(canvas.getWidth() / 2 - currentFish.getWidth() / 2);
