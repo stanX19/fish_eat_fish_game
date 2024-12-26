@@ -11,6 +11,13 @@ import javafx.scene.text.Font;
 import java.time.Duration;
 
 public class GameRenderer {
+    private static final double SAND_HEIGHT = 100;
+    private static final double TREE_WIDTH = 128;
+    private static final double TREE_HEIGHT = 128;
+    private static final double PROGRESS_BAR_HEIGHT = 10;
+    private static final double MARGIN = 10;
+    private static final double LINE_SPACING = 25;
+
     private final GraphicsContext gc;
     private final FishHandler fishHandler;
     private final GameData gameData;
@@ -22,22 +29,21 @@ public class GameRenderer {
         this.fishHandler = fishHandler;
         this.gameData = gameData;
         this.sessionManager = sessionManager;
-        this.christmasTreeRenderer = new ChristmasTreeRenderer(gc);
+        this.christmasTreeRenderer = new ChristmasTreeRenderer(gc, "ChristmasTree.png");
     }
 
     public void render() {
         renderBackground();
         renderFish();
         renderGameStats();
+        renderChristmasTree();
     }
-
     private void renderBackground() {
         clearCanvas();
         drawGradientBackground();
         drawWavyBackground();
         drawLightRays();
         drawSand();
-//        christmasTreeRenderer.drawDecorations();
     }
 
     private void clearCanvas() {
@@ -107,13 +113,15 @@ public class GameRenderer {
 
         // Render game duration
         String gameDurationText = formatDuration(gameData.getGameDuration());
+        double pauseButtonWidth = 50; // Assume the pause button width is 50
+        double gameDurationX = gc.getCanvas().getWidth() - MARGIN - pauseButtonWidth - 100; // Place to the left of the pause button
         gc.setFill(Color.WHITE);
-        gc.fillText(gameDurationText, gc.getCanvas().getWidth() - margin - 100, margin + lineSpacing);
+        gc.fillText(gameDurationText, gameDurationX, MARGIN + LINE_SPACING);
     }
 
     private void renderProgressBar(double x, double y, double progress) {
         double barWidth = 200;
-        double barHeight = 20;
+        double barHeight = 10;
 
         // Ensure progress is within [0, 1]
         progress = Math.max(0, Math.min(1, progress));
@@ -131,5 +139,15 @@ public class GameRenderer {
         long minutes = duration.toMinutes();
         long seconds = duration.toSecondsPart();
         return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    private void renderChristmasTree() {
+        double canvasWidth = gc.getCanvas().getWidth();
+        double canvasHeight = gc.getCanvas().getHeight();
+
+        double treeX = canvasWidth / 2 - TREE_WIDTH / 2;
+        double treeY = canvasHeight - SAND_HEIGHT - TREE_HEIGHT;
+
+        christmasTreeRenderer.render(treeX, treeY, TREE_WIDTH, TREE_HEIGHT);
     }
 }
