@@ -166,7 +166,7 @@ public class LeaderboardPage extends BasePage {
     private void styleCell(Label label, boolean isHeader, boolean isHighlighted, boolean isUserID) {
         String fontSize = isHeader ? "16px" : isUserID ? "10px" : "14px";
         String fontWeight = isHeader ? "bold" : "normal";
-        String textColor = isUserID ? "#898989" : isHighlighted ? "#adebb3" : "#ffffff";
+        String textColor = isUserID ? "#898989" : isHighlighted ? "#d3d3ff" : "#ffffff";
 
         label.setStyle("-fx-font-size: " + fontSize + "; -fx-font-weight: " + fontWeight + "; -fx-text-fill: " + textColor + "; -fx-alignment: center;");
     }
