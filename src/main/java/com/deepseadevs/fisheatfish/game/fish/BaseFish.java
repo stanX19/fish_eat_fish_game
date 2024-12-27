@@ -29,8 +29,8 @@ public class BaseFish extends GameObject {
         this.facingRight = true;
         this.fishEaten = fishEaten;
         this.weight = weight;
-        this.leftFishAnimation = new Animation("file:src/main/assets/sprites/sharkleft.png", 0.75, new Bound(1,1,54,33));
-        this.rightFishAnimation = new Animation("file:src/main/assets/sprites/sharkright.png",0.75, new Bound(1,1,54,33));
+        this.leftFishAnimation = new Animation("file:src/main/assets/sprites/sharkleft.png", 0.75, new Bound(5,20,59,53));
+        this.rightFishAnimation = new Animation("file:src/main/assets/sprites/sharkright.png",0.75, new Bound(5,20,59,53));
         double area = getArea();
         this.setWidth(leftFishAnimation.getSpriteDimension().getWidth());
         this.setHeight(leftFishAnimation.getSpriteDimension().getHeight());
