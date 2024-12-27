@@ -9,7 +9,7 @@ public class Level2 extends Level {
     //  overwrite getNewProgress to design different
     //  progress criteria for different level
     protected double calculateProgress(GameData gameData) {
-        return gameData.getLevelFishEaten() / 27.0;
+        return gameData.getLevelFishEaten() / 28.0;
     }
 
     public List<FishTypes> getFishTypes() {
