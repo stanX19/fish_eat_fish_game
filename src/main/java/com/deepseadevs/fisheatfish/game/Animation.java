@@ -12,7 +12,7 @@ public class Animation {
     private int currentFrame;
     private final double frameTime; // Seconds per frame
     private double elapsedTime;
-
+    
     public Animation(String spritePath) {
         this(spritePath, 0.5);
     }
