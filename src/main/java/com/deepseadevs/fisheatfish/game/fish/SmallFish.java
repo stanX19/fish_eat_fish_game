@@ -8,7 +8,7 @@ import com.deepseadevs.fisheatfish.game.Bound;
 public class SmallFish extends BaseFish {
     public SmallFish() {
         super(50, 30, 20);
-        leftFishAnimation = new Animation("file:src/main/assets/sprites/redleft.png");
-        rightFishAnimation = new Animation("file:src/main/assets/sprites/redright.png");
+        leftFishAnimation = new Animation("file:src/main/assets/sprites/redleft.png",1, new Bound(6,13,58,46));
+        rightFishAnimation = new Animation("file:src/main/assets/sprites/redright.png",1, new Bound(6,13,58,46));
     }
 }
