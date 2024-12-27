@@ -51,7 +51,7 @@ public class PlayerHandler {
     public void syncPlayerStats() {
         updateTotalFishEaten();
         gameData.setLevelFishEaten(player.getFishEaten());
-        gameData.setSize((int) player.getArea());
+        gameData.setSize((int)Math.ceil(player.getArea()));
     }
 
     public void updateTotalFishEaten() {

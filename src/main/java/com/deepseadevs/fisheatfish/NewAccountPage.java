@@ -1,5 +1,6 @@
 package com.deepseadevs.fisheatfish;
 
+import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -36,46 +37,65 @@ public class NewAccountPage extends BasePage {
     }
 
     protected Scene createScene() {
+        // Welcome label
+        Label welcomeLabel = new Label("CREATE ACCOUNT");
+        welcomeLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #b5c7eb;");
+
         // Main form layout
         GridPane gridPane = new GridPane();
         gridPane.setPadding(new Insets(20, 20, 20, 20));
         gridPane.setVgap(15);
         gridPane.setHgap(15);
         gridPane.setAlignment(Pos.CENTER);
+        gridPane.setStyle("-fx-background-color: #1a202c;");
 
         // Widgets and design
         userIDLabel = new Label("Account name:");
         userIDLabel.setFont(new Font("Arial", 16));
+        userIDLabel.setStyle("""
+            -fx-font-size: 14px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #b5c7eb;
+        """);
 
         userIDField = new TextField();
         userIDField.setFont(new Font("Arial", 14));
 
         displayNameLabel = new Label("Displayed name:");
         displayNameLabel.setFont(new Font("Arial", 16));
+        displayNameLabel.setStyle("""
+            -fx-font-size: 14px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #b5c7eb;
+        """);
 
         displayNameField = new TextField();
         displayNameField.setFont(new Font("Arial", 14));
 
         passwordLabel = new Label("Password:");
         passwordLabel.setFont(new Font("Arial", 16));
+        passwordLabel.setStyle("""
+            -fx-font-size: 14px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #b5c7eb;
+        """);
 
         passwordField = new PasswordField();
         passwordField.setFont(new Font("Arial", 14));
 
         confirmPasswordLabel = new Label("Confirm Password:");
         confirmPasswordLabel.setFont(new Font("Arial", 16));
+        confirmPasswordLabel.setStyle("""
+            -fx-font-size: 14px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #b5c7eb;
+        """);
 
         confirmPasswordField = new PasswordField();
         confirmPasswordField.setFont(new Font("Arial", 14));
 
-        createAccountButton = new Button("Create Account");
-        createAccountButton.setFont(new Font("Arial", 14));
-        createAccountButton.setStyle("-fx-background-color: #66ccff; -fx-text-fill: white;");
-
-        backToLoginButton = new Button("Back to Login");
-        backToLoginButton.setFont(new Font("Arial", 14));
-        backToLoginButton.setStyle("-fx-background-color: #0099ff; -fx-text-fill: white;");
-
+        createAccountButton = new MainButton("Create Account");
+        backToLoginButton = new MainButton("Back to Login");
         feedbackText = new Text();
         feedbackText.setFont(new Font("Arial", 12));
 
@@ -119,9 +139,9 @@ public class NewAccountPage extends BasePage {
         gridPane.add(feedbackText, 1, 5);
 
         // Main box for new account form
-        mainBox = new VBox(gridPane);
+        mainBox = new VBox(20, welcomeLabel, gridPane);
         mainBox.setPadding(new Insets(30));
-        mainBox.setStyle("-fx-background-color: #F0F8FF;");
+        mainBox.setStyle("-fx-background-color: #1a202c;");
         mainBox.setAlignment(Pos.CENTER);
 
         // Success overlay
@@ -152,8 +172,8 @@ public class NewAccountPage extends BasePage {
         return new Scene(root, 400, 350);
     }
 
-    // TODO:
-    //  Apply password hashing using LoginUtils.hashString
+
+    //  Apply password hashing using LoginUtils.hashString done
     private void attemptCreateAccount() {
         String userID = userIDField.getText();
         String displayedName = displayNameField.getText();
@@ -171,7 +191,9 @@ public class NewAccountPage extends BasePage {
             feedbackText.setFill(Color.RED);
         } else {
             disableCreateAccountInputs();
-            DatabaseManager.getInstance().createNewUser(userID, displayedName, password);
+            // password hashing
+            String hashedPassword = LoginUtils.hashString(password);
+            DatabaseManager.getInstance().createNewUser(userID, displayedName, hashedPassword);
             successOverlay.setDisable(false);
             successOverlay.setVisible(true);
             backToLoginButton.requestFocus();

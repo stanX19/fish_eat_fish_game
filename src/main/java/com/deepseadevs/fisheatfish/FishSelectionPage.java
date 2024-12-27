@@ -1,8 +1,9 @@
 package com.deepseadevs.fisheatfish;
 
+import com.deepseadevs.fisheatfish.game.FishTypes;
 import com.deepseadevs.fisheatfish.game.Spawner;
 import com.deepseadevs.fisheatfish.game.fish.BaseFish;
-import com.deepseadevs.fisheatfish.game.FishTypes;
+import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -22,10 +23,11 @@ public class FishSelectionPage extends BasePage {
     private AnimationTimer animationTimer;
     private GraphicsContext gc;
 
-    private Map<FishTypes, BaseFish> fishMap;
-    private Spawner spawner;
+    private final Map<FishTypes, BaseFish> fishMap;
+    private final Spawner spawner;
     private int currentFishIndex;
-    private FishTypes[] fishTypeArray;
+    private final int maxFishIndex;
+    private final FishTypes[] fishTypeArray;
     private FishTypes selectedFishType;
 
     private Button selectButton;
@@ -38,7 +40,8 @@ public class FishSelectionPage extends BasePage {
         this.fishMap = new EnumMap<>(FishTypes.class);
         this.fishTypeArray = List.of(FishTypes.PLAYER_SMALL, FishTypes.PLAYER_MEDIUM, FishTypes.PLAYER_LARGE, FishTypes.PLAYER_GIANT).toArray(new FishTypes[0]);
         this.currentFishIndex = 0;
-        this.selectedFishType = sessionManager.getUserFishType(); // No fish selected initially
+        this.selectedFishType = sessionManager.getUserFishType();
+        this.maxFishIndex = HistoryParser.of(sessionManager.getGameHistory()).getHighestLevel();
 
         initializeFishMap();
         initializeAnimationTimer();
@@ -59,7 +62,7 @@ public class FishSelectionPage extends BasePage {
         StackPane root = new StackPane();
 
         // Canvas for fish rendering
-        canvas = new Canvas(1280, 720);
+        canvas = new Canvas(540, 360);
         gc = canvas.getGraphicsContext2D();
         root.getChildren().add(canvas);
 
@@ -69,19 +72,19 @@ public class FishSelectionPage extends BasePage {
         buttonBox.setAlignment(Pos.CENTER); // Center align the contents of HBox
         StackPane.setAlignment(buttonBox, Pos.CENTER); // Center align HBox in StackPane
 
-        Button backButton = new Button("Back to Menu");
+        Button backButton = new MainButton("Back to Menu");
         backButton.setOnAction(e -> {
             stopAnimationTimer();
             uiController.gotoMainMenu();
         });
 
-        previousButton = new Button("Previous");
+        previousButton = new MainButton("Previous");
         previousButton.setOnAction(e -> showPreviousFish());
 
-        selectButton = new Button("Select");
+        selectButton = new MainButton("Select");
         selectButton.setOnAction(e -> selectCurrentFish());
 
-        nextButton = new Button("Next");
+        nextButton = new MainButton("Next");
         nextButton.setOnAction(e -> showNextFish());
 
         buttonBox.getChildren().addAll(previousButton, selectButton, nextButton, backButton);
@@ -116,6 +119,8 @@ public class FishSelectionPage extends BasePage {
 
     private void renderCurrentFish(double deltaTime) {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        gc.setFill(Color.SKYBLUE);
+        gc.fill();
         BaseFish currentFish = getCurrentFish();
         currentFish.update(deltaTime);
         currentFish.setX(canvas.getWidth() / 2 - currentFish.getWidth() / 2);
@@ -144,7 +149,10 @@ public class FishSelectionPage extends BasePage {
         if (currentFishType == selectedFishType) {
             selectButton.setDisable(true);
             selectButton.setText("Selected");
-        } else {
+        } else if (currentFishIndex >= maxFishIndex) {
+            selectButton.setDisable(true);
+            selectButton.setText("Locked");
+        } else{
             selectButton.setDisable(false);
             selectButton.setText("Select");
         }
