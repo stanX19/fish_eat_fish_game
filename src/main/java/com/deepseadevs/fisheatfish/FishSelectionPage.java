@@ -5,6 +5,8 @@ import com.deepseadevs.fisheatfish.game.Spawner;
 import com.deepseadevs.fisheatfish.game.fish.BaseFish;
 import com.deepseadevs.fisheatfish.widgets.GameStyles;
 import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
+import com.deepseadevs.fisheatfish.widgets.buttons.NeutralButton;
+import com.deepseadevs.fisheatfish.widgets.buttons.SecondaryButton;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -12,7 +14,9 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 import java.util.EnumMap;
@@ -66,32 +70,51 @@ public class FishSelectionPage extends BasePage {
         // Canvas for fish rendering
         canvas = new Canvas(540, 360);
         gc = canvas.getGraphicsContext2D();
-        root.getChildren().add(canvas);
 
         // HBox for button alignment
-        HBox buttonBox = new HBox(20);
-        buttonBox.setTranslateY(100); // Y offset
-        buttonBox.setAlignment(Pos.CENTER); // Center align the contents of HBox
-        StackPane.setAlignment(buttonBox, Pos.CENTER); // Center align HBox in StackPane
+        HBox topButtonBox = new HBox(20);
+        topButtonBox.setAlignment(Pos.CENTER);
 
-        Button backButton = new MainButton("Back to Menu");
+        previousButton = new MainButton("Previous");
+        previousButton.setMinWidth(80);
+        previousButton.setOnAction(e -> showPreviousFish());
+
+        selectButton = new MainButton("Select");
+        selectButton.setMinWidth(100);
+        selectButton.setOnAction(e -> selectCurrentFish());
+
+        nextButton = new MainButton("Next");
+        nextButton.setMinWidth(80);
+        nextButton.setOnAction(e -> showNextFish());
+
+        topButtonBox.getChildren().addAll(previousButton, selectButton, nextButton);
+
+        HBox botButtonBox = new HBox(20);
+        botButtonBox.setAlignment(Pos.CENTER);
+        botButtonBox.setMaxWidth(400);
+
+        Button backButton = new NeutralButton("Back");
+        backButton.setMinWidth(50);
         backButton.setOnAction(e -> {
             stopAnimationTimer();
             uiController.gotoMainMenu();
         });
 
-        previousButton = new MainButton("Previous");
-        previousButton.setOnAction(e -> showPreviousFish());
+        Button startButton = new SecondaryButton("Start Game");
+        startButton.setMinWidth(230);
+        startButton.setOnAction(e -> {
+            stopAnimationTimer();
+            uiController.gotoGamePage();
+        });
 
-        selectButton = new MainButton("Select");
-        selectButton.setOnAction(e -> selectCurrentFish());
+        botButtonBox.getChildren().addAll(backButton, startButton);
+        VBox buttonsContainer = new VBox(20);
+        buttonsContainer.setTranslateY(100); // Y offset
+        buttonsContainer.setAlignment(Pos.CENTER); // Center align the contents of VBox
+        StackPane.setAlignment(buttonsContainer, Pos.CENTER); // Center align VBox in StackPane
 
-        nextButton = new MainButton("Next");
-        nextButton.setOnAction(e -> showNextFish());
-
-        buttonBox.getChildren().addAll(previousButton, selectButton, nextButton, backButton);
-        root.getChildren().add(buttonBox);
-
+        buttonsContainer.getChildren().addAll(topButtonBox, botButtonBox);
+        root.getChildren().addAll(canvas, buttonsContainer);
         Scene scene = new Scene(root);
         scene.setFill(Color.LIGHTBLUE);
         return scene;
