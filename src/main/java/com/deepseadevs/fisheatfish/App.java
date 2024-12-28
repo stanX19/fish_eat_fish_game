@@ -14,8 +14,6 @@ public class App extends Application {
         uiController = new UIController(primaryStage, sessionManager);
         uiController.gotoLogin();
         primaryStage.setTitle("Fish Eat Fish");
-//        Image icon = new Image("fish.png");
-//        primaryStage.getIcons().add(icon);
         primaryStage.show();
     }
 
