@@ -8,7 +8,7 @@ public class GameStyles {
     public static final String NEUTRAL_COLOR = "#64748b"; // Light Gray
     public static final String TEXT_COLOR = "#ffffff"; // White
     public static final String ACCENT_COLOR = "#f97316"; // Coral Orange
-    public static final String BACKGROUND_COLOR = "#1e293b"; // Deep Sea Navy
+    public static final String BACKGROUND_COLOR = "##87CEEB"; // Deep Sea Navy
 
     public static final Font MAIN_FONT = Font.font("Arial", 16);
     public static final Font TITLE_FONT = Font.font("Arial", 24);
