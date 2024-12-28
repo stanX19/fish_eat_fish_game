@@ -42,11 +42,11 @@ public class MainMenuPage extends BasePage {
         highScoreLabel.setTextFill(Color.web("#fbbf24")); // Gold text
 
         // Create Key Function
-        Button startGameButton = createMainButton("Start Game", "#22c55e"); // Green color
-        startGameButton.setOnAction(e -> uiController.gotoGamePage());
-
-        Button continueButton = createMainButton("Continue Game");
+        Button continueButton = createMainButton("Continue Game", "#22c55e");
         continueButton.setOnAction(e -> uiController.gotoGamePage(true));
+
+        Button startGameButton = createMainButton("New Game", "#22c55e"); // Green color
+        startGameButton.setOnAction(e -> uiController.gotoGamePage());
 
         Button leaderboardButton = createMainButton("Leaderboard");
         leaderboardButton.setOnAction(e -> uiController.gotoLeaderBoard());
@@ -61,13 +61,13 @@ public class MainMenuPage extends BasePage {
         HBox utilityButtonsRow = new HBox(20);
         utilityButtonsRow.setAlignment(Pos.CENTER);
 
-        Button settingsButton = createUtilityButton("Settings", "#64748b"); // Gray-blue color
+        /*Button settingsButton = createUtilityButton("Settings", "#64748b"); // Gray-blue color
         settingsButton.setOnAction(e -> handleSettings());
 
         Button helpButton = createUtilityButton("Help", "#64748b"); // Gray-blue color
         helpButton.setOnAction(e -> handleHelp());
 
-        utilityButtonsRow.getChildren().addAll(settingsButton, helpButton);
+        utilityButtonsRow.getChildren().addAll(settingsButton, helpButton);*/
 
         // Create logout button
         Button logoutButton = createMainButton("Logout", "#ef4444"); // Red color
@@ -77,16 +77,16 @@ public class MainMenuPage extends BasePage {
         root.getChildren().addAll(
                 titleLabel,
                 welcomeLabel,
-                highScoreLabel,
-                startGameButton
+                highScoreLabel
         );
 
         // Add Continue Game button if there's an ongoing game
         if (sessionManager.hasOngoingGame()) {
-            root.getChildren().add(continueButton);
+            root.getChildren().addAll(continueButton);
         }
 
         root.getChildren().addAll(
+                startGameButton,
                 leaderboardButton,
                 selectFishButton,
                 profileButton,
@@ -165,7 +165,8 @@ public class MainMenuPage extends BasePage {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
-        
+
+        // Set the style of the dialog box,dark background,white text
         alert.getDialogPane().setStyle("""
             -fx-background-color: #1a202c;
             """);
@@ -193,7 +194,7 @@ public class MainMenuPage extends BasePage {
             - WASD or Arrow Keys to move
             - Eat smaller fish to grow
             - Avoid larger fish
-            
+
             Additional settings coming soon!
             """;
 
@@ -208,7 +209,7 @@ public class MainMenuPage extends BasePage {
             3. Avoid larger fish - they will eat you!
             4. The larger you get, the more points you earn
             5. Try to achieve the highest score possible!
-            
+
             Tips:
             - Start with the smallest fish
             - Watch out for fast-moving large fish
@@ -219,4 +220,3 @@ public class MainMenuPage extends BasePage {
         showAlert("Game Help", helpInfo, AlertType.INFORMATION);
     }
 }
-
