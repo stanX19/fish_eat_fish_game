@@ -1,5 +1,6 @@
 package com.deepseadevs.fisheatfish;
 
+import com.deepseadevs.fisheatfish.widgets.labels.TitleLabel;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -14,6 +15,8 @@ import java.util.Comparator;
 import java.util.List;
 
 public class LeaderboardPage extends BasePage {
+    private final String BACKGROUND_COLOR = "#1a202c";
+
     public LeaderboardPage(UIController uiController, SessionManager sessionManager) {
         super(uiController, sessionManager);
     }
@@ -23,11 +26,9 @@ public class LeaderboardPage extends BasePage {
         VBox contentBox = new VBox();
         contentBox.setAlignment(Pos.CENTER);
         contentBox.setSpacing(20);
-        contentBox.setStyle("-fx-background-color: #1a2b40;");
+        contentBox.setStyle("-fx-background-color: " + BACKGROUND_COLOR + ";");
 
-        // Welcome label
-        Label welcomeLabel = new Label("LEADERBOARD");
-        welcomeLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #b5c7eb;");
+        TitleLabel titleLabel = new TitleLabel("LEADERBOARD");
 
         // Back button
         Button backButton = new Button("Back");
@@ -56,13 +57,13 @@ public class LeaderboardPage extends BasePage {
         VBox leaderboardLayout = createLeaderboardLayout();
 
         // Add content to the box
-        contentBox.getChildren().addAll(welcomeLabel, leaderboardLayout, backButton);
+        contentBox.getChildren().addAll(titleLabel, leaderboardLayout, backButton);
 
         // Wrap contentBox in a ScrollPane to allow scrolling for the entire scene
         ScrollPane root = new ScrollPane(contentBox);
         root.setFitToWidth(true); // Make the scene's content stretch horizontally
         root.setFitToHeight(true);
-        root.setStyle("-fx-background-color: #1a2b40;");
+        root.setStyle("-fx-background-color: " + BACKGROUND_COLOR + ";");
         root.setPadding(new Insets(20));
 
         return new Scene(root, 700, 500); // Adjust dimensions as necessary
@@ -72,7 +73,7 @@ public class LeaderboardPage extends BasePage {
         VBox leaderboardLayout = new VBox();
         leaderboardLayout.setSpacing(10); // Space between rows
         leaderboardLayout.setPadding(new Insets(15));
-        leaderboardLayout.setStyle("-fx-background-radius: 10; -fx-background-color: #26364e;");
+        leaderboardLayout.setStyle("-fx-background-radius: 10; -fx-background-color: derive(" + BACKGROUND_COLOR + ", 10%);");
         leaderboardLayout.setMaxWidth(500);
         leaderboardLayout.setAlignment(Pos.CENTER);
 
