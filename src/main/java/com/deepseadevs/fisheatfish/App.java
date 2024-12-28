@@ -13,6 +13,7 @@ public class App extends Application {
         sessionManager = new SessionManager();
         uiController = new UIController(primaryStage, sessionManager);
         uiController.gotoLogin();
+        primaryStage.setTitle("Fish Eat Fish");
         primaryStage.show();
     }
 
