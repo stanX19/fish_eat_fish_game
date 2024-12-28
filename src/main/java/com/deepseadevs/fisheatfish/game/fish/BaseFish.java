@@ -7,12 +7,12 @@ public class BaseFish extends GameObject {
     protected boolean facingRight;
     private int fishEaten;
     private int weight;
+    private long score;
     protected Animation leftFishAnimation;
     protected Animation rightFishAnimation;
 
     public BaseFish() {
         this(100, 60, 40);
-
     }
 
     public BaseFish(double maxSpeed, double width, double height) {
@@ -29,6 +29,7 @@ public class BaseFish extends GameObject {
         this.facingRight = true;
         this.fishEaten = fishEaten;
         this.weight = weight;
+        this.score = 0;
         this.leftFishAnimation = new Animation("file:src/main/assets/sprites/sharkleft.png", 0.75, new Bound(5,20,59,53));
         this.rightFishAnimation = new Animation("file:src/main/assets/sprites/sharkright.png",0.75, new Bound(5,20,59,53));
     }
@@ -98,5 +99,17 @@ public class BaseFish extends GameObject {
 
     public void setWeight(int weight) {
         this.weight = weight;
+    }
+
+    public long getScore() {
+        return score;
+    }
+
+    public void setScore(long score) {
+        this.score = score;
+    }
+
+    public void addScore(long score) {
+        this.score += score;
     }
 }

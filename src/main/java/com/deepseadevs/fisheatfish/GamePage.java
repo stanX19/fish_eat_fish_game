@@ -2,24 +2,36 @@ package com.deepseadevs.fisheatfish;
 
 import com.deepseadevs.fisheatfish.game.GameData;
 import com.deepseadevs.fisheatfish.game.GameEngine;
+import com.deepseadevs.fisheatfish.game.GameRenderer;
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
 import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
 import com.deepseadevs.fisheatfish.widgets.buttons.SecondaryButton;
+import com.deepseadevs.fisheatfish.widgets.labels.BoldLabel;
+import com.deepseadevs.fisheatfish.widgets.labels.ColoredLabel;
+import com.deepseadevs.fisheatfish.widgets.labels.NeutralLabel;
+import com.deepseadevs.fisheatfish.widgets.labels.TitleLabel;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.control.Button;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.time.Duration;
 
 public class GamePage extends BasePage {
     private Canvas canvas;
+    private GameData gameData;
     private GameEngine gameEngine;
-    private Button restartButton;
-    private Button backButton;
-    private Pane gameOverOverlay;
+    private GameOverOverlay gameOverOverlay;
     private Pane pauseOverlay;
 
     public GamePage(UIController uiController, SessionManager sessionManager) {
@@ -32,6 +44,7 @@ public class GamePage extends BasePage {
 
     public GamePage(UIController uiController, SessionManager sessionManager, GameData gameData) {
         super(uiController, sessionManager);
+        this.gameData = gameData;
         this.gameEngine = new GameEngine(canvas.getGraphicsContext2D(), sessionManager, gameData);
         gameEngine.setGameOverCallback(this::showGameOverScreen);
         scene.setOnKeyPressed(event -> gameEngine.handleKeyPressed(event));
@@ -49,21 +62,26 @@ public class GamePage extends BasePage {
         root.getChildren().add(canvas);
 
         // Pause Button
-        Pane pauseButtonContainer = new Pane();
+        StackPane pauseButtonContainer = new StackPane();
         Button pauseButton = new MainButton("Pause");
         pauseButton.setOnAction(e -> showPauseOverlay());
-        pauseButton.setLayoutX(canvas.getWidth() - 90); // Position 10px from the right
-        pauseButton.setLayoutY(10);                    // Position 10px from the top
+        pauseButton.setMinWidth(80);
+        pauseButton.setMinHeight(30);
+        pauseButton.setTranslateX(canvas.getWidth() / 2 - 50);  // Position 10px from the right
+        pauseButton.setTranslateY(- canvas.getHeight() / 2 + 25);  // Position 10px from the top
         pauseButtonContainer.getChildren().add(pauseButton);
-        root.getChildren().add(pauseButtonContainer);
 
-        // Pause screen
         createPauseOverlay();
-        root.getChildren().add(pauseOverlay);
 
-        // Game over screen
-        createGameOverOverlay();
-        root.getChildren().add(gameOverOverlay);
+        gameOverOverlay = new GameOverOverlay(uiController, sessionManager);
+        gameOverOverlay.setPrefSize(canvas.getWidth(), canvas.getHeight());
+
+        // Center overlays and pause button
+        StackPane.setAlignment(pauseButtonContainer, Pos.CENTER);
+        StackPane.setAlignment(pauseOverlay, Pos.CENTER);
+        StackPane.setAlignment(gameOverOverlay, Pos.CENTER);
+
+        root.getChildren().addAll(pauseButtonContainer, pauseOverlay, gameOverOverlay);
 
         Scene scene = new Scene(root);
         scene.setFill(Color.BLACK);
@@ -71,58 +89,33 @@ public class GamePage extends BasePage {
         return scene;
     }
 
-
-    private void createGameOverOverlay() {
-        gameOverOverlay = new Pane();
-        gameOverOverlay.setVisible(false); // Only visible on game over
-        gameOverOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);"); // Semi-transparent black background
-        gameOverOverlay.setPrefSize(canvas.getWidth(), canvas.getHeight());
-
-        // Leaderboard Button
-        Button leaderboardButton = new MainButton("Leaderboard");
-        leaderboardButton.setFont(new Font(20));
-        leaderboardButton.setLayoutX(300);
-        leaderboardButton.setLayoutY(200);
-        leaderboardButton.setOnAction(e -> uiController.gotoLeaderBoard());
-
-        // Restart Button
-        restartButton = new MainButton("Retry");
-        restartButton.setFont(new Font(20));
-        restartButton.setLayoutX(300);
-        restartButton.setLayoutY(270);
-        restartButton.setOnAction(e -> uiController.gotoGamePage());
-
-        // Back to Menu Button
-        backButton = new MainButton("Back to Menu");
-        backButton.setFont(new Font(20));
-        backButton.setLayoutX(300);
-        backButton.setLayoutY(340);
-        backButton.setOnAction(e -> uiController.gotoMainMenu());
-
-        gameOverOverlay.getChildren().addAll(leaderboardButton, restartButton, backButton);
-    }
-
     private void createPauseOverlay() {
-        pauseOverlay = new Pane();
+        pauseOverlay = new StackPane();
         pauseOverlay.setVisible(false); // Only visible when paused
         pauseOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);"); // Semi-transparent black background
         pauseOverlay.setPrefSize(canvas.getWidth(), canvas.getHeight());
 
-        // Continue Button
-        Button continueButton = new MainButton("Resume");
+        VBox buttonContainer = new VBox(20); // Vertical spacing of 20 between buttons
+        buttonContainer.setAlignment(Pos.CENTER);
+
+        Button continueButton = new SecondaryButton("Resume");
         continueButton.setFont(new Font(20));
-        continueButton.setLayoutX(300);
-        continueButton.setLayoutY(250);
         continueButton.setOnAction(e -> hidePauseOverlay());
 
-        // Quit Button
-        Button quitButton = new SecondaryButton("Save and quit");
-        quitButton.setFont(new Font(20));
-        quitButton.setLayoutX(300);
-        quitButton.setLayoutY(320);
-        quitButton.setOnAction(e -> save_and_quit());
+        Button saveAndQuitButton = new MainButton("Save and Quit");
+        saveAndQuitButton.setFont(new Font(20));
+        saveAndQuitButton.setOnAction(e -> save_and_quit());
 
-        pauseOverlay.getChildren().addAll(continueButton, quitButton);
+        Button endGameButton = new MainButton("End Game");
+        endGameButton.setFont(new Font(20));
+        endGameButton.setOnAction(e -> {
+            pauseOverlay.setVisible(false);
+            gameEngine.triggerGameOver();
+        });
+
+        buttonContainer.getChildren().addAll(continueButton, saveAndQuitButton, endGameButton);
+
+        pauseOverlay.getChildren().add(buttonContainer);
     }
 
     private void save_and_quit() {
@@ -131,8 +124,9 @@ public class GamePage extends BasePage {
     }
 
     private void showGameOverScreen() {
+        pauseOverlay.setVisible(false);
+        gameOverOverlay.loadDynamicContent(gameData);
         gameOverOverlay.setVisible(true);
-        gameEngine.stop();
     }
 
     private void showPauseOverlay() {
@@ -143,5 +137,83 @@ public class GamePage extends BasePage {
     private void hidePauseOverlay() {
         pauseOverlay.setVisible(false);
         gameEngine.resume();
+    }
+}
+
+class GameOverOverlay extends StackPane {
+    private Button restartButton;
+    private Button backButton;
+    private UIController uiController;
+    private SessionManager sessionManager;
+
+    VBox labelBox;
+    Label gameOverLabel;
+    Label currentScoreLabel;
+    Label highScoreLabel;
+    Label timeLabel;
+    Label levelLabel;
+    Label congratsLabel;
+
+    public GameOverOverlay(UIController uiController, SessionManager sessionManager) {
+        this.uiController = uiController;
+        this.sessionManager = sessionManager;
+        setVisible(false);
+        initWidgets();
+    }
+
+    public void initWidgets() {
+        setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
+
+        labelBox = new VBox(20);
+        labelBox.setAlignment(Pos.CENTER);
+
+        gameOverLabel = new TitleLabel("Game Over");
+        currentScoreLabel = new BoldLabel("");
+        highScoreLabel = new ColoredLabel("", "#fbbf24");
+        timeLabel = new BoldLabel("");
+        levelLabel = new BoldLabel("");
+        congratsLabel = new ColoredLabel("New High Score!", "#fbbf24");
+        congratsLabel.setVisible(false);
+
+        labelBox.getChildren().addAll(gameOverLabel, levelLabel, timeLabel, highScoreLabel, currentScoreLabel, congratsLabel);
+
+        HBox buttonBox = new HBox(20);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        backButton = new MainButton("Back to Menu");
+        backButton.setOnAction(e -> uiController.gotoMainMenu());
+
+        restartButton = new MainButton("Play Again");
+        restartButton.setOnAction(e -> uiController.gotoGamePage());
+
+        Button leaderboardButton = new MainButton("Leaderboard");
+        leaderboardButton.setOnAction(e -> uiController.gotoLeaderBoard());
+
+        buttonBox.getChildren().addAll(backButton, restartButton, leaderboardButton);
+
+        VBox mainContainer = new VBox(30);
+        mainContainer.setAlignment(Pos.CENTER);
+        mainContainer.setPadding(new Insets(50));
+        mainContainer.getChildren().addAll(labelBox, buttonBox);
+
+        StackPane.setAlignment(mainContainer, Pos.CENTER);
+        getChildren().add(mainContainer);
+    }
+
+
+    public void loadDynamicContent(GameData gameData) {
+        currentScoreLabel.setText("Score: " + gameData.getScore());
+        highScoreLabel.setText("High Score: " + sessionManager.getHighScore());
+        levelLabel.setText("Level " + gameData.getLevel());
+        timeLabel.setText(formatDuration(gameData.getGameDuration()));
+        congratsLabel.setVisible(gameData.getScore() == sessionManager.getHighScore());
+        highScoreLabel.setVisible(!congratsLabel.isVisible());
+    }
+
+    public static String formatDuration(Duration duration) {
+        long secs = duration.getSeconds();
+        long mins = secs / 60;
+        secs %= 60;
+        return String.format("%dm%ds", mins, secs);
     }
 }

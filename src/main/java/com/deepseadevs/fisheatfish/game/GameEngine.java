@@ -115,7 +115,7 @@ public class GameEngine {
         fishHandler.updateAll(deltaTime);
         fishHandler.collideAll();
         gameRenderer.render();
-        updateGameScore(deltaTime);
+        updateAndCommitGameData(deltaTime);
         spawnFishes();
         checkLevelProgression();
 
@@ -124,9 +124,8 @@ public class GameEngine {
         }
     }
 
-    private void updateGameScore(double deltaTime) {
+    private void updateAndCommitGameData(double deltaTime) {
         gameData.updateDuration(deltaTime);
-        gameData.setScore(gameData.getSize() + gameData.getFishEaten() * 100L);
         sessionManager.updateHighScore(gameData.getScore());
         sessionManager.commit();
     }
@@ -140,7 +139,8 @@ public class GameEngine {
         }
     }
 
-    private void triggerGameOver() {
+    public void triggerGameOver() {
+        stop();
         gameData.setEnded(true);
         sessionManager.commit();
         if (gameOverCallback != null) {

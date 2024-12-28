@@ -19,6 +19,7 @@ public class PlayerHandler {
         this.player = player;
         player.setFishEaten(data.getLevelFishEaten());
         player.setArea(data.getSize());
+        player.setScore(gameData.getScore());
         this.keysPressed = new HashSet<>();
         this.prevFishEaten = player.getFishEaten();
         this.bound = bound;
@@ -51,7 +52,8 @@ public class PlayerHandler {
     public void syncPlayerStats() {
         updateTotalFishEaten();
         gameData.setLevelFishEaten(player.getFishEaten());
-        gameData.setSize((int)Math.ceil(player.getArea()));
+        gameData.setSize((int)Math.round(player.getArea()));
+        gameData.setScore(player.getScore());
     }
 
     public void updateTotalFishEaten() {

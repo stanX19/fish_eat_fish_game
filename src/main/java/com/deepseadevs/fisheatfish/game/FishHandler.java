@@ -86,6 +86,7 @@ public class FishHandler {
             allFish.remove(fish1);
             fish2.setArea(fish2.getArea() + fish1.getArea() * 0.1);
             fish2.incrementFishEaten();
+            fish2.addScore(Math.round(fish1.getArea() * 0.1) + 100L);
         }
     }
 
