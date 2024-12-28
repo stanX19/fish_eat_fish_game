@@ -3,6 +3,7 @@ package com.deepseadevs.fisheatfish;
 import com.deepseadevs.fisheatfish.game.GameData;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -15,6 +16,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class HistoryPage extends BasePage {
+    private final String BACKGROUND_COLOR = "#1a202c";
+
     public HistoryPage(UIController uiController, SessionManager sessionManager) {
         super(uiController, sessionManager);
     }
@@ -24,7 +27,7 @@ public class HistoryPage extends BasePage {
         VBox contentBox = new VBox();
         contentBox.setAlignment(Pos.CENTER);
         contentBox.setSpacing(20);
-        contentBox.setStyle("-fx-background-color: #1a2b40;");
+        contentBox.setStyle("-fx-background-color: " + BACKGROUND_COLOR + ";");
 
         // Welcome label
         Label welcomeLabel = new Label("HISTORY");
@@ -63,7 +66,7 @@ public class HistoryPage extends BasePage {
         ScrollPane root = new ScrollPane(contentBox);
         root.setFitToWidth(true); // Make the scene's content stretch horizontally
         root.setFitToHeight(true);
-        root.setStyle("-fx-background-color: #1a2b40;");
+        root.setStyle("-fx-background-color: " + BACKGROUND_COLOR + ";");
         root.setPadding(new Insets(20));
 
         return new Scene(root, 800, 500); // Adjust dimensions as necessary
@@ -75,7 +78,7 @@ public class HistoryPage extends BasePage {
         VBox historyLayout = new VBox();
         historyLayout.setSpacing(10); // Space between rows
         historyLayout.setPadding(new Insets(15));
-        historyLayout.setStyle("-fx-background-radius: 10; -fx-background-color: #26364e;");
+        historyLayout.setStyle("-fx-background-radius: 10; -fx-background-color: derive(" + BACKGROUND_COLOR + ", 10%);");
         historyLayout.setMaxWidth(500);
         historyLayout.setAlignment(Pos.CENTER);
 

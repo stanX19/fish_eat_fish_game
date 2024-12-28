@@ -1,6 +1,7 @@
 package com.deepseadevs.fisheatfish.widgets;
 
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 public class GameStyles {
     public static final String MAIN_COLOR = "#3b82f6"; // Ocean Blue
@@ -11,8 +12,9 @@ public class GameStyles {
     public static final String BACKGROUND_COLOR = "##87CEEB"; // Deep Sea Navy
 
     public static final Font MAIN_FONT = Font.font("Arial", 16);
-    public static final Font TITLE_FONT = Font.font("Arial", 24);
+    public static final Font TITLE_FONT = Font.font("Arial", FontWeight.EXTRA_BOLD, 24);
     public static final Font LABEL_FONT = Font.font("Arial", 14);
+    public static final Font BOLD_LABEL_FONT = Font.font("Arial", FontWeight.BOLD, 14);
 
     public static Font loadFont(String path, int size) {
         return Font.loadFont(GameStyles.class.getResourceAsStream(path), size);
