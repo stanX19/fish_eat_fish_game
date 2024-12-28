@@ -57,11 +57,12 @@ public class MainMenuPage extends BasePage {
         Button profileButton = createMainButton("Profile");
         profileButton.setOnAction(e -> uiController.gotoHistoryPage());
 
+        /*
         // Create utility buttons row
         HBox utilityButtonsRow = new HBox(20);
         utilityButtonsRow.setAlignment(Pos.CENTER);
 
-        /*Button settingsButton = createUtilityButton("Settings", "#64748b"); // Gray-blue color
+        Button settingsButton = createUtilityButton("Settings", "#64748b"); // Gray-blue color
         settingsButton.setOnAction(e -> handleSettings());
 
         Button helpButton = createUtilityButton("Help", "#64748b"); // Gray-blue color
@@ -90,7 +91,7 @@ public class MainMenuPage extends BasePage {
                 leaderboardButton,
                 selectFishButton,
                 profileButton,
-                utilityButtonsRow,
+//                utilityButtonsRow,
                 logoutButton
         );
 
