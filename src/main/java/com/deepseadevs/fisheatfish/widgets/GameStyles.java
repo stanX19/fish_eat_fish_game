@@ -5,7 +5,7 @@ import javafx.scene.text.Font;
 public class GameStyles {
     public static final String MAIN_COLOR = "#3b82f6"; // Ocean Blue
     public static final String SECONDARY_COLOR = "#00d1d1"; // Turquoise
-    public static final String NEUTRAL_COLOR = "#f3f4f6"; // Light Gray
+    public static final String NEUTRAL_COLOR = "#64748b"; // Light Gray
     public static final String TEXT_COLOR = "#ffffff"; // White
     public static final String ACCENT_COLOR = "#f97316"; // Coral Orange
     public static final String BACKGROUND_COLOR = "#1e293b"; // Deep Sea Navy

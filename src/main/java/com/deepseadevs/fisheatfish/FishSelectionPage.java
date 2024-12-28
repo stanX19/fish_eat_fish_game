@@ -3,9 +3,8 @@ package com.deepseadevs.fisheatfish;
 import com.deepseadevs.fisheatfish.game.FishTypes;
 import com.deepseadevs.fisheatfish.game.Spawner;
 import com.deepseadevs.fisheatfish.game.fish.BaseFish;
-import com.deepseadevs.fisheatfish.widgets.GameStyles;
 import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
-import com.deepseadevs.fisheatfish.widgets.buttons.NeutralButton;
+import com.deepseadevs.fisheatfish.widgets.buttons.AccentButton;
 import com.deepseadevs.fisheatfish.widgets.buttons.SecondaryButton;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Pos;
@@ -14,7 +13,6 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -93,7 +91,7 @@ public class FishSelectionPage extends BasePage {
         botButtonBox.setAlignment(Pos.CENTER);
         botButtonBox.setMaxWidth(400);
 
-        Button backButton = new NeutralButton("Back");
+        Button backButton = new AccentButton("Back");
         backButton.setMinWidth(50);
         backButton.setOnAction(e -> {
             stopAnimationTimer();

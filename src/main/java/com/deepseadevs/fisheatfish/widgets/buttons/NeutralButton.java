@@ -4,6 +4,6 @@ import com.deepseadevs.fisheatfish.widgets.GameStyles;
 
 public class NeutralButton extends ColoredButton {
     public NeutralButton(String text) {
-        super(text, GameStyles.ACCENT_COLOR);
+        super(text, GameStyles.NEUTRAL_COLOR);
     }
 }
