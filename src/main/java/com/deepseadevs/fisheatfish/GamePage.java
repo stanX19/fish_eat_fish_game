@@ -6,6 +6,8 @@ import com.deepseadevs.fisheatfish.game.GameRenderer;
 import com.deepseadevs.fisheatfish.game.Settings;
 import com.deepseadevs.fisheatfish.widgets.GameStyles;
 import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
+import com.deepseadevs.fisheatfish.widgets.buttons.MenuMainButton;
+import com.deepseadevs.fisheatfish.widgets.buttons.MenuSecondaryButton;
 import com.deepseadevs.fisheatfish.widgets.buttons.SecondaryButton;
 import com.deepseadevs.fisheatfish.widgets.labels.BoldLabel;
 import com.deepseadevs.fisheatfish.widgets.labels.ColoredLabel;
@@ -100,20 +102,20 @@ public class GamePage extends BasePage {
         VBox buttonContainer = new VBox(20); // Vertical spacing of 20 between buttons
         buttonContainer.setAlignment(Pos.CENTER);
 
-        continueButton = new SecondaryButton("Resume");
+        continueButton = new MenuSecondaryButton("Resume");
         continueButton.setOnAction(e -> hidePauseOverlay());
 
-        Button saveAndQuitButton = new MainButton("Save and Quit");
+        Button saveAndQuitButton = new MenuMainButton("Save and Quit");
         saveAndQuitButton.setOnAction(e -> save_and_quit());
 
-        Button restartButton = new MainButton("Restart");
+        Button restartButton = new MenuMainButton("Restart");
         restartButton.setOnAction(e -> {
             pauseOverlay.setVisible(false);
             gameEngine.triggerGameOver();
             uiController.gotoGamePage();
         });
 
-        Button toggleHitBoxButton = new MainButton((Settings.showHitBox? "Hide": "Show") + " Hit Box");
+        Button toggleHitBoxButton = new MenuMainButton((Settings.showHitBox? "Hide": "Show") + " Hit Box");
         toggleHitBoxButton.setOnAction(e -> {
             Settings.showHitBox = !Settings.showHitBox;
             if (Settings.showHitBox)

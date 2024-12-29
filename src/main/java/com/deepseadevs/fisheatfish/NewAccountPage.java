@@ -169,7 +169,7 @@ public class NewAccountPage extends BasePage {
         StackPane root = new StackPane();
         root.getChildren().addAll(mainBox, successOverlay);
 
-        return new Scene(root, 400, 350);
+        return new Scene(root, 600, 400);
     }
 
 
