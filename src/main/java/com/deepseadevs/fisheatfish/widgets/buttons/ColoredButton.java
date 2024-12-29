@@ -29,7 +29,6 @@ public class ColoredButton extends Button {
                 -fx-padding: 5px 10px;
                 -fx-background-radius: 8px;
                 -fx-cursor: hand;
-                -fx-min-width: 300px;
                 """, color, GameStyles.TEXT_COLOR);
     }
 }
