@@ -44,12 +44,14 @@ public class MainMenuPage extends BasePage {
 
         // Create Key Function
         //Button continueButton = createMainButton("Continue Game", "#22c55e");
-        ColoredButton continueButton = new ColoredButton("Continue Game", GameStyles.ACCENT_COLOR);
+        ColoredButton continueButton = new ColoredButton("Continue Game", GameStyles.SECONDARY_COLOR);
         continueButton.setOnAction(e -> uiController.gotoGamePage(true));
+        continueButton.setStyle(continueButton.getStyle() + "-fx-min-width: 300px;");
 
         //Button startGameButton = createMainButton("New Game", "#22c55e"); // Green color
-        ColoredButton startGameButton = new ColoredButton("New Game", GameStyles.ACCENT_COLOR);
+        ColoredButton startGameButton = new ColoredButton("New Game", GameStyles.SECONDARY_COLOR);
         startGameButton.setOnAction(e -> uiController.gotoFishSelectionPage());
+        startGameButton.setStyle(startGameButton.getStyle() + "-fx-min-width: 300px;");
 
         Button leaderboardButton = createMainButton("Leaderboard");
         leaderboardButton.setOnAction(e -> uiController.gotoLeaderBoard());
@@ -75,8 +77,9 @@ public class MainMenuPage extends BasePage {
 
         // Create logout button
         //Button logoutButton = createMainButton("Logout", "#ef4444"); // Red color
-        ColoredButton logoutButton = new ColoredButton("Logout", GameStyles.SECONDARY_COLOR);
+        ColoredButton logoutButton = new ColoredButton("Logout", GameStyles.ACCENT_COLOR);
         logoutButton.setOnAction(e -> uiController.logout());
+        logoutButton.setStyle(logoutButton.getStyle() + "-fx-min-width: 300px;");
 
         // Add all elements to the main container
         root.getChildren().addAll(
