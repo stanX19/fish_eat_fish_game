@@ -1,5 +1,7 @@
 package com.deepseadevs.fisheatfish.game;
 
+import com.deepseadevs.fisheatfish.game.fish.SmallFish;
+
 import java.time.Duration;
 import java.time.Instant;
 
@@ -18,7 +20,7 @@ public class GameData {
     private double levelProgress;
 
     public GameData() {
-        this(0, 1, 0, 600);
+        this(0, 1, 0, (int)(new SmallFish()).getArea() + 100);
     }
 
     public GameData(long score, int level, int fishEaten, int size) {

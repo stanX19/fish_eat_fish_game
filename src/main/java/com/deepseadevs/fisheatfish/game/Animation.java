@@ -88,16 +88,17 @@ public class Animation {
         double scaleY = height / spriteDimension.getHeight();
 
         gc.save();
-        gc.translate(x - spriteDimension.minX, y - spriteDimension.minY);
+        gc.translate(x - spriteDimension.minX * scaleX, y - spriteDimension.minY * scaleY);
         gc.scale(scaleX, scaleY);
         gc.drawImage(frames[currentFrame], 0, 0);
         gc.restore();
 
-        gc.save();
-        gc.setStroke(Color.LIME); // Set the color of the rectangle (example: red)
-        gc.setLineWidth(2); // Set the width of the rectangle's border
-        gc.strokeRect(x, y, width, height); // Draw the rectangle
-        gc.restore();
+        if (Settings.showHitBox) {
+            gc.setStroke(Color.LIME);
+            gc.setLineWidth(2);
+            gc.strokeRect(x, y, width, height);
+            gc.restore();
+        }
     }
 
     public Bound getSpriteDimension() {

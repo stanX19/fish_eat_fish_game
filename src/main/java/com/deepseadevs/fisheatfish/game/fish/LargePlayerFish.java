@@ -8,7 +8,7 @@ import com.deepseadevs.fisheatfish.game.Bound;
 public class LargePlayerFish extends BasePlayerFish {
     public LargePlayerFish(){
         super();
-        leftFishAnimation = new Animation("file:src/main/assets/sprites/pacmanleft.png", 0.25, new Bound(17,24,101,106));
-        rightFishAnimation = new Animation("file:src/main/assets/sprites/pacmanright.png", 0.25, new Bound(27,24,111,106));
+        leftFishAnimation = new Animation("file:src/main/assets/sprites/pacmanleft.png", 0.1, new Bound(17,24,101,106));
+        rightFishAnimation = new Animation("file:src/main/assets/sprites/pacmanright.png", 0.1, new Bound(27,24,111,106));
     }
 }
