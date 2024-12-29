@@ -33,6 +33,7 @@ public class GamePage extends BasePage {
     private GameEngine gameEngine;
     private GameOverOverlay gameOverOverlay;
     private Pane pauseOverlay;
+    Button continueButton;
 
     public GamePage(UIController uiController, SessionManager sessionManager) {
         this(uiController, sessionManager, false);
@@ -98,7 +99,7 @@ public class GamePage extends BasePage {
         VBox buttonContainer = new VBox(20); // Vertical spacing of 20 between buttons
         buttonContainer.setAlignment(Pos.CENTER);
 
-        Button continueButton = new SecondaryButton("Resume");
+        continueButton = new SecondaryButton("Resume");
         continueButton.setFont(new Font(20));
         continueButton.setOnAction(e -> hidePauseOverlay());
 
@@ -106,11 +107,12 @@ public class GamePage extends BasePage {
         saveAndQuitButton.setFont(new Font(20));
         saveAndQuitButton.setOnAction(e -> save_and_quit());
 
-        Button endGameButton = new MainButton("End Game");
+        Button endGameButton = new MainButton("Restart");
         endGameButton.setFont(new Font(20));
         endGameButton.setOnAction(e -> {
             pauseOverlay.setVisible(false);
             gameEngine.triggerGameOver();
+            uiController.gotoGamePage();
         });
 
         buttonContainer.getChildren().addAll(continueButton, saveAndQuitButton, endGameButton);
@@ -127,10 +129,12 @@ public class GamePage extends BasePage {
         pauseOverlay.setVisible(false);
         gameOverOverlay.loadDynamicContent(gameData);
         gameOverOverlay.setVisible(true);
+        gameOverOverlay.focusRestart();
     }
 
     private void showPauseOverlay() {
         pauseOverlay.setVisible(true);
+        continueButton.requestFocus();
         gameEngine.pause();
     }
 
@@ -200,7 +204,6 @@ class GameOverOverlay extends StackPane {
         getChildren().add(mainContainer);
     }
 
-
     public void loadDynamicContent(GameData gameData) {
         currentScoreLabel.setText("Score: " + gameData.getScore());
         highScoreLabel.setText("High Score: " + sessionManager.getHighScore());
@@ -208,6 +211,10 @@ class GameOverOverlay extends StackPane {
         timeLabel.setText(formatDuration(gameData.getGameDuration()));
         congratsLabel.setVisible(gameData.getScore() == sessionManager.getHighScore());
         highScoreLabel.setVisible(!congratsLabel.isVisible());
+    }
+
+    public void focusRestart() {
+        restartButton.requestFocus();
     }
 
     public static String formatDuration(Duration duration) {

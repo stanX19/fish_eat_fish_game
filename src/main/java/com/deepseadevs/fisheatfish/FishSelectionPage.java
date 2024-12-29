@@ -36,6 +36,8 @@ public class FishSelectionPage extends BasePage {
     private Button selectButton;
     private Button previousButton;
     private Button nextButton;
+    private Button startButton;
+    private Button backButton;
 
     public FishSelectionPage(UIController uiController, SessionManager sessionManager) {
         super(uiController, sessionManager);
@@ -49,6 +51,7 @@ public class FishSelectionPage extends BasePage {
         initializeFishMap();
         initializeAnimationTimer();
         updateSelectButtonState();
+        startButton.requestFocus();
     }
 
     private void initializeFishMap() {
@@ -91,14 +94,14 @@ public class FishSelectionPage extends BasePage {
         botButtonBox.setAlignment(Pos.CENTER);
         botButtonBox.setMaxWidth(400);
 
-        Button backButton = new AccentButton("Back");
+        backButton = new AccentButton("Back");
         backButton.setMinWidth(50);
         backButton.setOnAction(e -> {
             stopAnimationTimer();
             uiController.gotoMainMenu();
         });
 
-        Button startButton = new SecondaryButton("Start Game");
+        startButton = new SecondaryButton("Start Game");
         startButton.setMinWidth(230);
         startButton.setOnAction(e -> {
             stopAnimationTimer();
