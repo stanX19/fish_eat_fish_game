@@ -4,6 +4,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
 
 public class Animation {
     private final WritableImage[] frames;
@@ -90,6 +91,12 @@ public class Animation {
         gc.translate(x - spriteDimension.minX, y - spriteDimension.minY);
         gc.scale(scaleX, scaleY);
         gc.drawImage(frames[currentFrame], 0, 0);
+        gc.restore();
+
+        gc.save();
+        gc.setStroke(Color.LIME); // Set the color of the rectangle (example: red)
+        gc.setLineWidth(2); // Set the width of the rectangle's border
+        gc.strokeRect(x, y, width, height); // Draw the rectangle
         gc.restore();
     }
 
