@@ -12,6 +12,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.paint.Color;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import com.deepseadevs.fisheatfish.widgets.buttons.ColoredButton;
 
 public class MainMenuPage extends BasePage {
     public MainMenuPage(UIController uiController, SessionManager sessionManager) {
@@ -42,17 +43,19 @@ public class MainMenuPage extends BasePage {
         highScoreLabel.setTextFill(Color.web("#fbbf24")); // Gold text
 
         // Create Key Function
-        Button continueButton = createMainButton("Continue Game", "#22c55e");
+        //Button continueButton = createMainButton("Continue Game", "#22c55e");
+        ColoredButton continueButton = new ColoredButton("Continue Game", GameStyles.ACCENT_COLOR);
         continueButton.setOnAction(e -> uiController.gotoGamePage(true));
 
-        Button startGameButton = createMainButton("New Game", "#22c55e"); // Green color
-        startGameButton.setOnAction(e -> uiController.gotoGamePage());
+        //Button startGameButton = createMainButton("New Game", "#22c55e"); // Green color
+        ColoredButton startGameButton = new ColoredButton("New Game", GameStyles.ACCENT_COLOR);
+        startGameButton.setOnAction(e -> uiController.gotoFishSelectionPage());
 
         Button leaderboardButton = createMainButton("Leaderboard");
         leaderboardButton.setOnAction(e -> uiController.gotoLeaderBoard());
 
-        Button selectFishButton = createMainButton("Select Fish");
-        selectFishButton.setOnAction(e -> uiController.gotoFishSelectionPage());
+        //Button selectFishButton = createMainButton("Select Fish");
+        //selectFishButton.setOnAction(e -> uiController.gotoFishSelectionPage());
 
         Button profileButton = createMainButton("Profile");
         profileButton.setOnAction(e -> uiController.gotoHistoryPage());
@@ -71,7 +74,8 @@ public class MainMenuPage extends BasePage {
         utilityButtonsRow.getChildren().addAll(settingsButton, helpButton);*/
 
         // Create logout button
-        Button logoutButton = createMainButton("Logout", "#ef4444"); // Red color
+        //Button logoutButton = createMainButton("Logout", "#ef4444"); // Red color
+        ColoredButton logoutButton = new ColoredButton("Logout", GameStyles.SECONDARY_COLOR);
         logoutButton.setOnAction(e -> uiController.logout());
 
         // Add all elements to the main container
@@ -89,7 +93,7 @@ public class MainMenuPage extends BasePage {
         root.getChildren().addAll(
                 startGameButton,
                 leaderboardButton,
-                selectFishButton,
+                //selectFishButton,
                 profileButton,
 //                utilityButtonsRow,
                 logoutButton
