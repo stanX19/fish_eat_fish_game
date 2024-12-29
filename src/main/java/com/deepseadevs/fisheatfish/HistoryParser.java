@@ -2,6 +2,7 @@ package com.deepseadevs.fisheatfish;
 
 import com.deepseadevs.fisheatfish.game.GameData;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,5 +55,24 @@ public class HistoryParser {
             maxFishEaten += Math.max(maxFishEaten, data.getFishEaten());
         }
         return maxFishEaten;
+    }
+
+    public int getTotalGames() {
+        return history.size();
+    }
+
+    public Duration getLongestDuration() {
+        Duration longest = Duration.ZERO;
+        for (GameData data : history)
+            if (longest.compareTo(data.getGameDuration()) < 0)
+                longest = data.getGameDuration();
+        return longest;
+    }
+
+    public Duration getTotalDuration() {
+        Duration total = Duration.ZERO;
+        for (GameData data : history)
+            total = total.plus(data.getGameDuration());
+        return total;
     }
 }

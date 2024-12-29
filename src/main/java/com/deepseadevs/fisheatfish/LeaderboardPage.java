@@ -1,12 +1,13 @@
 package com.deepseadevs.fisheatfish;
 
-import com.deepseadevs.fisheatfish.widgets.labels.TitleLabel;
+import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
+import com.deepseadevs.fisheatfish.widgets.labels.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.text.Font;
 import javafx.scene.layout.*;
 
 import java.util.ArrayList;
@@ -28,30 +29,13 @@ public class LeaderboardPage extends BasePage {
         contentBox.setSpacing(20);
         contentBox.setStyle("-fx-background-color: " + BACKGROUND_COLOR + ";");
 
+        // Title label
         TitleLabel titleLabel = new TitleLabel("LEADERBOARD");
 
         // Back button
-        Button backButton = new Button("Back");
+        MainButton backButton = new MainButton("Back");
         backButton.setOnAction(e -> uiController.gotoMainMenu());
-        final String BUTTON_STYLE = """
-            -fx-background-color: #3b82f6;
-            -fx-text-fill: white;
-            -fx-font-size: 16px;
-            -fx-padding: 12px 24px;
-            -fx-background-radius: 8px;
-            -fx-cursor: hand;
-            """;
-        final String BUTTON_HOVER_STYLE = """
-            -fx-background-color: derive(#3b82f6, -20%);
-            -fx-text-fill: white;
-            -fx-font-size: 16px;
-            -fx-padding: 12px 24px;
-            -fx-background-radius: 8px;
-            -fx-cursor: hand;
-            """;
-        backButton.setStyle(BUTTON_STYLE);
-        backButton.setOnMouseEntered(e -> backButton.setStyle(BUTTON_HOVER_STYLE));
-        backButton.setOnMouseExited(e -> backButton.setStyle(BUTTON_STYLE));
+        backButton.setFocusTraversable(false);
 
         // Leaderboard layout
         VBox leaderboardLayout = createLeaderboardLayout();
@@ -61,7 +45,7 @@ public class LeaderboardPage extends BasePage {
 
         // Wrap contentBox in a ScrollPane to allow scrolling for the entire scene
         ScrollPane root = new ScrollPane(contentBox);
-        root.setFitToWidth(true); // Make the scene's content stretch horizontally
+        root.setFitToWidth(true);
         root.setFitToHeight(true);
         root.setStyle("-fx-background-color: " + BACKGROUND_COLOR + ";");
         root.setPadding(new Insets(20));
@@ -78,7 +62,7 @@ public class LeaderboardPage extends BasePage {
         leaderboardLayout.setAlignment(Pos.CENTER);
 
         // Header row
-        HBox headerRow = createRow("Rank", "Username", "High Score", "", true, false);
+        HBox headerRow = createRow("Rank", "Username", "High Score", "", 0);
         leaderboardLayout.getChildren().add(headerRow);
 
         // Fetch and sort top players
@@ -95,80 +79,95 @@ public class LeaderboardPage extends BasePage {
                 isUserOnLeaderboard = true;
             }
 
-            HBox row = createRow(String.valueOf(rank), user.getDisplayName(), String.valueOf(user.getHighScore()), user.getUserID(),false, isCurrentUser);
+            HBox row = createRow(String.valueOf(rank), user.getDisplayName(), String.valueOf(user.getHighScore()), user.getUserID(), isCurrentUser ? 2 : 1);
             leaderboardLayout.getChildren().add(row);
             rank++;
         }
 
         if (!isUserOnLeaderboard) {
             UserData currentUser = DatabaseManager.getInstance().getUserData(sessionManager.getUserID());
-            HBox currentUserRow = createRow("N/A", currentUser.getDisplayName(), String.valueOf(currentUser.getHighScore()), currentUser.getUserID(), false, true);
+            HBox currentUserRow = createRow("--", currentUser.getDisplayName(), String.valueOf(currentUser.getHighScore()), currentUser.getUserID(), 2);
             leaderboardLayout.getChildren().add(currentUserRow);
         }
 
         return leaderboardLayout;
     }
 
-    private HBox createRow(String rank, String username, String score, String userID, boolean isHeader, boolean isHighlighted) {
+    // type: 0 => header, 1 => normal text, 2 => colored text
+    private HBox createRow(String rank, String username, String score, String userID, int type) {
+        final String[] text = { rank, username, score, userID };
         HBox row = new HBox();
         row.setSpacing(10);
         row.setAlignment(Pos.CENTER);
-        row.setPadding(new Insets(5));
-
-        // Apply background styles
-        if (isHeader) {
-            row.setStyle("-fx-padding: 10px;");
-        } else {
-            String borderColor = rank.equals("1") ? "#efbf04" : rank.equals("2") ? "#c4c4c4": rank.equals("3") ? "#ce8946" : "null";
-            row.setStyle("-fx-background-color: rgba(255, 255, 255, 0.1); -fx-padding: 10px; -fx-background-radius: 5px; -fx-border-color: " + borderColor + ";");
-        }
+        row.setPadding(new Insets(10));
 
         // Create labels for each column
-        Label rankLabel = new Label(rank);
-        Label usernameLabel = new Label(username);
-        Label scoreLabel = new Label(score);
+        Label[] labels = new Label[3];
+        switch (type) {
+            case 0 -> {
 
-        styleCell(rankLabel, isHeader, isHighlighted, false);
-        styleCell(usernameLabel, isHeader, isHighlighted, false);
-        styleCell(scoreLabel, isHeader, isHighlighted, false);
+                for (int i = 0; i < 3; i++) {
+                    labels[i] = new BoldLabel(text[i]);
+                    setLabelProperties(labels[i]);
+                }
+            }
+            case 1 -> {
+                for (int i = 0; i < 3; i++) {
+                    labels[i] = new NeutralLabel(text[i]);
+                    setLabelProperties(labels[i]);
+                }
+            }
+            case 2 -> {
+                for (int i = 0; i < 3; i++) {
+                    labels[i] = new ColoredLabel(text[i], "#d3d3ff");
+                    setLabelProperties(labels[i]);
+                }
+            }
+        }
 
-        // Ensure the labels are properly spaced
-        HBox.setHgrow(rankLabel, Priority.ALWAYS);
-        HBox.setHgrow(usernameLabel, Priority.ALWAYS);
-        HBox.setHgrow(scoreLabel, Priority.ALWAYS);
+        if (type != 0) {
+            String borderColor = rank.equals("1") ? "#efbf04" : rank.equals("2") ? "#c4c4c4": rank.equals("3") ? "#ce8946" : "null";
+            final String ROW_STYLE = String.format("""
+                    -fx-background-color: rgba(255, 255, 255, 0.1);
+                    -fx-background-radius: 5px;
+                    -fx-border-color: %s;
+                    """, borderColor);
+            final String ROW_HOVER_STYLE = String.format("""
+                    -fx-background-color: derive(rgba(255, 255, 255, 0.1), -20%%);
+                    -fx-background-radius: 5px;
+                    -fx-border-color: %s;
+                    -fx-cursor: hand;
+                    """, borderColor);
+            row.setStyle(ROW_STYLE);
+            row.setOnMouseClicked(e -> {
+                uiController.gotoHistoryPage(DatabaseManager.getInstance().getUserData(userID));
+            });
+            row.setOnMouseEntered(e -> {
+                row.setStyle(ROW_HOVER_STYLE);
+            });
+            row.setOnMouseExited(e -> {
+                row.setStyle(ROW_STYLE);
+            });
 
-        double columnWidth = 150; // Adjust as needed
-        rankLabel.setMinWidth(columnWidth);
-        usernameLabel.setMinWidth(columnWidth);
-        scoreLabel.setMinWidth(columnWidth);
-
-        rankLabel.setMaxWidth(Double.MAX_VALUE);
-        usernameLabel.setMaxWidth(Double.MAX_VALUE);
-        scoreLabel.setMaxWidth(Double.MAX_VALUE);
-
-        if (!userID.isEmpty()) {
             VBox vbox = new VBox();
-            Label userIDLabel = new Label(userID);
-            styleCell(userIDLabel, isHeader, isHighlighted, true);
-            HBox.setHgrow(userIDLabel, Priority.ALWAYS);
-            userIDLabel.setMinWidth(columnWidth);
-            userIDLabel.setMaxWidth(Double.MAX_VALUE);
-            vbox.getChildren().addAll(usernameLabel, userIDLabel);
-            row.getChildren().addAll(rankLabel, vbox, scoreLabel);
+            Label userIDLabel = new GeneralLabel(userID, Font.font("Arial", 10), "#888888");
+            setLabelProperties(userIDLabel);
+            vbox.getChildren().addAll(labels[1], userIDLabel);
+            row.getChildren().addAll(labels[0], vbox, labels[2]);
             return row;
         }
 
         // Add labels to the row
-        row.getChildren().addAll(rankLabel, usernameLabel, scoreLabel);
+        row.getChildren().addAll(labels);
 
         return row;
     }
 
-    private void styleCell(Label label, boolean isHeader, boolean isHighlighted, boolean isUserID) {
-        String fontSize = isHeader ? "16px" : isUserID ? "10px" : "14px";
-        String fontWeight = isHeader ? "bold" : "normal";
-        String textColor = isUserID ? "#898989" : isHighlighted ? "#d3d3ff" : "#ffffff";
-
-        label.setStyle("-fx-font-size: " + fontSize + "; -fx-font-weight: " + fontWeight + "; -fx-text-fill: " + textColor + "; -fx-alignment: center;");
+    private void setLabelProperties(Label label) {
+        final double COLUMN_WIDTH = 150;
+        HBox.setHgrow(label, Priority.ALWAYS);
+        label.setMinWidth(COLUMN_WIDTH);
+        label.setMaxWidth(Double.MAX_VALUE);
     }
+
 }

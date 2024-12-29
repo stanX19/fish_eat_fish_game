@@ -58,6 +58,11 @@ public class UIController {
         showPage(historyPage);
     }
 
+    public void gotoHistoryPage(UserData userData) {
+        HistoryPage historyPage = new HistoryPage(this, sessionManager, userData);
+        showPage(historyPage);
+    }
+
     public void logout() {
         sessionManager.clearSession();
         gotoLogin();
