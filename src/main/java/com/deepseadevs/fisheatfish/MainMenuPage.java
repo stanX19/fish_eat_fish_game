@@ -62,7 +62,11 @@ public class MainMenuPage extends BasePage {
                 "Eat smaller fish, avoid larger fish",
                 "Hunt larger fish to grow faster!",
                 "Higher score unlock more levels",
-                "Reach higher level to unlock fishes!"
+                "Reach higher level to unlock fishes!",
+                "Don't share your account, you may lose it forever",
+                "You get extra scores for every fish eaten",
+                "Larger fish appear small, watch out!",
+                "Try to eat bigger fishes - maybe they aren't!"
         };
         random = new Random();
         tipsIdx = random.nextInt(tipsArr.length);
