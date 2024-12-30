@@ -130,7 +130,7 @@ public class HistoryPage extends BasePage {
         gridPane.getColumnConstraints().addAll(col);
 
         String[][] text = {
-                { String.valueOf(parser.getHighestScore()), String.valueOf(parser.getHighestLevel()), durationToString(parser.getLongestDuration()) },
+                { String.valueOf(userData.getHighScore()), String.valueOf(parser.getHighestLevel()), durationToString(parser.getLongestDuration()) },
                 { "Highest Score", "Highest Level", "Longest Game" },
                 { String.valueOf(parser.getTotalFishEaten()), String.valueOf(parser.getTotalGames()), durationToString(parser.getTotalDuration()) },
                 { "Total Fish Eaten", "Total Games Played", "Total Time Played" }

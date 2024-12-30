@@ -9,10 +9,7 @@ import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
 import com.deepseadevs.fisheatfish.widgets.buttons.MenuMainButton;
 import com.deepseadevs.fisheatfish.widgets.buttons.MenuSecondaryButton;
 import com.deepseadevs.fisheatfish.widgets.buttons.SecondaryButton;
-import com.deepseadevs.fisheatfish.widgets.labels.BoldLabel;
-import com.deepseadevs.fisheatfish.widgets.labels.ColoredLabel;
-import com.deepseadevs.fisheatfish.widgets.labels.NeutralLabel;
-import com.deepseadevs.fisheatfish.widgets.labels.TitleLabel;
+import com.deepseadevs.fisheatfish.widgets.labels.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -183,13 +180,13 @@ class GameOverOverlay extends StackPane {
 
         gameOverLabel = new TitleLabel("Game Over");
         currentScoreLabel = new BoldLabel("");
-        highScoreLabel = new ColoredLabel("", "#fbbf24");
+        highScoreLabel = new SubScriptLabel("");
         timeLabel = new BoldLabel("");
         levelLabel = new BoldLabel("");
         congratsLabel = new ColoredLabel("New High Score!", "#fbbf24");
         congratsLabel.setVisible(false);
 
-        labelBox.getChildren().addAll(gameOverLabel, levelLabel, timeLabel, highScoreLabel, currentScoreLabel, congratsLabel);
+        labelBox.getChildren().addAll(gameOverLabel, levelLabel, timeLabel, currentScoreLabel, highScoreLabel, congratsLabel);
 
         HBox buttonBox = new HBox(20);
         buttonBox.setAlignment(Pos.CENTER);

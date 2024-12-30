@@ -1,6 +1,7 @@
 package com.deepseadevs.fisheatfish;
 
 import com.deepseadevs.fisheatfish.widgets.GameStyles;
+import com.deepseadevs.fisheatfish.widgets.labels.SubScriptLabel;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -15,7 +16,12 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import com.deepseadevs.fisheatfish.widgets.buttons.MenuColoredButton;
 
+import java.util.Random;
+
 public class MainMenuPage extends BasePage {
+    Random random;
+    int tipsIdx;
+
     public MainMenuPage(UIController uiController, SessionManager sessionManager) {
         super(uiController, sessionManager);
     }
@@ -43,6 +49,30 @@ public class MainMenuPage extends BasePage {
         highScoreLabel.setFont(Font.font("System", 16));
         highScoreLabel.setTextFill(Color.web("#fbbf24")); // Gold text
 
+        // Display tips
+        String[] tipsArr = {
+                "Stay away from larger fishes!",
+                "Level can reflect your fish power",
+                "Beware! Large fish may emerge from screen edges",
+                "Keep your distance from the edges!",
+                "WASD to move your fish",
+                "Check the Leaderboard to compare your strength",
+                "Player's name in leaderboard is clickable",
+                "Click profile to view your progress",
+                "Eat smaller fish, avoid larger fish",
+                "Hunt larger fish to grow faster!",
+                "Higher score unlock more levels",
+                "Reach higher level to unlock fishes!"
+        };
+        random = new Random();
+        tipsIdx = random.nextInt(tipsArr.length);
+        Label tipsLabel = new SubScriptLabel("Tips: " + tipsArr[tipsIdx]);
+        tipsLabel.setOnMouseClicked(e -> {
+            tipsIdx += 1 + random.nextInt(tipsArr.length - 2);
+            tipsIdx %= tipsArr.length;
+            tipsLabel.setText("Tips: " + tipsArr[tipsIdx]);
+        });
+
         // Create Key Function
         //Button continueButton = createMainButton("Continue Game", "#22c55e");
         MenuColoredButton continueButton = new MenuColoredButton("Continue Game", GameStyles.SECONDARY_COLOR);
@@ -57,27 +87,11 @@ public class MainMenuPage extends BasePage {
         Button leaderboardButton = new MenuColoredButton("Leaderboard", GameStyles.MAIN_COLOR);
         leaderboardButton.setOnAction(e -> uiController.gotoLeaderBoard());
 
-        //Button selectFishButton = createMainButton("Select Fish");
-        //selectFishButton.setOnAction(e -> uiController.gotoFishSelectionPage());
-
+        // profile button
         Button profileButton = new MenuColoredButton("Profile", GameStyles.MAIN_COLOR);
         profileButton.setOnAction(e -> uiController.gotoHistoryPage());
 
-        /*
-        // Create utility buttons row
-        HBox utilityButtonsRow = new HBox(20);
-        utilityButtonsRow.setAlignment(Pos.CENTER);
-
-        Button settingsButton = createUtilityButton("Settings", "#64748b"); // Gray-blue color
-        settingsButton.setOnAction(e -> handleSettings());
-
-        Button helpButton = createUtilityButton("Help", "#64748b"); // Gray-blue color
-        helpButton.setOnAction(e -> handleHelp());
-
-        utilityButtonsRow.getChildren().addAll(settingsButton, helpButton);*/
-
         // Create logout button
-        //Button logoutButton = createMainButton("Logout", "#ef4444"); // Red color
         MenuColoredButton logoutButton = new MenuColoredButton("Logout", GameStyles.ACCENT_COLOR);
         logoutButton.setOnAction(e -> uiController.logout());
         logoutButton.setStyle(logoutButton.getStyle() + "-fx-min-width: 300px;");
@@ -86,11 +100,12 @@ public class MainMenuPage extends BasePage {
         root.getChildren().addAll(
                 titleLabel,
                 welcomeLabel,
-                highScoreLabel
+                highScoreLabel,
+                tipsLabel
         );
 
         if (sessionManager.hasOngoingGame()) {
-            root.getChildren().addAll(continueButton);
+            root.getChildren().add(continueButton);
         }
 
         root.getChildren().addAll(
