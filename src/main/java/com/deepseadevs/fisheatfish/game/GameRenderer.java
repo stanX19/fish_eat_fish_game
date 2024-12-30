@@ -15,10 +15,16 @@ import javafx.scene.text.Text;
 
 import java.time.Duration;
 
+import static com.deepseadevs.fisheatfish.widgets.GameStyles.TEXT_COLOR;
+
 public class GameRenderer {
     private static final double PROGRESS_BAR_HEIGHT = 10;
     private static final double MARGIN = 10;
     private static final double LINE_SPACING = 25;
+    private static final double BOX_PADDING = 5;
+    private static final Color BOX_COLOR = Color.rgb(30, 30, 30, 0.3); // Semi-transparent grey
+    private static final Color TEXT_COLOR = Color.WHITE;
+    private static final Font DEFAULT_FONT = new Font("HP Simplified", 20);
 
     private final GraphicsContext gc;
     private final FishHandler fishHandler;
@@ -54,78 +60,95 @@ public class GameRenderer {
     }
 
     private void renderGameStats() {
-        gc.setFill(Color.WHITE);
-        gc.setFont(new Font("Arial", 20));
+        gc.setFill(TEXT_COLOR);
+        gc.setFont(DEFAULT_FONT);
 
-        double margin = 10;
-        double lineSpacing = 25;
-        double boxPadding = 10;
+        // Render score and high score box
+        renderScoreBox();
 
-        // Render score
+        // Render level and progress bar box
+        renderLevelBox();
+
+        // Render game duration box
+        renderDurationBox();
+    }
+
+    private void renderScoreBox() {
         String scoreText = "Score: " + gameData.getScore();
-        double scoreWidth = measureTextWidth(scoreText, gc.getFont());
-        double scoreHeight = measureTextHeight(scoreText, gc.getFont());
-        //gc.fillText(scoreText, margin, margin + lineSpacing);
-
-        // Render high score
         String highScoreText = "Highscore: " + sessionManager.getHighScore();
-        double highScoreWidth = measureTextWidth(highScoreText, gc.getFont());
 
-        // Render level with progress bar
+        // Measure text dimensions
+        double scoreWidth = measureTextWidth(scoreText, gc.getFont());
+        double highScoreWidth = measureTextWidth(highScoreText, gc.getFont());
+        double textHeight = measureTextHeight(scoreText, gc.getFont());
+
+        // Calculate box dimensions
+        double boxWidth = Math.max(scoreWidth, highScoreWidth) + 2 * BOX_PADDING; // Add padding
+        double boxHeight = textHeight * 2 + (LINE_SPACING / 2) + 2 * BOX_PADDING - 5;
+
+        // Box position
+        double boxX = MARGIN;
+        double boxY = MARGIN ;
+
+        // Draw the box
+        gc.setFill(BOX_COLOR);
+        gc.fillRect(boxX, boxY, boxWidth, boxHeight - 15);
+
+        // Draw the text
+        gc.setFill(TEXT_COLOR);
+        gc.fillText(scoreText, boxX + BOX_PADDING, boxY + BOX_PADDING + textHeight - 10);
+        gc.fillText(highScoreText, boxX + BOX_PADDING, boxY + BOX_PADDING + textHeight + LINE_SPACING - 10);
+    }
+
+    private void renderLevelBox() {
         String levelText = "Level: " + gameData.getLevel();
         double levelWidth = measureTextWidth(levelText, gc.getFont());
         double levelHeight = measureTextHeight(levelText, gc.getFont());
 
         // Progress bar dimensions
         double progressBarWidth = 200;
-        double progressBarHeight = 10;
 
-        // Game duration text
+        // Calculate box dimensions
+        double boxWidth = Math.max(levelWidth, progressBarWidth) + 2 * BOX_PADDING; // Add padding
+        double boxHeight = levelHeight + (LINE_SPACING / 2) + PROGRESS_BAR_HEIGHT + 2 * BOX_PADDING; // Add padding
+
+        // Box position
+        double boxX = MARGIN;
+        double boxY = gc.getCanvas().getHeight() - boxHeight - MARGIN;
+
+        // Draw the box
+        gc.setFill(BOX_COLOR);
+        gc.fillRect(boxX, boxY, boxWidth, boxHeight - 10);
+
+        // Draw the level text
+        gc.setFill(Color.LIGHTGOLDENRODYELLOW);
+        gc.fillText(levelText, boxX + BOX_PADDING, boxY + BOX_PADDING + levelHeight - 10);
+
+        // Draw the progress bar
+        renderProgressBar(boxX + BOX_PADDING, boxY + boxHeight - PROGRESS_BAR_HEIGHT - BOX_PADDING, gameData.getProgress());
+    }
+
+    private void renderDurationBox() {
         String gameDurationText = formatDuration(gameData.getGameDuration());
         double durationWidth = measureTextWidth(gameDurationText, gc.getFont());
         double durationHeight = measureTextHeight(gameDurationText, gc.getFont());
 
-        // Score and high score box dimensions
-        double scoreBoxWidth = Math.max(scoreWidth, highScoreWidth) + 2 * boxPadding;
-        double scoreBoxHeight = scoreHeight * 2 + lineSpacing + 2 * boxPadding;
-        double scoreBoxX = margin;
-        double scoreBoxY = margin;
+        // Calculate box dimensions
+        double boxWidth = durationWidth + 2 * BOX_PADDING; // Add padding
+        double boxHeight = durationHeight + 2 * BOX_PADDING; // Add padding
 
-        // Level and progress bar box dimensions
-        double levelBoxWidth = Math.max(levelWidth, progressBarWidth) + 2 * boxPadding;
-        double levelBoxHeight = levelHeight + lineSpacing + progressBarHeight + 2 * boxPadding;
-        double levelBoxX = margin;
-        double levelBoxY = gc.getCanvas().getHeight() - levelBoxHeight - margin;
-
-        // Time duration box dimensions
-        double durationBoxWidth = durationWidth + 2 * boxPadding;
-        double durationBoxHeight = durationHeight + 2 * boxPadding;
+        // Box position
         double pauseButtonWidth = 50;
-        double durationBoxX = gc.getCanvas().getWidth() - MARGIN - pauseButtonWidth - 100;
-        double durationBoxY = MARGIN;
+        double boxX = gc.getCanvas().getWidth() - MARGIN - pauseButtonWidth - 100;
+        double boxY = MARGIN;
 
-        // Render score and high score box
-        gc.setFill(Color.rgb(50, 50, 50, 0.5)); // Semi-transparent grey
-        gc.fillRect(scoreBoxX, scoreBoxY, scoreBoxWidth, scoreBoxHeight);
+        // Draw the box
+        gc.setFill(BOX_COLOR);
+        gc.fillRect(boxX, boxY, boxWidth, boxHeight - 5);
 
-        gc.setFill(Color.WHITE);
-        gc.fillText(scoreText, scoreBoxX + boxPadding, scoreBoxY + boxPadding + scoreHeight);
-        gc.fillText(highScoreText, scoreBoxX + boxPadding, scoreBoxY + boxPadding + scoreHeight + lineSpacing);
-
-        // Render level and progress bar box
-        gc.setFill(Color.rgb(50, 50, 50, 0.5)); // Semi-transparent grey
-        gc.fillRect(levelBoxX, levelBoxY, levelBoxWidth, levelBoxHeight);
-
-        gc.setFill(Color.LIGHTGOLDENRODYELLOW);
-        gc.fillText(levelText, levelBoxX + boxPadding, levelBoxY + boxPadding + levelHeight);
-
-        renderProgressBar(levelBoxX + boxPadding, levelBoxY + levelBoxHeight - progressBarHeight - boxPadding, gameData.getProgress());
-
-        // Render game duration
-        gc.setFill(Color.rgb(50, 50, 50, 0.5)); // Semi-transparent grey
-        gc.fillRect(durationBoxX, durationBoxY, durationBoxWidth, durationBoxHeight);
-        gc.setFill(Color.WHITE);
-        gc.fillText(gameDurationText, durationBoxX + boxPadding, durationBoxY + boxPadding + durationHeight);
+        // Draw the duration text
+        gc.setFill(TEXT_COLOR);
+        gc.fillText(gameDurationText, boxX + BOX_PADDING, boxY + BOX_PADDING + durationHeight - 8);
     }
 
     private double measureTextWidth(String text, Font font) {
@@ -143,7 +166,7 @@ public class GameRenderer {
 
     private void renderProgressBar(double x, double y, double progress) {
         double barWidth = 200;
-        double barHeight = 10;
+        double barHeight = PROGRESS_BAR_HEIGHT;
 
         // Ensure progress is within [0, 1]
         progress = Math.max(0, Math.min(1, progress));
