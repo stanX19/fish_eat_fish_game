@@ -98,6 +98,7 @@ public class NewAccountPage extends BasePage {
         backToLoginButton = new MainButton("Back to Login");
         feedbackText = new Text();
         feedbackText.setFont(new Font("Arial", 12));
+        feedbackText.setFill(Color.RED);
 
         // Hooks
         createAccountButton.setOnAction(e -> this.attemptCreateAccount());
@@ -172,42 +173,29 @@ public class NewAccountPage extends BasePage {
         return new Scene(root, 600, 400);
     }
 
-
-    //  Apply password hashing using LoginUtils.hashString done
     private void attemptCreateAccount() {
         String userID = userIDField.getText();
         String displayedName = displayNameField.getText();
         String password = passwordField.getText();
         String confirmPassword = confirmPasswordField.getText();
 
-        // Define a regex pattern to check for invalid characters
-        String invalidCharacterPattern = ".*[,].*";
-        String userIDPattern = "^[a-zA-Z0-9_]{5,20}$"; // Allow alphanumeric characters and underscores, length 5-20
+        String invalidNamePattern = ".*,.*";
+        String userIDPattern = "^[a-zA-Z0-9_]";
 
         if (userID.isEmpty() || displayedName.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             feedbackText.setText("All fields are required.");
-            feedbackText.setFill(Color.RED);
-            // Validate userID against the new pattern
+        } else if (userID.length() > 20){
+            feedbackText.setText("Account Name cannot be longer\nthan 20 characters");
         } else if (!userID.matches(userIDPattern)) {
-            feedbackText.setText("AccountName must be 5-20 characters long\n" +
-                    "only contain letters, numbers, and underscores.");
-            feedbackText.setFill(Color.RED);
-        // Check for commas in the inputs
-        } else if (displayedName.matches(invalidCharacterPattern)) {
-            feedbackText.setText("Display name cannot contain character");
-            feedbackText.setFill(Color.RED);
-        // Check if password match
+            feedbackText.setText("Account Name can only contain\nletters, numbers, and underscores.");
+        } else if (displayedName.matches(invalidNamePattern)) {
+            feedbackText.setText("Display name cannot contain\ncomma ',' character");
         } else if (!password.equals(confirmPassword)) {
             feedbackText.setText("Passwords do not match.");
-            feedbackText.setFill(Color.RED);
-        // Check if username already taken
         } else if (DatabaseManager.getInstance().userExists(userID)) {
             feedbackText.setText("Username already taken.");
-            feedbackText.setFill(Color.RED);
-        // If all validation pass, proceed to create account
         } else {
             disableCreateAccountInputs();
-            // password hashing
             String hashedPassword = LoginUtils.hashString(password);
             DatabaseManager.getInstance().createNewUser(userID, displayedName, hashedPassword);
             successOverlay.setDisable(false);
