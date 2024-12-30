@@ -3,8 +3,6 @@ package com.deepseadevs.fisheatfish.game.fish;
 import com.deepseadevs.fisheatfish.game.Bound;
 import com.deepseadevs.fisheatfish.game.Animation;
 
-// TODO:
-//  ADD design and customization, override methods for custom behaviour
 public class MediumPlayerFish extends BasePlayerFish {
     public MediumPlayerFish(){
         super();
