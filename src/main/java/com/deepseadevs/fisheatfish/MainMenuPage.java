@@ -1,21 +1,21 @@
 package com.deepseadevs.fisheatfish;
 
 import com.deepseadevs.fisheatfish.widgets.GameStyles;
-import com.deepseadevs.fisheatfish.widgets.labels.SubScriptLabel;
+import com.deepseadevs.fisheatfish.widgets.labels.SubscriptLabel;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.paint.Color;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import com.deepseadevs.fisheatfish.widgets.buttons.MenuColoredButton;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 public class MainMenuPage extends BasePage {
@@ -50,32 +50,7 @@ public class MainMenuPage extends BasePage {
         highScoreLabel.setTextFill(Color.web("#fbbf24")); // Gold text
 
         // Display tips
-        String[] tipsArr = {
-                "Stay away from larger fishes!",
-                "Level can reflect your fish power",
-                "Beware! Large fish may emerge from screen edges",
-                "Keep your distance from the edges!",
-                "WASD to move your fish",
-                "Check the Leaderboard to compare your strength",
-                "Player's name in leaderboard is clickable",
-                "Click profile to view your progress",
-                "Eat smaller fish, avoid larger fish",
-                "Hunt larger fish to grow faster!",
-                "Higher score unlock more levels",
-                "Reach higher level to unlock fishes!",
-                "Don't share your account, you may lose it forever",
-                "You get extra scores for every fish eaten",
-                "Larger fish appear small, watch out!",
-                "Try to eat bigger fishes - maybe they aren't!"
-        };
-        random = new Random();
-        tipsIdx = random.nextInt(tipsArr.length);
-        Label tipsLabel = new SubScriptLabel("Tips: " + tipsArr[tipsIdx]);
-        tipsLabel.setOnMouseClicked(e -> {
-            tipsIdx += 1 + random.nextInt(tipsArr.length - 2);
-            tipsIdx %= tipsArr.length;
-            tipsLabel.setText("Tips: " + tipsArr[tipsIdx]);
-        });
+        Label tipsLabel = createTipsLabel();
 
         // Create Key Function
         //Button continueButton = createMainButton("Continue Game", "#22c55e");
@@ -120,5 +95,37 @@ public class MainMenuPage extends BasePage {
         );
 
         return new Scene(root, 600, 800);
+    }
+
+    private Label createTipsLabel() {
+        String[] tipsArr = {
+                "Stay away from larger fishes!",
+                "Level can reflect your fish power",
+                "Beware! Large fish emerge from screen edges",
+                "Keep your distance from the edges to avoid jump scare",
+                "use WASD to move your fish",
+                "Check the Leaderboard to compare your strength",
+                "Click on profile to view your progress",
+                "Eat smaller fish, avoid larger fish",
+                "Hunt larger fish to grow faster!",
+                "Higher score unlock more levels",
+                "Reach higher level to unlock fishes!",
+                "Don't share your account password, you may lose it forever!",
+                "You get extra scores for every fish eaten",
+                "Larger fish may appear small, watch out!",
+                "Try to eat larger fishes - maybe they aren't!",
+                "You become larger from eating fishes",
+        };
+        List<String> tipsList = Arrays.asList(tipsArr);
+        Collections.shuffle(tipsList);
+        String[] finalTipsArr = tipsList.toArray(new String[0]);;
+        Label tipsLabel = new SubscriptLabel("Tips: " + tipsArr[0]);
+        tipsIdx = 0;
+        tipsLabel.setOnMouseClicked(e -> {
+            tipsIdx += 1;
+            tipsIdx %= finalTipsArr.length;
+            tipsLabel.setText("Tips: " + finalTipsArr[tipsIdx]);
+        });
+        return tipsLabel;
     }
 }

@@ -2,13 +2,10 @@ package com.deepseadevs.fisheatfish;
 
 import com.deepseadevs.fisheatfish.game.GameData;
 import com.deepseadevs.fisheatfish.game.GameEngine;
-import com.deepseadevs.fisheatfish.game.GameRenderer;
 import com.deepseadevs.fisheatfish.game.Settings;
-import com.deepseadevs.fisheatfish.widgets.GameStyles;
 import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
 import com.deepseadevs.fisheatfish.widgets.buttons.MenuMainButton;
 import com.deepseadevs.fisheatfish.widgets.buttons.MenuSecondaryButton;
-import com.deepseadevs.fisheatfish.widgets.buttons.SecondaryButton;
 import com.deepseadevs.fisheatfish.widgets.labels.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -21,7 +18,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -180,7 +176,7 @@ class GameOverOverlay extends StackPane {
 
         gameOverLabel = new TitleLabel("Game Over");
         currentScoreLabel = new BoldLabel("");
-        highScoreLabel = new SubScriptLabel("");
+        highScoreLabel = new SubscriptLabel("");
         timeLabel = new BoldLabel("");
         levelLabel = new BoldLabel("");
         congratsLabel = new ColoredLabel("New High Score!", "#fbbf24");
