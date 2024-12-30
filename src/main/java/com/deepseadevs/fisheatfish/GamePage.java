@@ -118,7 +118,7 @@ public class GamePage extends BasePage {
             hidePauseOverlay();
         });
 
-        buttonContainer.getChildren().addAll(continueButton, saveAndQuitButton, restartButton, toggleHitBoxButton);
+        buttonContainer.getChildren().addAll(continueButton, toggleHitBoxButton, restartButton, saveAndQuitButton);
 
         pauseOverlay.getChildren().add(buttonContainer);
     }
