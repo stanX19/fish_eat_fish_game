@@ -42,14 +42,14 @@ class DataBase {
         String accountsPath = dataPath + "/accounts.csv";
         try (BufferedReader accountsReader = new BufferedReader(new FileReader(accountsPath))) {
             String accountsRow;
-            int accountLine = 1;
+            int accountLineCount = 1;
             while ((accountsRow = accountsReader.readLine()) != null) {
                 String[] accountsCol = accountsRow.split(",");
                 ArrayList<GameData> history = new ArrayList<>();
                 String historyPath = dataPath + "/history/" + accountsCol[0] + ".csv";
                 try (BufferedReader historyReader = new BufferedReader(new FileReader(historyPath))) {
                     String historyRow;
-                    int historyLine = 1;
+                    int historyLineCount = 1;
                     while ((historyRow = historyReader.readLine()) != null) {
                         String[] historyCol = historyRow.split(",");
 
@@ -67,11 +67,11 @@ class DataBase {
                                     Duration.parse(historyCol[9]),
                                     Double.parseDouble(historyCol[10])));
                         } catch (ArrayIndexOutOfBoundsException e) {
-                            System.err.printf("DataBase: %s: Skipping line %d: Data missing (%s:%d)\n", historyPath, historyLine, historyPath, historyLine);
+                            System.err.printf("DataBase: Skipping %s's history line %d: Incorrect Format (%s:%d)\n", accountsCol[0], historyLineCount, historyPath, historyLineCount);
                         } catch (Exception e) {
-                            System.err.printf("DataBase: %s: Skipping line %d: Error: %s (%s:%d)\n", historyPath, historyLine, e.getMessage(), historyPath, historyLine);
+                            System.err.printf("DataBase: Skipping %s's history line %d: Error: %s (%s:%d)\n", accountsCol[0], historyLineCount, e.getMessage(), historyPath, historyLineCount);
                         }
-                        historyLine++;
+                        historyLineCount++;
                     }
                 } catch (FileNotFoundException e) {
                     System.out.println(historyPath + " not found. Creating empty file.");
@@ -95,11 +95,11 @@ class DataBase {
                             history,
                             FishTypes.valueOf(accountsCol[3])));
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    System.err.printf("DataBase: %s: Skipping line %d: Data missing (%s:%d)\n", historyPath, accountLine, historyPath, accountLine);
+                    System.err.printf("DataBase: Skipping line %d in accounts: Incorrect Format (%s:%d)\n", accountLineCount, accountsPath, accountLineCount);
                 } catch (Exception e) {
-                    System.err.printf("DataBase: %s: Skipping line %d: Error: %s (%s:%d)\n", accountsPath, accountLine, e, accountsPath, accountLine);
+                    System.err.printf("DataBase: Skipping line %d in accounts: Error: %s (%s:%d)\n", accountLineCount, e, accountsPath, accountLineCount);
                 }
-                accountLine++;
+                accountLineCount++;
             }
         } catch (FileNotFoundException e) {
             System.out.println(accountsPath + " not found. Creating empty file.");

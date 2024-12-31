@@ -10,6 +10,7 @@ public class App extends Application {
     @Override
     public void start(Stage primaryStage) {
         sessionManager = new SessionManager();
+        DatabaseManager.getInstance();
         uiController = new UIController(primaryStage, sessionManager);
         uiController.gotoLogin();
         primaryStage.setTitle("Fish Eat Fish");
