@@ -16,10 +16,16 @@ public class UIController {
     }
 
     public void showPage(BasePage page) {
+        if (page instanceof MainMenuPage)
+            scenes.clear();
         scenes.push(stage.getScene());
+        showScene(page.getScene());
+    }
+
+    private void showScene(Scene scene) {
         boolean isMaximised = stage.isMaximized();
         stage.setMaximized(false);
-        stage.setScene(page.getScene());
+        stage.setScene(scene);
         stage.setMaximized(isMaximised);
     }
 
@@ -70,7 +76,7 @@ public class UIController {
 
     public void gotoPreviousPage() {
         if (!scenes.isEmpty())
-            stage.setScene(scenes.pop());
+            showScene(scenes.pop());
         else
             System.err.println("No page to go back to.");
     }

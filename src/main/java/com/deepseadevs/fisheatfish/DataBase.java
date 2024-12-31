@@ -42,12 +42,14 @@ class DataBase {
         String accountsPath = dataPath + "/accounts.csv";
         try (BufferedReader accountsReader = new BufferedReader(new FileReader(accountsPath))) {
             String accountsRow;
+            int accountLine = 1;
             while ((accountsRow = accountsReader.readLine()) != null) {
                 String[] accountsCol = accountsRow.split(",");
                 ArrayList<GameData> history = new ArrayList<>();
                 String historyPath = dataPath + "/history/" + accountsCol[0] + ".csv";
                 try (BufferedReader historyReader = new BufferedReader(new FileReader(historyPath))) {
                     String historyRow;
+                    int historyLine = 1;
                     while ((historyRow = historyReader.readLine()) != null) {
                         String[] historyCol = historyRow.split(",");
 
@@ -65,10 +67,11 @@ class DataBase {
                                     Duration.parse(historyCol[9]),
                                     Double.parseDouble(historyCol[10])));
                         } catch (ArrayIndexOutOfBoundsException e) {
-                            System.err.printf("Data missing from %s file: %s\n", historyPath, e.getMessage());
+                            System.err.printf("DataBase: %s: Skipping line %d: Data missing (%s:%d)\n", historyPath, historyLine, historyPath, historyLine);
                         } catch (Exception e) {
-                            System.err.printf("Error parsing %s file: %s\n", accountsPath, e.getMessage());
+                            System.err.printf("DataBase: %s: Skipping line %d: Error: %s (%s:%d)\n", historyPath, historyLine, e.getMessage(), historyPath, historyLine);
                         }
+                        historyLine++;
                     }
                 } catch (FileNotFoundException e) {
                     System.out.println(historyPath + " not found. Creating empty file.");
@@ -92,10 +95,11 @@ class DataBase {
                             history,
                             FishTypes.valueOf(accountsCol[3])));
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    System.err.printf("Data missing from %s file: %s\n", accountsPath, e.getMessage());
+                    System.err.printf("DataBase: %s: Skipping line %d: Data missing (%s:%d)\n", historyPath, accountLine, historyPath, accountLine);
                 } catch (Exception e) {
-                    System.err.printf("Error parsing %s file: %s\n", accountsPath, e.getMessage());
+                    System.err.printf("DataBase: %s: Skipping line %d: Error: %s (%s:%d)\n", accountsPath, accountLine, e, accountsPath, accountLine);
                 }
+                accountLine++;
             }
         } catch (FileNotFoundException e) {
             System.out.println(accountsPath + " not found. Creating empty file.");
