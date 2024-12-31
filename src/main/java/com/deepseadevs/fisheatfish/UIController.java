@@ -8,7 +8,7 @@ import java.util.Stack;
 public class UIController {
     private final Stage stage;
     private final SessionManager sessionManager;
-    private final Stack<Scene> scenes = new Stack<>();
+    private final Stack<BasePage> previousPages = new Stack<>();
 
     public UIController(Stage stage, SessionManager sessionManager) {
         this.stage = stage;
@@ -17,8 +17,11 @@ public class UIController {
 
     public void showPage(BasePage page) {
         if (page instanceof MainMenuPage)
-            scenes.clear();
-        scenes.push(stage.getScene());
+            previousPages.clear();
+        // if current page is game page and previous page is game page, don't add
+        if (!(page instanceof GamePage && !previousPages.isEmpty() && previousPages.lastElement() instanceof GamePage)) {
+            previousPages.push(page);
+        }
         showScene(page.getScene());
     }
 
@@ -75,8 +78,8 @@ public class UIController {
     }
 
     public void gotoPreviousPage() {
-        if (!scenes.isEmpty())
-            showScene(scenes.pop());
+        if (!previousPages.isEmpty())
+            showScene(previousPages.pop().getScene());
         else
             System.err.println("No page to go back to.");
     }
