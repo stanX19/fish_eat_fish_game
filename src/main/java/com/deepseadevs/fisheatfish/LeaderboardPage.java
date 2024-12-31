@@ -34,7 +34,7 @@ public class LeaderboardPage extends BasePage {
 
         // Back button
         MainButton backButton = new MainButton("Back");
-        backButton.setOnAction(e -> uiController.gotoMainMenu());
+        backButton.setOnAction(e -> uiController.gotoPreviousPage());
         backButton.setFocusTraversable(false);
 
         // Leaderboard layout
@@ -86,7 +86,7 @@ public class LeaderboardPage extends BasePage {
 
         if (!isUserOnLeaderboard) {
             UserData currentUser = DatabaseManager.getInstance().getUserData(sessionManager.getUserID());
-            HBox currentUserRow = createRow("--", currentUser.getDisplayName(), String.valueOf(currentUser.getHighScore()), currentUser.getUserID(), 2);
+            HBox currentUserRow = createRow("-", currentUser.getDisplayName(), String.valueOf(currentUser.getHighScore()), currentUser.getUserID(), 2);
             leaderboardLayout.getChildren().add(currentUserRow);
         }
 

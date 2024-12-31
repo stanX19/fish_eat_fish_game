@@ -50,51 +50,60 @@ class DataBase {
                     String historyRow;
                     while ((historyRow = historyReader.readLine()) != null) {
                         String[] historyCol = historyRow.split(",");
-                        history.add(new GameData(
-                                Long.parseLong(historyCol[0]),
-                                Integer.parseInt(historyCol[1]),
-                                Integer.parseInt(historyCol[2]),
-                                Integer.parseInt(historyCol[3]),
-                                Boolean.parseBoolean(historyCol[4]),
-                                Instant.parse(historyCol[5]),
-                                Instant.parse(historyCol[6]),
-                                Duration.parse(historyCol[7]),
-                                Integer.parseInt(historyCol[8]),
-                                Duration.parse(historyCol[9]),
-                                Double.parseDouble(historyCol[10])));
+
+                        try {
+                            history.add(new GameData(
+                                    Long.parseLong(historyCol[0]),
+                                    Integer.parseInt(historyCol[1]),
+                                    Integer.parseInt(historyCol[2]),
+                                    Integer.parseInt(historyCol[3]),
+                                    Boolean.parseBoolean(historyCol[4]),
+                                    Instant.parse(historyCol[5]),
+                                    Instant.parse(historyCol[6]),
+                                    Duration.parse(historyCol[7]),
+                                    Integer.parseInt(historyCol[8]),
+                                    Duration.parse(historyCol[9]),
+                                    Double.parseDouble(historyCol[10])));
+                        } catch (ArrayIndexOutOfBoundsException e) {
+                            System.err.printf("Error parsing %s file: %s\n", historyPath, e.getMessage());
+                        }
                     }
                 } catch (FileNotFoundException e) {
                     System.out.println(historyPath + " not found. Creating empty file.");
                     try {
                         new File(historyPath).createNewFile();
                     } catch (IOException ex) {
-                        System.err.println("Error creating CSV file: " + ex.getMessage());
+                        System.err.printf("Error creating %s file: %s\n", historyPath, ex.getMessage());
                     }
                 } catch (IOException e) {
-                    System.err.println("Error reading CSV file: " + e.getMessage());
+                    System.err.printf("Error reading %s file: %s\n", historyPath, e.getMessage());
                 } catch (NumberFormatException e) {
-                    System.err.println("Error parsing number from CSV: " + e.getMessage());
+                    System.err.printf("Error parsing number from %s: %s\n", historyPath, e.getMessage());
                 }
 
-                dataMap.put(accountsCol[0], new UserData(
-                        accountsCol[0],
-                        accountsCol[1],
-                        accountsCol[2],
-                        Long.parseLong(accountsCol[3]),
-                        history,
-                        FishTypes.valueOf(accountsCol[4])));
+                try {
+                    dataMap.put(accountsCol[0], new UserData(
+                            accountsCol[0],
+                            accountsCol[1],
+                            accountsCol[2],
+                            HistoryParser.of(history).getHighestScore(),
+                            history,
+                            FishTypes.valueOf(accountsCol[3])));
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    System.err.printf("Error parsing %s file: %s\n", accountsPath, e.getMessage());
+                }
             }
         } catch (FileNotFoundException e) {
             System.out.println(accountsPath + " not found. Creating empty file.");
             try {
                 new File(accountsPath).createNewFile();
             } catch (IOException ex) {
-                System.err.println("Error creating CSV file: " + ex.getMessage());
+                System.err.printf("Error creating %s file: %s\n", accountsPath, ex.getMessage());
             }
         } catch (IOException e) {
-            System.err.println("Error reading CSV file: " + e.getMessage());
+            System.err.printf("Error reading %s file: %s\n", accountsPath, e.getMessage());
         } catch (NumberFormatException e) {
-            System.err.println("Error parsing number from CSV: " + e.getMessage());
+            System.err.printf("Error parsing number from %s: %s\n", accountsPath, e.getMessage());
         }
     }
 
@@ -107,7 +116,6 @@ class DataBase {
                 accountsWriter.write(userData.getUserID() + "," +
                         userData.getDisplayName() + "," +
                         userData.getPassword() + "," +
-                        userData.getHighScore() + "," +
                         userData.getFishType());
                 accountsWriter.newLine();
 
