@@ -65,7 +65,9 @@ class DataBase {
                                     Duration.parse(historyCol[9]),
                                     Double.parseDouble(historyCol[10])));
                         } catch (ArrayIndexOutOfBoundsException e) {
-                            System.err.printf("Error parsing %s file: %s\n", historyPath, e.getMessage());
+                            System.err.printf("Data missing from %s file: %s\n", historyPath, e.getMessage());
+                        } catch (Exception e) {
+                            System.err.printf("Error parsing %s file: %s\n", accountsPath, e.getMessage());
                         }
                     }
                 } catch (FileNotFoundException e) {
@@ -90,6 +92,8 @@ class DataBase {
                             history,
                             FishTypes.valueOf(accountsCol[3])));
                 } catch (ArrayIndexOutOfBoundsException e) {
+                    System.err.printf("Data missing from %s file: %s\n", accountsPath, e.getMessage());
+                } catch (Exception e) {
                     System.err.printf("Error parsing %s file: %s\n", accountsPath, e.getMessage());
                 }
             }
