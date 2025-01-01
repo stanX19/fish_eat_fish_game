@@ -156,7 +156,7 @@ public class HistoryPage extends BasePage {
         MainButton backButton = new MainButton("Back");
         backButton.setOnAction(e -> {
             animationTimer.stop();
-            uiController.gotoMainMenu();
+            uiController.gotoPreviousPage();
         });
 
         statsLayout.getChildren().addAll(canvas, nameBox, gridPane, backButton);

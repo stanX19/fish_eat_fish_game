@@ -1,6 +1,5 @@
 package com.deepseadevs.fisheatfish.widgets.labels;
 
-import com.deepseadevs.fisheatfish.widgets.GameStyles;
 import javafx.scene.control.Label;
 import javafx.scene.text.Font;
 

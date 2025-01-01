@@ -1,10 +1,14 @@
 package com.deepseadevs.fisheatfish;
 
+import javafx.scene.Scene;
 import javafx.stage.Stage;
+
+import java.util.Stack;
 
 public class UIController {
     private final Stage stage;
     private final SessionManager sessionManager;
+    private final Stack<BasePage> previousPages = new Stack<>();
 
     public UIController(Stage stage, SessionManager sessionManager) {
         this.stage = stage;
@@ -12,9 +16,19 @@ public class UIController {
     }
 
     public void showPage(BasePage page) {
+        if (page instanceof MainMenuPage)
+            previousPages.clear();
+        // if current page is game page and previous page is game page, don't add
+        if (!(page instanceof GamePage && !previousPages.isEmpty() && previousPages.lastElement() instanceof GamePage)) {
+            previousPages.push(page);
+        }
+        showScene(page.getScene());
+    }
+
+    private void showScene(Scene scene) {
         boolean isMaximised = stage.isMaximized();
         stage.setMaximized(false);
-        stage.setScene(page.getScene());
+        stage.setScene(scene);
         stage.setMaximized(isMaximised);
     }
 
@@ -61,6 +75,13 @@ public class UIController {
     public void gotoHistoryPage(UserData userData) {
         HistoryPage historyPage = new HistoryPage(this, sessionManager, userData);
         showPage(historyPage);
+    }
+
+    public void gotoPreviousPage() {
+        if (!previousPages.isEmpty())
+            showScene(previousPages.pop().getScene());
+        else
+            System.err.println("No page to go back to.");
     }
 
     public void logout() {
