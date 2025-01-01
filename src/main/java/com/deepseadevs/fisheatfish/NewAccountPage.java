@@ -180,14 +180,14 @@ public class NewAccountPage extends BasePage {
         String confirmPassword = confirmPasswordField.getText();
 
         String invalidNamePattern = ".*,.*";
-        String userIDPattern = "^[a-zA-Z0-9_]";
+        String userIDPattern = "[a-zA-Z0-9_]+";
 
         if (userID.isEmpty() || displayedName.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             feedbackText.setText("All fields are required.");
         } else if (userID.length() > 20){
-            feedbackText.setText("Account Name cannot be longer\nthan 20 characters");
+            feedbackText.setText("Account Name cannot be\nlonger than 20 characters");
         } else if (!userID.matches(userIDPattern)) {
-            feedbackText.setText("Account Name can only contain\nletters, numbers, and underscores.");
+            feedbackText.setText("Account Name can only\ncontain letters, numbers,\nand underscores.");
         } else if (displayedName.matches(invalidNamePattern)) {
             feedbackText.setText("Display name cannot contain\ncomma ',' character");
         } else if (!password.equals(confirmPassword)) {

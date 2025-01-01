@@ -9,7 +9,7 @@ import java.util.List;
 
 public class Level1 extends Level {
     protected double calculateProgress(GameData gameData) {
-        return gameData.getScore() / 5000.0;
+        return gameData.getScore() / 4600.0;
     }
 
     @Override
