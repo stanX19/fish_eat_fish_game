@@ -1,5 +1,6 @@
 package com.deepseadevs.fisheatfish;
 
+import com.deepseadevs.fisheatfish.game.fish.BaseFish;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -8,21 +9,25 @@ import java.util.Stack;
 public class UIController {
     private final Stage stage;
     private final SessionManager sessionManager;
-    private final Stack<BasePage> previousPages = new Stack<>();
+    private final Stack<BasePage> previousPages;
+    private BasePage currentPage;
 
     public UIController(Stage stage, SessionManager sessionManager) {
         this.stage = stage;
         this.sessionManager = sessionManager;
+        this.previousPages = new Stack<>();
+        this.currentPage = null;
     }
 
     public void showPage(BasePage page) {
         if (page instanceof MainMenuPage)
             previousPages.clear();
         // if current page is game page and previous page is game page, don't add
-        if (!(page instanceof GamePage && !previousPages.isEmpty() && previousPages.lastElement() instanceof GamePage)) {
-            previousPages.push(page);
+        else if (currentPage != null && !(page instanceof GamePage && currentPage instanceof GamePage)) {
+            previousPages.push(currentPage);
         }
         showScene(page.getScene());
+        currentPage = page;
     }
 
     private void showScene(Scene scene) {
@@ -78,8 +83,10 @@ public class UIController {
     }
 
     public void gotoPreviousPage() {
-        if (!previousPages.isEmpty())
-            showScene(previousPages.pop().getScene());
+        if (!previousPages.isEmpty()) {
+            currentPage = previousPages.pop();
+            showScene(currentPage.getScene());
+        }
         else
             System.err.println("No page to go back to.");
     }
