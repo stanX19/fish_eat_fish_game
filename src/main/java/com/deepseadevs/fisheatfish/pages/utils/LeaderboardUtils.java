@@ -1,4 +1,7 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.pages.utils;
+import com.deepseadevs.fisheatfish.database.DatabaseManager;
+import com.deepseadevs.fisheatfish.database.UserData;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collection;

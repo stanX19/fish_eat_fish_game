@@ -1,5 +1,10 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.pages;
 
+import com.deepseadevs.fisheatfish.database.DatabaseManager;
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.UIController;
+import com.deepseadevs.fisheatfish.database.UserData;
+import com.deepseadevs.fisheatfish.pages.utils.LeaderboardUtils;
 import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
 import com.deepseadevs.fisheatfish.widgets.labels.*;
 import javafx.geometry.Insets;
@@ -49,6 +54,17 @@ public class LeaderboardPage extends BasePage {
         root.setFitToHeight(true);
         root.setStyle("-fx-background-color: " + BACKGROUND_COLOR + ";");
         root.setPadding(new Insets(20));
+        // fast scrolling
+        root.getContent().setOnScroll(scrollEvent -> {
+            double contentHeight = contentBox.getHeight();
+            double viewportHeight = root.getViewportBounds().getHeight();
+            double scrollHeight = contentHeight - viewportHeight;
+            if (scrollHeight <= 0)
+                return;
+            double deltaY = (scrollEvent.getDeltaY() > 0? 100: -100) / scrollHeight;
+            double vValue = root.getVvalue();
+            root.setVvalue(vValue - deltaY);
+        });
 
         return new Scene(root, 700, 500); // Adjust dimensions as necessary
     }

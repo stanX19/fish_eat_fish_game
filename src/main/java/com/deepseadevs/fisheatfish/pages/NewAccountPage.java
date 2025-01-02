@@ -1,5 +1,9 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.pages;
 
+import com.deepseadevs.fisheatfish.database.DatabaseManager;
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.UIController;
+import com.deepseadevs.fisheatfish.pages.utils.LoginUtils;
 import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -189,9 +193,11 @@ public class NewAccountPage extends BasePage {
         } else if (!userID.matches(userIDPattern)) {
             feedbackText.setText("Account Name can only\ncontain letters, numbers,\nand underscores.");
         } else if (displayedName.matches(invalidNamePattern)) {
-            feedbackText.setText("Display name cannot contain\ncomma ',' character");
+            feedbackText.setText("Display name cannot contain\ncomma ',' character.");
         } else if (!password.equals(confirmPassword)) {
             feedbackText.setText("Passwords do not match.");
+        } else if (password.length() < 4) {
+            feedbackText.setText("Password must be at least 4 characters long");
         } else if (DatabaseManager.getInstance().userExists(userID)) {
             feedbackText.setText("Username already taken.");
         } else {

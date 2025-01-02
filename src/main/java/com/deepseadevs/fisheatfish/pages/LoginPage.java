@@ -1,5 +1,9 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.pages;
 
+import com.deepseadevs.fisheatfish.database.DatabaseManager;
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.UIController;
+import com.deepseadevs.fisheatfish.pages.utils.LoginUtils;
 import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

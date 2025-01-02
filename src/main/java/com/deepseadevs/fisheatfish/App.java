@@ -1,5 +1,7 @@
 package com.deepseadevs.fisheatfish;
 
+import com.deepseadevs.fisheatfish.database.DatabaseManager;
+import com.deepseadevs.fisheatfish.database.SessionManager;
 import javafx.application.Application;
 import javafx.stage.Stage;
 

@@ -1,4 +1,4 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.database;
 
 import java.util.Collection;
 

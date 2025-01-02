@@ -1,5 +1,7 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.pages;
 
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.UIController;
 import com.deepseadevs.fisheatfish.widgets.GameStyles;
 import com.deepseadevs.fisheatfish.widgets.labels.SubscriptLabel;
 import javafx.geometry.Insets;

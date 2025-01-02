@@ -1,4 +1,4 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.database;
 
 import com.deepseadevs.fisheatfish.game.GameData;
 

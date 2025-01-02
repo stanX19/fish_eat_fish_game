@@ -1,4 +1,4 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.database;
 
 import com.deepseadevs.fisheatfish.game.FishTypes;
 import com.deepseadevs.fisheatfish.game.GameData;
@@ -9,7 +9,7 @@ import java.util.List;
 public class SessionManager {
     private UserData currentUser;
 
-    SessionManager() {
+    public SessionManager() {
         this.currentUser = null;
     }
 

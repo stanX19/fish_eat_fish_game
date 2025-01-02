@@ -1,21 +1,13 @@
 package com.deepseadevs.fisheatfish.game;
 
-import com.deepseadevs.fisheatfish.SessionManager;
-import javafx.geometry.Insets;
+import com.deepseadevs.fisheatfish.database.SessionManager;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 import java.time.Duration;
-
-import static com.deepseadevs.fisheatfish.widgets.GameStyles.TEXT_COLOR;
 
 public class GameRenderer {
     private static final double PROGRESS_BAR_HEIGHT = 10;
@@ -57,6 +49,8 @@ public class GameRenderer {
 
     private void renderFish() {
         fishHandler.renderAll(gc);
+        if (Settings.showHitBox)
+            fishHandler.renderAllHitBox(gc);
     }
 
     private void renderGameStats() {

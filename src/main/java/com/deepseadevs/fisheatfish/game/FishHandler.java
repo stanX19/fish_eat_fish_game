@@ -44,6 +44,12 @@ public class FishHandler {
         }
     }
 
+    public void renderAllHitBox(GraphicsContext gc) {
+        for (BaseFish fish: allFish) {
+            fish.renderHitBox(gc);
+        }
+    }
+
     public void updateAll(double deltaTime) {
         for (int i = 0; i < allFish.size(); i++) {
             BaseFish fish = allFish.get(i);

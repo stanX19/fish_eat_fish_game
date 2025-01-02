@@ -92,13 +92,6 @@ public class Animation {
         gc.scale(scaleX, scaleY);
         gc.drawImage(frames[currentFrame], 0, 0);
         gc.restore();
-
-        if (Settings.showHitBox) {
-            gc.setStroke(Color.LIME);
-            gc.setLineWidth(2);
-            gc.strokeRect(x, y, width, height);
-            gc.restore();
-        }
     }
 
     public Bound getSpriteDimension() {
