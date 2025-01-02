@@ -22,14 +22,14 @@ public class GameRenderer {
     private final FishHandler fishHandler;
     private final GameData gameData;
     private final SessionManager sessionManager;
-    private final Image backgroundRenderer;
+    private final Image backgroundImage;
 
     public GameRenderer(GraphicsContext gc, FishHandler fishHandler, GameData gameData, SessionManager sessionManager) {
         this.gc = gc;
         this.fishHandler = fishHandler;
         this.gameData = gameData;
         this.sessionManager = sessionManager;
-        this.backgroundRenderer = new Image("file:src/main/assets/sprites/pixelBackground.png");
+        this.backgroundImage = new Image("file:src/main/assets/pixelBackground.png");
     }
 
     public void render() {
@@ -40,7 +40,7 @@ public class GameRenderer {
 
     private void renderBackground() {
         clearCanvas();
-        gc.drawImage(backgroundRenderer, 0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
+        gc.drawImage(backgroundImage, 0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
     }
 
     private void clearCanvas() {
