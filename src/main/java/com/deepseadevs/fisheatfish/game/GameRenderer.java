@@ -56,14 +56,8 @@ public class GameRenderer {
     private void renderGameStats() {
         gc.setFill(TEXT_COLOR);
         gc.setFont(DEFAULT_FONT);
-
-        // Render score and high score box
         renderScoreBox();
-
-        // Render level and progress bar box
         renderLevelBox();
-
-        // Render game duration box
         renderDurationBox();
     }
 
