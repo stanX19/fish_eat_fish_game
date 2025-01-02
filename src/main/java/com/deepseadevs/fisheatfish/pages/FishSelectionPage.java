@@ -1,5 +1,8 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.pages;
 
+import com.deepseadevs.fisheatfish.database.HistoryParser;
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.UIController;
 import com.deepseadevs.fisheatfish.game.FishTypes;
 import com.deepseadevs.fisheatfish.game.Spawner;
 import com.deepseadevs.fisheatfish.game.fish.BaseFish;
@@ -41,10 +44,11 @@ public class FishSelectionPage extends BasePage {
 
     public FishSelectionPage(UIController uiController, SessionManager sessionManager) {
         super(uiController, sessionManager);
+        List<FishTypes> fishTypesList = List.of(FishTypes.PLAYER_SMALL, FishTypes.PLAYER_MEDIUM, FishTypes.PLAYER_LARGE, FishTypes.PLAYER_GIANT);
         this.spawner = new Spawner();
         this.fishMap = new EnumMap<>(FishTypes.class);
-        this.fishTypeArray = List.of(FishTypes.PLAYER_SMALL, FishTypes.PLAYER_MEDIUM, FishTypes.PLAYER_LARGE, FishTypes.PLAYER_GIANT).toArray(new FishTypes[0]);
-        this.currentFishIndex = 0;
+        this.fishTypeArray = fishTypesList.toArray(new FishTypes[0]);
+        this.currentFishIndex = Math.max(0, fishTypesList.indexOf(sessionManager.getUserFishType()));
         this.selectedFishType = sessionManager.getUserFishType();
         this.maxFishIndex = HistoryParser.of(sessionManager.getGameHistory()).getHighestLevel();
 

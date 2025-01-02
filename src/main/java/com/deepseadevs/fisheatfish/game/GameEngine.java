@@ -1,6 +1,6 @@
 package com.deepseadevs.fisheatfish.game;
 
-import com.deepseadevs.fisheatfish.SessionManager;
+import com.deepseadevs.fisheatfish.database.SessionManager;
 import com.deepseadevs.fisheatfish.game.fish.BaseFish;
 import com.deepseadevs.fisheatfish.game.level.LevelHandler;
 import javafx.animation.AnimationTimer;

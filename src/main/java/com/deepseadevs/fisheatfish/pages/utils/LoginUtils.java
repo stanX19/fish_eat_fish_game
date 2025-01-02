@@ -1,4 +1,4 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.pages.utils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

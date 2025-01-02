@@ -1,6 +1,8 @@
 package com.deepseadevs.fisheatfish;
 
-import com.deepseadevs.fisheatfish.game.fish.BaseFish;
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.database.UserData;
+import com.deepseadevs.fisheatfish.pages.*;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 

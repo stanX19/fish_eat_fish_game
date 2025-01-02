@@ -1,5 +1,7 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.pages;
 
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.UIController;
 import com.deepseadevs.fisheatfish.game.GameData;
 import com.deepseadevs.fisheatfish.game.GameEngine;
 import com.deepseadevs.fisheatfish.game.Settings;
@@ -213,7 +215,6 @@ class GameOverOverlay extends StackPane {
         levelLabel.setText("Level " + gameData.getLevel());
         timeLabel.setText(formatDuration(gameData.getGameDuration()));
         congratsLabel.setVisible(gameData.getScore() == sessionManager.getHighScore());
-        highScoreLabel.setVisible(!congratsLabel.isVisible());
     }
 
     public void focusRestart() {

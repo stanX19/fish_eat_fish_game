@@ -1,5 +1,10 @@
-package com.deepseadevs.fisheatfish;
+package com.deepseadevs.fisheatfish.pages;
 
+import com.deepseadevs.fisheatfish.*;
+import com.deepseadevs.fisheatfish.database.DatabaseManager;
+import com.deepseadevs.fisheatfish.database.HistoryParser;
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.database.UserData;
 import com.deepseadevs.fisheatfish.game.GameData;
 import com.deepseadevs.fisheatfish.game.Spawner;
 import com.deepseadevs.fisheatfish.game.fish.BaseFish;
@@ -51,6 +56,18 @@ public class HistoryPage extends BasePage {
         root.setFitToHeight(true);
         root.setStyle("-fx-background-color: " + BACKGROUND_COLOR + ";");
         root.setPadding(new Insets(20));
+        // fast scrolling
+        root.getContent().setOnScroll(scrollEvent -> {
+            double contentHeight = contentBox.getHeight();
+            double viewportHeight = root.getViewportBounds().getHeight();
+            double scrollHeight = contentHeight - viewportHeight;
+            if (scrollHeight <= 0)
+                return;
+            double deltaY = (scrollEvent.getDeltaY() > 0? 100: -100) / scrollHeight;
+            double vValue = root.getVvalue();
+            root.setVvalue(vValue - deltaY);
+        });
+
 
         return new Scene(root, 800, 500); // Adjust dimensions as necessary
     }
@@ -99,11 +116,12 @@ public class HistoryPage extends BasePage {
         statsLayout.setMaxWidth(500);
         statsLayout.setAlignment(Pos.CENTER);
 
-        Canvas canvas = new Canvas(100, 50);
+        Canvas canvas = new Canvas(200, 60);
         GraphicsContext gc = canvas.getGraphicsContext2D();
         Spawner spawner = new Spawner();
         BaseFish currentFish = spawner.spawnFish(userData.getFishType());
         currentFish.setXv(1);
+        currentFish.setArea(1600);
         animationTimer = getAnimationTimer(gc, canvas, currentFish);
 
         VBox nameBox = new VBox();

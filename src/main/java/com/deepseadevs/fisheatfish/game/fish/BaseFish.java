@@ -1,7 +1,9 @@
 package com.deepseadevs.fisheatfish.game.fish;
 import com.deepseadevs.fisheatfish.game.Animation;
 import com.deepseadevs.fisheatfish.game.Bound;
+import com.deepseadevs.fisheatfish.game.Settings;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 
 public class BaseFish extends GameObject {
     protected boolean facingRight;
@@ -38,6 +40,13 @@ public class BaseFish extends GameObject {
         if (this.getArea() == other.getArea())
             return this.getWeight() > other.getWeight();
         return this.getArea() > other.getArea();
+    }
+
+    public void renderHitBox(GraphicsContext gc) {
+        gc.setStroke(Color.LIME);
+        gc.setLineWidth(2);
+        gc.strokeRect(getX(), getY(), getWidth(), getHeight());
+        gc.restore();
     }
 
     public void render(GraphicsContext gc) {
