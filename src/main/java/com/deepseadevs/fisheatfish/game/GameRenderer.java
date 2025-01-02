@@ -29,7 +29,7 @@ public class GameRenderer {
         this.fishHandler = fishHandler;
         this.gameData = gameData;
         this.sessionManager = sessionManager;
-        this.backgroundImage = new Image("file:src/main/assets/pixelBackground.png");
+        this.backgroundImage = new Image("file:src/assets/pixelBackground.png");
     }
 
     public void render() {
