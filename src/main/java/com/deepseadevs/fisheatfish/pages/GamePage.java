@@ -103,11 +103,10 @@ public class GamePage extends BasePage {
         Button saveAndQuitButton = new MenuMainButton("Save and Quit");
         saveAndQuitButton.setOnAction(e -> save_and_quit());
 
-        Button restartButton = new MenuMainButton("Restart");
-        restartButton.setOnAction(e -> {
+        Button endGameButton = new MenuMainButton("End Game");
+        endGameButton.setOnAction(e -> {
             pauseOverlay.setVisible(false);
             gameEngine.triggerGameOver();
-            uiController.gotoGamePage();
         });
 
         Button toggleHitBoxButton = new MenuMainButton((Settings.showHitBox? "Hide": "Show") + " Hit Box");
@@ -120,7 +119,7 @@ public class GamePage extends BasePage {
             hidePauseOverlay();
         });
 
-        buttonContainer.getChildren().addAll(continueButton, toggleHitBoxButton, restartButton, saveAndQuitButton);
+        buttonContainer.getChildren().addAll(continueButton, toggleHitBoxButton, endGameButton, saveAndQuitButton);
 
         pauseOverlay.getChildren().add(buttonContainer);
     }
