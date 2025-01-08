@@ -101,7 +101,7 @@ public class GamePage extends BasePage {
         continueButton.setOnAction(e -> hidePauseOverlay());
 
         Button saveAndQuitButton = new MenuMainButton("Save and Quit");
-        saveAndQuitButton.setOnAction(e -> save_and_quit());
+        saveAndQuitButton.setOnAction(e -> saveAndQuit());
 
         Button endGameButton = new MenuMainButton("End Game");
         endGameButton.setOnAction(e -> {
@@ -124,7 +124,7 @@ public class GamePage extends BasePage {
         pauseOverlay.getChildren().add(buttonContainer);
     }
 
-    private void save_and_quit() {
+    private void saveAndQuit() {
         sessionManager.commit();
         uiController.gotoMainMenu();
     }
