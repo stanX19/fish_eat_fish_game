@@ -46,3 +46,12 @@ The game is built using the following technologies:
 4. Eat smaller fish to grow in size and earn points.
 5. Avoid larger fish, or you'll lose the game!
 6. Compete for the highest score and track your progress in the leaderboard.
+
+## Special thanks
+
+Special thanks to out team members
+[StanX19](https://github.com/stanx19), 
+[zheHT](https://github.com/zheHT), 
+[akramhilmi](https://github.com/akramhilmi), 
+[DerYung](https://github.com/DerYung) and 
+[Dorizun](https://github.com/Dorizun) for their dedication and collaboration throughout the development process.
