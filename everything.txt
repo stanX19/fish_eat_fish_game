@@ -1,0 +1,3838 @@
+package com.deepseadevs.fisheatfish;
+
+import com.deepseadevs.fisheatfish.database.DatabaseManager;
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import javafx.application.Application;
+import javafx.stage.Stage;
+
+public class App extends Application {
+    private UIController uiController;
+    private SessionManager sessionManager;
+
+    @Override
+    public void start(Stage primaryStage) {
+        sessionManager = new SessionManager();
+        DatabaseManager.getInstance();
+        uiController = new UIController(primaryStage, sessionManager);
+        uiController.gotoLogin();
+        primaryStage.setTitle("Fish Eat Fish");
+        primaryStage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
+package com.deepseadevs.fisheatfish.database;
+
+import com.deepseadevs.fisheatfish.game.FishTypes;
+import com.deepseadevs.fisheatfish.game.GameData;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+
+// Only handles read write to data collection
+// does not handle application logic
+
+/*
+data -> Database folder
+data/accounts.csv -> Login info
+data/history/*.csv -> Game history (info about every game played by an account)
+
+Formatting
+accounts.csv: userID,displayName,password,highScore
+history.csv: score,level,fishEaten,size,ended,startTime,endTime,gameDuration
+ */
+class DataBase {
+    private Map<String, UserData> dataMap;
+    private String dataPath;
+
+    public DataBase(String dataPath) {
+        this.dataPath = dataPath;
+        this.dataMap = new HashMap<>();
+        try {
+            Files.createDirectories(Paths.get(dataPath + "/history"));
+        } catch (IOException e) {
+            System.err.println("Error creating directories: " + e.getMessage());
+        }
+        loadFromCSV();
+    }
+
+    // Loads the data from the CSV
+    private void loadFromCSV() {
+        String accountsPath = dataPath + "/accounts.csv";
+        try (BufferedReader accountsReader = new BufferedReader(new FileReader(accountsPath))) {
+            String accountsRow;
+            int accountLineCount = 1;
+            while ((accountsRow = accountsReader.readLine()) != null) {
+                String[] accountsCol = accountsRow.split(",");
+                ArrayList<GameData> history = new ArrayList<>();
+                String historyPath = dataPath + "/history/" + accountsCol[0] + ".csv";
+                try (BufferedReader historyReader = new BufferedReader(new FileReader(historyPath))) {
+                    String historyRow;
+                    int historyLineCount = 1;
+                    while ((historyRow = historyReader.readLine()) != null) {
+                        String[] historyCol = historyRow.split(",");
+
+                        try {
+                            history.add(new GameData(
+                                    Long.parseLong(historyCol[0]),
+                                    Integer.parseInt(historyCol[1]),
+                                    Integer.parseInt(historyCol[2]),
+                                    Integer.parseInt(historyCol[3]),
+                                    Boolean.parseBoolean(historyCol[4]),
+                                    Instant.parse(historyCol[5]),
+                                    Instant.parse(historyCol[6]),
+                                    Duration.parse(historyCol[7]),
+                                    Integer.parseInt(historyCol[8]),
+                                    Duration.parse(historyCol[9]),
+                                    Double.parseDouble(historyCol[10])));
+                        } catch (ArrayIndexOutOfBoundsException e) {
+                            System.err.printf("DataBase: Skipping %s's history line %d: Incorrect Format (%s:%d)\n", accountsCol[0], historyLineCount, historyPath, historyLineCount);
+                        } catch (Exception e) {
+                            System.err.printf("DataBase: Skipping %s's history line %d: Error: %s (%s:%d)\n", accountsCol[0], historyLineCount, e.getMessage(), historyPath, historyLineCount);
+                        }
+                        historyLineCount++;
+                    }
+                } catch (FileNotFoundException e) {
+                    System.out.println(historyPath + " not found. Creating empty file.");
+                    try {
+                        new File(historyPath).createNewFile();
+                    } catch (IOException ex) {
+                        System.err.printf("Error creating %s file: %s\n", historyPath, ex.getMessage());
+                    }
+                } catch (IOException e) {
+                    System.err.printf("Error reading %s file: %s\n", historyPath, e.getMessage());
+                } catch (NumberFormatException e) {
+                    System.err.printf("Error parsing number from %s: %s\n", historyPath, e.getMessage());
+                }
+
+                try {
+                    dataMap.put(accountsCol[0], new UserData(
+                            accountsCol[0],
+                            accountsCol[1],
+                            accountsCol[2],
+                            HistoryParser.of(history).getHighestScore(),
+                            history,
+                            FishTypes.valueOf(accountsCol[3])));
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    System.err.printf("DataBase: Skipping line %d in accounts: Incorrect Format (%s:%d)\n", accountLineCount, accountsPath, accountLineCount);
+                } catch (Exception e) {
+                    System.err.printf("DataBase: Skipping line %d in accounts: Error: %s (%s:%d)\n", accountLineCount, e, accountsPath, accountLineCount);
+                }
+                accountLineCount++;
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println(accountsPath + " not found. Creating empty file.");
+            try {
+                new File(accountsPath).createNewFile();
+            } catch (IOException ex) {
+                System.err.printf("Error creating %s file: %s\n", accountsPath, ex.getMessage());
+            }
+        } catch (IOException e) {
+            System.err.printf("Error reading %s file: %s\n", accountsPath, e.getMessage());
+        } catch (NumberFormatException e) {
+            System.err.printf("Error parsing number from %s: %s\n", accountsPath, e.getMessage());
+        }
+    }
+
+    // Save current dataMap to CSV
+    private void saveToCSV() {
+        String accountsPath = dataPath + "/accounts.csv";
+        try (BufferedWriter accountsWriter = new BufferedWriter(new FileWriter(accountsPath))) {
+            for (Map.Entry<String, UserData> entry : dataMap.entrySet()) {
+                UserData userData = entry.getValue();
+                accountsWriter.write(userData.getUserID() + "," +
+                        userData.getDisplayName() + "," +
+                        userData.getPassword() + "," +
+                        userData.getFishType());
+                accountsWriter.newLine();
+
+                String historyPath = dataPath + "/history/" + userData.getUserID() + ".csv";
+                try (BufferedWriter historyWriter = new BufferedWriter(new FileWriter(historyPath))) {
+                    List<GameData> history = userData.getHistory();
+                    for (GameData gameData : history) {
+                        historyWriter.write(gameData.getScore() + "," +
+                                gameData.getLevel() + "," +
+                                gameData.getFishEaten() + "," +
+                                gameData.getSize() + "," +
+                                gameData.isEnded() + "," +
+                                gameData.getStartTime() + "," +
+                                gameData.getEndTime() + "," +
+                                gameData.getGameDuration() + "," +
+                                gameData.getLevelFishEaten() + "," +
+                                gameData.getLevelDuration() + "," +
+                                gameData.getProgress());
+                        historyWriter.newLine();
+                    }
+                } catch (IOException e) {
+                    System.err.println("Error writing to CSV file: " + e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error writing to CSV file: " + e.getMessage());
+        }
+    }
+
+    // Add or update a user
+    public void put(String username, UserData userData) {
+        dataMap.put(username, userData);
+        saveToCSV();
+    }
+
+    // Remove a user
+    public void remove(String username) {
+        dataMap.remove(username);
+        saveToCSV();
+    }
+
+    // Retrieve a user
+    public UserData get(String username) {
+        return dataMap.get(username);
+    }
+
+    public boolean containsKey(String username) {
+        return dataMap.containsKey(username);
+    }
+
+    public Collection<UserData> getAll() {
+        return new ArrayList<>(dataMap.values());
+    }
+}package com.deepseadevs.fisheatfish.database;
+
+import java.util.Collection;
+
+public class DatabaseManager {
+    private static DatabaseManager instance;
+    private final DataBase dataBase;
+
+    private DatabaseManager() {
+        this.dataBase = new DataBase("data");
+//        createNewUser("test", "test", "test", 100);
+//        createNewUser("tes1", "tes1", "test", 200);
+//        createNewUser("tes2", "tes2", "test", 300);
+//        createNewUser("tes3", "tes3", "test", 400);
+//        createNewUser("tes4", "tes4", "test", -500);
+//        createNewUser("tes5", "tes5", "test", 600);
+    }
+
+    public static DatabaseManager getInstance() {
+        if (instance == null) {
+            instance = new DatabaseManager();
+        }
+        return instance;
+    }
+
+    public UserData getUserData(String userID) {
+        return dataBase.get(userID);
+    }
+
+    public boolean userExists(String userID) {
+        return dataBase.containsKey(userID);
+    }
+
+    public boolean isCorrectPassword(String userID, String password) {
+        return userExists(userID) && dataBase.get(userID).getPassword().equals(password);
+    }
+
+    public void updateUserData(UserData data) {
+        if (!userExists(data.getUserID())) {
+            throw new IllegalArgumentException("User does not exist: " + data.getUserID());
+        }
+        dataBase.put(data.getUserID(), data);
+    }
+
+    public void deleteUser(String userID) {
+        if (!userExists(userID)) {
+            throw new IllegalArgumentException("User does not exist: " + userID);
+        }
+        dataBase.remove(userID);
+    }
+
+    public void createNewUser(String userID, String name, String password) {
+        createNewUser(userID, name, password, 0);
+    }
+
+    public void createNewUser(String userID, String name, String password, long highScore) {
+        if (userExists(userID)) throw new IllegalArgumentException("User already exists: " + name);
+        addNewUser(new UserData(userID, name, password, highScore));
+    }
+
+    public void addNewUser(UserData user) {
+        dataBase.put(user.getUserID(), user);
+    }
+
+    public Collection<UserData> getAllUserData() {
+        return dataBase.getAll();
+    }
+}
+package com.deepseadevs.fisheatfish.database;
+
+import com.deepseadevs.fisheatfish.game.GameData;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+
+public class HistoryParser {
+    ArrayList<GameData> history;
+
+    public HistoryParser(ArrayList<GameData> history) {
+        this.history = history;
+    }
+
+    public static HistoryParser of(List<GameData> history) {
+        return new HistoryParser(new ArrayList<>(history));
+    }
+
+    public long getHighestScore() {
+        long highestScore = 0;
+        for (GameData data: history) {
+            highestScore = Math.max(highestScore, data.getScore());
+        }
+        return highestScore;
+    }
+
+    public int getHighestLevel() {
+        int highestLevel = 0;
+        for (GameData data: history) {
+            highestLevel = Math.max(highestLevel, data.getLevel());
+        }
+        return highestLevel;
+    }
+
+    public int getMaxSize() {
+        int maxSize = 0;
+        for (GameData data: history) {
+            maxSize = Math.max(maxSize, data.getSize());
+        }
+        return maxSize;
+    }
+
+    public int getTotalFishEaten() {
+        int totalFishEaten = 0;
+        for (GameData data: history) {
+            totalFishEaten += data.getFishEaten();
+        }
+        return totalFishEaten;
+    }
+
+    public int getMaxFishEaten() {
+        int maxFishEaten = 0;
+        for (GameData data: history) {
+            maxFishEaten += Math.max(maxFishEaten, data.getFishEaten());
+        }
+        return maxFishEaten;
+    }
+
+    public int getTotalGames() {
+        return history.size();
+    }
+
+    public Duration getLongestDuration() {
+        Duration longest = Duration.ZERO;
+        for (GameData data : history)
+            if (longest.compareTo(data.getGameDuration()) < 0)
+                longest = data.getGameDuration();
+        return longest;
+    }
+
+    public Duration getTotalDuration() {
+        Duration total = Duration.ZERO;
+        for (GameData data : history)
+            total = total.plus(data.getGameDuration());
+        return total;
+    }
+}
+package com.deepseadevs.fisheatfish.database;
+
+import com.deepseadevs.fisheatfish.game.FishTypes;
+import com.deepseadevs.fisheatfish.game.GameData;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class SessionManager {
+    private UserData currentUser;
+
+    public SessionManager() {
+        this.currentUser = null;
+    }
+
+    public void setUser(String userID) {
+        this.currentUser = DatabaseManager.getInstance().getUserData(userID);
+    }
+
+    /**
+     * @deprecated This method is deprecated because username separated
+     * into userID and displayedName. Use {@link #getDisplayName()} instead.
+     */
+    @Deprecated
+    public String getUsername() {
+        return getDisplayName();
+    }
+
+    public String getDisplayName() {
+        if (this.currentUser == null)
+            return "Guest";
+        return this.currentUser.getDisplayName();
+    }
+
+    public String getUserID() {
+        if (this.currentUser == null)
+            return null;
+        return this.currentUser.getUserID();
+    }
+
+    public long getHighScore() {
+        if (this.currentUser == null)
+            return 0;
+        return this.currentUser.getHighScore();
+    }
+
+    public FishTypes getUserFishType() {
+        return this.currentUser.getFishType();
+    }
+
+    public void setUserFishType(FishTypes fishType) {
+        this.currentUser.setFishType(fishType);
+        commit();
+    }
+
+    public void updateHighScore(long score) {
+        if (score > currentUser.getHighScore())
+            currentUser.setHighScore(score);
+    }
+
+    public void clearSession() {
+        this.currentUser = null;
+    }
+
+    public boolean isLoggedIn() {
+        return currentUser != null;
+    }
+
+    public boolean hasOngoingGame() {
+        return !getPreviousGameData().isEnded();
+    }
+
+    public GameData getPreviousGameData() {
+        ArrayList<GameData> history = (ArrayList<GameData>)currentUser.getHistory();
+        if (history.isEmpty()) {
+            GameData dummy = new GameData();
+            dummy.setEnded(true);
+            return dummy;
+        }
+        return history.get(history.size() - 1);
+    }
+
+    public List<GameData> getGameHistory() {
+        return this.currentUser.getHistory();
+    }
+
+    public GameData createNewGameData() {
+        GameData gameData = new GameData();
+        if (currentUser == null)
+            return gameData;
+        currentUser.addGameData(gameData);
+        return gameData;
+    }
+
+    public void commit() {
+        if (currentUser != null)
+            DatabaseManager.getInstance().updateUserData(currentUser);
+        else
+            System.out.println("Warning: attempting to commit with null session, skipped");
+    }
+
+}
+package com.deepseadevs.fisheatfish.database;
+import com.deepseadevs.fisheatfish.game.FishTypes;
+import com.deepseadevs.fisheatfish.game.GameData;
+
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class UserData {
+    private String userID;
+    private String displayName;
+    private String password;
+    private long highScore;
+    private List<GameData> history;
+    private FishTypes fishType;
+
+    UserData(String userID, String displayName, String password) {
+        this(userID, displayName, password, 0);
+    }
+
+    UserData(String userID, String displayName, String password, long highScore) {
+        this(userID, displayName, password, highScore, new ArrayList<>());
+    }
+
+    UserData(String userID, String displayName, String password, long highScore, ArrayList<GameData> history) {
+        this(userID, displayName, password, highScore, history, FishTypes.PLAYER_SMALL);
+    }
+
+    UserData(String userID, String displayName, String password, long highScore, ArrayList<GameData> history, FishTypes fishType) {
+        this.userID = userID;
+        this.displayName = displayName;
+        this.password = password;
+        this.highScore = highScore;
+        this.history = history;
+        this.fishType = fishType;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public long getHighScore() {
+        return highScore;
+    }
+
+    public void setHighScore(long highScore) {
+        this.highScore = highScore;
+    }
+
+    public List<GameData> getHistory() {
+        return history;
+    }
+
+    public void setHistory(List<GameData> history) {
+        this.history = history;
+    }
+
+    public void addGameData(GameData gameData) {
+        history.add(gameData);
+    }
+
+    public String getUserID() {
+        return userID;
+    }
+
+    public void setuserID(String userID) {
+        this.userID = userID;
+    }
+
+    public FishTypes getFishType() {
+        return fishType;
+    }
+
+    public void setFishType(FishTypes fishType) {
+        this.fishType = fishType;
+    }
+}
+package com.deepseadevs.fisheatfish.game;
+
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
+
+public class Animation {
+    private final WritableImage[] frames;
+    private final int totalFrames;
+    private final Bound spriteDimension;
+    private int currentFrame;
+    private final double frameTime; // Seconds per frame
+    private double elapsedTime;
+    
+    public Animation(String spritePath) {
+        this(spritePath, 0.5);
+    }
+
+    public Animation(String spritePath, double frameTime) {
+        this(spritePath, frameTime, null);
+    }
+
+    public Animation(String spritePath, double frameTime, Bound spriteDimension) {
+        this.frameTime = frameTime;
+        Image spriteSheet = new Image(spritePath);
+
+        int frameWidth = (int) spriteSheet.getWidth();
+        int frameHeight = frameWidth; // Assuming square frames
+        totalFrames = (int) (spriteSheet.getHeight() / frameHeight);
+
+        if (spriteSheet.getHeight() < frameWidth) {
+            throw new IllegalArgumentException("Cannot process sprite sheet with height < width");
+        }
+
+        frames = new WritableImage[totalFrames];
+        PixelReader reader = spriteSheet.getPixelReader();
+        for (int i = 0; i < totalFrames; i++) {
+            frames[i] = new WritableImage(reader, 0, i * frameHeight, frameWidth, frameHeight);
+        }
+        this.spriteDimension = spriteDimension != null ? spriteDimension : generateDimension(frames[0]);
+        double renderWidth = this.spriteDimension.getWidth();
+        double renderHeight = this.spriteDimension.getHeight();
+        if (renderWidth > frameWidth || renderHeight > frameHeight) {
+            throw new IllegalArgumentException("Sprite dimension exceeds detected bounds");
+        }
+    }
+
+    // Generate bounds based on first and last non-transparent pixels
+    // on the x-axis and y-axis
+    public Bound generateDimension(Image frame) {
+        PixelReader pixelReader = frame.getPixelReader();
+        int frameWidth = (int) frame.getWidth();
+        int frameHeight = (int) frame.getHeight();
+        int minX = frameWidth;
+        int minY = frameHeight;
+        int maxX = 0;
+        int maxY = 0;
+
+        for (int y = 0; y < frameHeight; y++) {
+            for (int x = 0; x < frameWidth; x++) {
+                if (pixelReader.getColor(x, y).getOpacity() > 0) {
+                    if (x < minX) minX = x;
+                    if (y < minY) minY = y;
+                    if (x > maxX) maxX = x;
+                    if (y > maxY) maxY = y;
+                }
+            }
+        }
+        return new Bound(minX, minY, maxX, maxY);
+    }
+
+    public void update(double deltaTime) {
+        elapsedTime += deltaTime;
+        if (elapsedTime >= frameTime) {
+            currentFrame = (currentFrame + (int) (elapsedTime / frameTime)) % totalFrames;
+            elapsedTime %= frameTime;
+        }
+    }
+
+    public void render(GraphicsContext gc, double x, double y) {
+        render(gc, x, y, spriteDimension.getWidth(), spriteDimension.getHeight());
+    }
+
+    public void render(GraphicsContext gc, double x, double y, double width, double height) {
+        double scaleX = width / spriteDimension.getWidth();
+        double scaleY = height / spriteDimension.getHeight();
+
+        gc.save();
+        gc.translate(x - spriteDimension.minX * scaleX, y - spriteDimension.minY * scaleY);
+        gc.scale(scaleX, scaleY);
+        gc.drawImage(frames[currentFrame], 0, 0);
+        gc.restore();
+    }
+
+    public Bound getSpriteDimension() {
+        return this.spriteDimension;
+    }
+}
+package com.deepseadevs.fisheatfish.game;
+
+import java.util.Random;
+
+public class Bound {
+    public double minX;
+    public double minY;
+    public double maxX;
+    public double maxY;
+
+    public Bound(double minX, double minY, double maxX, double maxY) {
+        this.minX = minX;
+        this.minY = minY;
+        this.maxX = maxX;
+        this.maxY = maxY;
+    }
+
+    public double getMidX() {
+        return minX + (maxX - minX) / 2;
+    }
+
+    public double getMidY() {
+        return minY + (maxY - minY) / 2;
+    }
+
+    public boolean contains(double x, double y) {
+        return (x >= minX && x <= maxX && y >= minY && y <= maxY);
+    }
+
+    public double getWidth() {
+        return maxX - minX;
+    }
+
+    public double getHeight() {
+        return maxY - minY;
+    }
+}
+package com.deepseadevs.fisheatfish.game.fish;
+import com.deepseadevs.fisheatfish.game.Animation;
+import com.deepseadevs.fisheatfish.game.Bound;
+import com.deepseadevs.fisheatfish.game.Settings;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+
+public class BaseFish extends GameObject {
+    protected boolean facingRight;
+    private int fishEaten;
+    private int weight;
+    private long score;
+    protected Animation leftFishAnimation;
+    protected Animation rightFishAnimation;
+
+    public BaseFish() {
+        this(100, 60, 40);
+    }
+
+    public BaseFish(double maxSpeed, double width, double height) {
+        this(maxSpeed, width, height, 0, 0, 0, 0);
+    }
+
+    public BaseFish(double maxSpeed, double width, double height, int fishEaten, int weight) {
+        this(maxSpeed, width, height, fishEaten, weight, 0, 0);
+    }
+
+    public BaseFish(double maxSpeed, double width, double height, int fishEaten, int weight, double x, double y) {
+        super(x, y, maxSpeed, width, height);
+
+        this.facingRight = true;
+        this.fishEaten = fishEaten;
+        this.weight = weight;
+        this.score = 0;
+        this.leftFishAnimation = new Animation("file:src/assets/sprites/redleft.png",1, new Bound(17,20,52,41));
+        this.rightFishAnimation = new Animation("file:src/assets/sprites/redright.png",1, new Bound(14,20,47,41));
+    }
+
+    public boolean isBiggerThan(BaseFish other) {
+        if (this.getArea() == other.getArea())
+            return this.getWeight() > other.getWeight();
+        return this.getArea() > other.getArea();
+    }
+
+    public void renderHitBox(GraphicsContext gc) {
+        gc.setStroke(Color.LIME);
+        gc.setLineWidth(2);
+        gc.strokeRect(getX(), getY(), getWidth(), getHeight());
+        gc.restore();
+    }
+
+    public void render(GraphicsContext gc) {
+        if(getXv() < 0){
+            facingRight = false;
+        }
+        else if(getXv() > 0){
+            facingRight = true;
+        }
+
+        if (facingRight) {
+            drawFishRight(gc);
+        } else {
+            drawFishLeft(gc);
+        }
+    }
+
+    public void drawFishRight(GraphicsContext gc) {
+        double area = getArea();
+        this.setWidth(rightFishAnimation.getSpriteDimension().getWidth());
+        this.setHeight(rightFishAnimation.getSpriteDimension().getHeight());
+        this.setArea(area);
+        callAnimationRender(gc, rightFishAnimation);
+    }
+
+    public void drawFishLeft(GraphicsContext gc) {
+        double area = getArea();
+        this.setWidth(leftFishAnimation.getSpriteDimension().getWidth());
+        this.setHeight(leftFishAnimation.getSpriteDimension().getHeight());
+        this.setArea(area);
+        callAnimationRender(gc, leftFishAnimation);
+    }
+
+    private void callAnimationRender(GraphicsContext gc, Animation animation) {
+        animation.render(gc, this.getX(), this.getY(), this.getWidth(), this.getHeight());
+    }
+
+    public void update(double deltaTime) {
+        super.update(deltaTime);
+        leftFishAnimation.update(deltaTime);
+        rightFishAnimation.update(deltaTime);
+    }
+
+    public int getFishEaten() {
+        return fishEaten;
+    }
+
+    public void setFishEaten(int fishEaten) {
+        this.fishEaten = fishEaten;
+    }
+
+    public void incrementFishEaten() {
+        fishEaten += 1;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
+
+    public long getScore() {
+        return score;
+    }
+
+    public void setScore(long score) {
+        this.score = score;
+    }
+
+    public void addScore(long score) {
+        this.score += score;
+    }
+}
+package com.deepseadevs.fisheatfish.game.fish;
+
+public class BasePlayerFish extends BaseFish {
+    public BasePlayerFish() {
+        super();
+        setWeight(999);  // Just an arbitrary large number to give priority
+    }
+
+    @Override
+    public double getMaxSpeed() {
+        return getWidth() * 3;
+    }
+}
+package com.deepseadevs.fisheatfish.game.fish;
+
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+
+public class GameObject {
+    private double x, y;
+    private double xv, yv;
+    private double maxSpeed;
+    private double width, height;
+    private Color color;
+
+    public GameObject(double x, double y, double maxSpeed, double width, double height) {
+        this(x, y, maxSpeed, width, height, Color.BLUE);
+    }
+
+    public GameObject(double x, double y, double maxSpeed, double width, double height, Color color) {
+        this.x = x;
+        this.y = y;
+        this.xv = 0;
+        this.yv = 0;
+        this.width = width;
+        this.height = height;
+        this.maxSpeed = maxSpeed;
+        this.color = color;
+    }
+
+    public void update(double deltaTime) {
+        move(deltaTime);
+    }
+
+    public void render(GraphicsContext gc) {
+        gc.setFill(this.color);
+        gc.fillOval(x, y, width, height);
+    }
+
+    /**
+     * Moves the GameObject based on its velocity and the elapsed time.
+     * Speed is limited to maxSpeed.
+     */
+    public void move(double deltaTime) {
+        double currentSpeed = getSpeed();
+        if (currentSpeed > maxSpeed) {
+            setSpeed(getMaxSpeed());
+        }
+        this.x += xv * deltaTime;
+        this.y += yv * deltaTime;
+    }
+
+    /**
+     * Checks if this GameObject collides with another GameObject.
+     * Collision detection is done using axis-aligned bounding boxes (AABB).
+     *
+     * @param other The other GameObject to check collision with.
+     * @return true if this GameObject collides with the other, false otherwise.
+     */
+    public boolean collidesWith(GameObject other) {
+        return this.x < other.x + other.width && this.x + this.width > other.x
+                && this.y < other.y + other.height && this.y + this.height > other.y;
+    }
+
+    public double getSpeed() {
+        return Math.hypot(xv, yv);
+    }
+
+    public void setSpeed(double speed) {
+        double originalAngle = getAngle();
+        this.xv = speed * Math.cos(originalAngle);
+        this.yv = speed * Math.sin(originalAngle);
+        double EPSILON = 1e-6;
+        if (Math.abs(this.xv) < EPSILON) {
+            this.xv = 0;
+        }
+        if (Math.abs(this.yv) < EPSILON) {
+            this.yv = 0;
+        }
+    }
+
+    public double getAngle() {
+        return Math.atan2(yv, xv);
+    }
+
+    public void setAngle(double angle) {
+        double speed = getSpeed();
+        this.xv = speed * Math.cos(angle);
+        this.yv = speed * Math.sin(angle);
+    }
+    
+    public double getArea() {
+        return this.height * this.width;
+    }
+
+    public void setArea(double newArea) {
+        if (newArea <= 0)
+            return;
+        if (this.height == 0 && this.width == 0) {
+            this.height = Math.sqrt(newArea);
+            this.width = Math.sqrt(newArea);
+        } else if (this.height == 0) {
+            this.height = newArea / this.width;
+        } else if (this.width == 0) {
+            this.width = newArea / this.height;
+        } else {
+            double scaleFactor = Math.sqrt(newArea / getArea());
+            this.height *= scaleFactor;
+            this.width *= scaleFactor;
+        }
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public void setY(double y) {
+        this.y = y;
+    }
+
+    public double getXv() {
+        return xv;
+    }
+
+    public void setXv(double xv) {
+        this.xv = xv;
+    }
+
+    public double getYv() {
+        return yv;
+    }
+
+    public void setYv(double yv) {
+        this.yv = yv;
+    }
+
+    public double getMaxSpeed() {
+        return maxSpeed;
+    }
+
+    public void setMaxSpeed(double maxSpeed) {
+        this.maxSpeed = maxSpeed;
+    }
+
+    public double getWidth() {
+        return width;
+    }
+
+    public void setWidth(double width) {
+        this.width = width;
+    }
+
+    public double getHeight() {
+        return height;
+    }
+
+    public void setHeight(double height) {
+        this.height = height;
+    }
+}
+package com.deepseadevs.fisheatfish.game.fish;
+
+import com.deepseadevs.fisheatfish.game.Animation;
+import com.deepseadevs.fisheatfish.game.Bound;
+
+public class GiantFish extends BaseFish {
+    public GiantFish() {
+        super(300, 240, 160);
+        leftFishAnimation = new Animation("file:src/assets/sprites/sharkleft.png", 0.75, new Bound(14,30,57,45));
+        rightFishAnimation = new Animation("file:src/assets/sprites/sharkright.png", 0.75, new Bound(15,30,59,45));
+    }
+}
+package com.deepseadevs.fisheatfish.game.fish;
+
+import com.deepseadevs.fisheatfish.game.Animation;
+import com.deepseadevs.fisheatfish.game.Bound;
+
+public class GiantPlayerFish extends BasePlayerFish {
+    public GiantPlayerFish(){
+        super();
+        leftFishAnimation = new Animation("file:src/assets/sprites/rageleft.png", 0.1, new Bound(7,16,57,55));
+        rightFishAnimation = new Animation("file:src/assets/sprites/rageright.png", 0.1, new Bound(7,16,57,55));
+    }
+}
+package com.deepseadevs.fisheatfish.game.fish;
+
+import com.deepseadevs.fisheatfish.game.Animation;
+import com.deepseadevs.fisheatfish.game.Bound;
+
+public class LargeFish extends BaseFish {
+    public LargeFish() {
+        super(200, 120, 80);
+        leftFishAnimation = new Animation("file:src/assets/sprites/salmonleft.png", 0.75, new Bound(1,11,52,31));
+        rightFishAnimation = new Animation("file:src/assets/sprites/salmonright.png", 0.75, new Bound(12,11,63,31));
+    }
+}
+package com.deepseadevs.fisheatfish.game.fish;
+
+import com.deepseadevs.fisheatfish.game.Animation;
+import com.deepseadevs.fisheatfish.game.Bound;
+
+public class LargePlayerFish extends BasePlayerFish {
+    public LargePlayerFish(){
+        super();
+        leftFishAnimation = new Animation("file:src/assets/sprites/pacmanleft.png", 0.1, new Bound(17,24,101,106));
+        rightFishAnimation = new Animation("file:src/assets/sprites/pacmanright.png", 0.1, new Bound(27,24,111,106));
+    }
+}
+package com.deepseadevs.fisheatfish.game.fish;
+
+import com.deepseadevs.fisheatfish.game.Animation;
+import com.deepseadevs.fisheatfish.game.Bound;
+
+public class MediumFish extends BaseFish {
+    public MediumFish() {
+        super(100, 60, 40);
+        leftFishAnimation = new Animation("file:src/assets/sprites/greenleft.png", 0.3, new Bound(4,12,32,30));
+        rightFishAnimation = new Animation("file:src/assets/sprites/greenright.png", 0.3, new Bound(18,12,48,30));
+    }
+}
+package com.deepseadevs.fisheatfish.game.fish;
+
+import com.deepseadevs.fisheatfish.game.Bound;
+import com.deepseadevs.fisheatfish.game.Animation;
+
+public class MediumPlayerFish extends BasePlayerFish {
+    public MediumPlayerFish(){
+        super();
+        leftFishAnimation = new Animation("file:src/assets/sprites/spikeleft.png", 0.5, new Bound(16,30,88,90));
+        rightFishAnimation = new Animation("file:src/assets/sprites/spikeright.png", 0.5, new Bound(42,30,112,90));
+    }
+}
+package com.deepseadevs.fisheatfish.game.fish;
+
+import com.deepseadevs.fisheatfish.game.Animation;
+import com.deepseadevs.fisheatfish.game.Bound;
+
+public class SmallFish extends BaseFish {
+    public SmallFish() {
+        super(50, 30, 20);
+        leftFishAnimation = new Animation("file:src/assets/sprites/redleft.png",1, new Bound(17,20,52,41));
+        rightFishAnimation = new Animation("file:src/assets/sprites/redright.png",1, new Bound(14,20,47,41));
+    }
+}
+package com.deepseadevs.fisheatfish.game.fish;
+
+import com.deepseadevs.fisheatfish.game.Animation;
+import com.deepseadevs.fisheatfish.game.Bound;
+import javafx.scene.canvas.GraphicsContext;
+
+public class SmallPlayerFish extends BasePlayerFish {
+    public SmallPlayerFish() {
+        super();
+        leftFishAnimation = new Animation("file:src/assets/sprites/orenleft.png", 0.75, new Bound(0,24,123,104));
+        rightFishAnimation = new Animation("file:src/assets/sprites/orenright.png", 0.75, new Bound(5,24,128,104));
+    }
+}package com.deepseadevs.fisheatfish.game;
+
+import com.deepseadevs.fisheatfish.game.fish.BaseFish;
+import javafx.scene.canvas.GraphicsContext;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class FishHandler {
+    Bound bound;
+    private final int xRemoveBuffer;
+    private final List<BaseFish> allFish;
+
+    public FishHandler(Bound bound) {
+        this.allFish = new ArrayList<>();
+        this.bound = bound;
+        this.xRemoveBuffer = 100;
+    }
+
+    public void addFish(BaseFish fish) {
+        allFish.add(fish);
+    }
+
+    public void addFish(BaseFish... fishes) {
+        allFish.addAll(Arrays.asList(fishes));
+    }
+
+    public boolean containsFish(BaseFish fish) {
+        return allFish.contains(fish);
+    }
+
+    public void removeFish(BaseFish fish) {
+        allFish.remove(fish);
+    }
+
+    public void clearFish() {
+        allFish.clear();
+    }
+
+    public void renderAll(GraphicsContext gc) {
+        for (BaseFish fish: allFish) {
+            fish.render(gc);
+        }
+    }
+
+    public void renderAllHitBox(GraphicsContext gc) {
+        for (BaseFish fish: allFish) {
+            fish.renderHitBox(gc);
+        }
+    }
+
+    public void updateAll(double deltaTime) {
+        for (int i = 0; i < allFish.size(); i++) {
+            BaseFish fish = allFish.get(i);
+            boundFishMovements(fish);
+            removeIfOutOfBound(fish);
+            fish.update(deltaTime);
+        }
+    }
+
+    private void removeIfOutOfBound(BaseFish fish) {
+        if (fish.getX() > bound.maxX + xRemoveBuffer && fish.getXv() > 0)
+            removeFish(fish);
+        if (fish.getX() + fish.getWidth() < bound.minX - xRemoveBuffer && fish.getXv() < 0)
+            removeFish(fish);
+    }
+
+    private void boundFishMovements(BaseFish fish) {
+        if (fish.getY() + fish.getHeight() > bound.maxY && fish.getYv() > 0)
+            fish.setYv(-fish.getYv());
+        if (fish.getY() < bound.minY && fish.getYv() < 0)
+            fish.setYv(-fish.getYv());
+    }
+
+    public void collideAll() {
+        for (int i = 0; i < allFish.size(); i++) {
+            for (int j = i + 1; j < allFish.size(); j++) {
+                BaseFish fish1 = allFish.get(i);
+                BaseFish fish2 = allFish.get(j);
+                if (fish1.collidesWith(fish2)) {
+                    handleFishFishCollision(fish1, fish2);
+                }
+            }
+        }
+    }
+
+    private void handleFishFishCollision(BaseFish fish1, BaseFish fish2) {
+        if (fish1.isBiggerThan(fish2)) {
+            handleFishFishCollision(fish2, fish1);
+        } else {
+            allFish.remove(fish1);
+            fish2.setArea(fish2.getArea() + fish1.getArea() * 0.1);
+            fish2.incrementFishEaten();
+            fish2.addScore(Math.round(fish1.getArea() * 0.1) + 100L);
+        }
+    }
+
+    public int getFishCount() {
+        return allFish.size();
+    }
+
+    public int getFishCountInBound() {
+        return getFishCountInBound(bound);
+    }
+
+    public int getFishCountInBound(Bound bound) {
+        int count = 0;
+        for (BaseFish fish: allFish) {
+            if (bound.contains(fish.getX(), fish.getY()))
+                count++;
+        }
+        return count;
+    }
+}
+package com.deepseadevs.fisheatfish.game;
+
+public enum FishTypes {
+    SMALL,
+    MEDIUM,
+    LARGE,
+    GIANT,
+    PLAYER_SMALL,
+    PLAYER_MEDIUM,
+    PLAYER_LARGE,
+    PLAYER_GIANT
+}
+package com.deepseadevs.fisheatfish.game;
+
+import com.deepseadevs.fisheatfish.game.fish.SmallFish;
+
+import java.time.Duration;
+import java.time.Instant;
+
+public class GameData {
+    private long score;
+    private int level;
+    private int fishEaten;
+    private int size;
+    private boolean ended;
+    private final Instant startTime;
+    private Instant endTime;
+    private Duration gameDuration;
+
+    private int levelFishEaten;
+    private Duration levelDuration;
+    private double levelProgress;
+
+    public GameData() {
+        this(0, 1, 0, (int)(new SmallFish()).getArea() + 100);
+    }
+
+    public GameData(long score, int level, int fishEaten, int size) {
+        this(score, level, fishEaten, size, false, Instant.now(), Instant.now(), Duration.ZERO);
+    }
+    public GameData(long score, int level, int fishEaten, int size, boolean ended, Instant startTime, Instant endTime, Duration gameDuration) {
+        this(score, level, fishEaten, size, ended, startTime, endTime, gameDuration, 0, Duration.ZERO, 0);
+    }
+    public GameData(long score, int level, int fishEaten, int size, boolean ended, Instant startTime, Instant endTime, Duration gameDuration, int levelFishEaten, Duration levelDuration, double levelProgress) {
+        this.score = score;
+        this.level = level;
+        this.fishEaten = fishEaten;
+        this.size = size;
+        this.ended = ended;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.gameDuration = gameDuration;
+        this.levelFishEaten = levelFishEaten;
+        this.levelDuration = levelDuration;
+        this.levelProgress = levelProgress;
+    }
+
+    public void updateDuration(double deltaTime) {
+        // seconds to milliseconds
+        Duration additionalTime = Duration.ofMillis((long) (deltaTime * 1000));
+        gameDuration = gameDuration.plus(additionalTime);
+        levelDuration = levelDuration.plus(additionalTime);
+        endTime = Instant.now();
+    }
+
+    public int getFishEaten() {
+        return fishEaten;
+    }
+
+    public void setFishEaten(int fishEaten) {
+        this.fishEaten = fishEaten;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public long getScore() {
+        return score;
+    }
+
+    public void setScore(long score) {
+        this.score = score;
+    }
+
+    public Instant getStartTime() {
+        return startTime;
+    }
+
+    public Instant getEndTime() {
+        return endTime;
+    }
+
+    public Duration getGameDuration() {
+        return gameDuration;
+    }
+
+    public boolean isEnded() {
+        return ended;
+    }
+
+    public void setEnded(boolean ended) {
+        this.ended = ended;
+    }
+
+    public double getProgress() {
+        return levelProgress;
+    }
+
+    public void setLevelProgress(double levelProgress) {
+        this.levelProgress = levelProgress;
+    }
+
+    public int getLevelFishEaten() {
+        return levelFishEaten;
+    }
+
+    public void setLevelFishEaten(int levelFishEaten) {
+        this.levelFishEaten = levelFishEaten;
+    }
+
+    public Duration getLevelDuration() {
+        return levelDuration;
+    }
+
+    public void setLevelDuration(Duration levelDuration) {
+        this.levelDuration = levelDuration;
+    }
+}
+package com.deepseadevs.fisheatfish.game;
+
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.game.fish.BaseFish;
+import com.deepseadevs.fisheatfish.game.level.LevelHandler;
+import javafx.animation.AnimationTimer;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.KeyEvent;
+
+public class GameEngine {
+    private final Bound bound;
+    private final SessionManager sessionManager;
+    private final GraphicsContext gc;
+    private final FishHandler fishHandler;
+    private final GameRenderer gameRenderer;
+    private final BaseFish player;
+    private final PlayerHandler playerHandler;
+    private final Spawner spawner;
+    private final LevelHandler levelHandler;
+
+    private AnimationTimer gameLoop;
+    private Runnable gameOverCallback;
+    private final GameData gameData;
+    private boolean isPaused;
+
+    public GameEngine(GraphicsContext gc, SessionManager sessionManager, GameData gameData) {
+        this.gc = gc;
+        this.sessionManager = sessionManager;
+        this.gameData = gameData;
+        this.bound = new Bound(0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
+        this.spawner = new Spawner(this.bound);
+        this.fishHandler = new FishHandler(this.bound);
+        this.gameRenderer = new GameRenderer(gc, this.fishHandler, this.gameData, sessionManager);
+
+        // Initialize the player and add to fishHandler
+        this.player = this.spawner.spawnFish(sessionManager.getUserFishType());
+        this.player.setX(this.bound.getMidX());
+        this.player.setY(this.bound.getMidY());
+        this.fishHandler.addFish(player);
+        this.playerHandler = new PlayerHandler(this.gameData, player, this.bound);
+        this.levelHandler = new LevelHandler(this.gameData, this.playerHandler);
+
+        this.gameData.setEnded(false);
+
+        spawnFishes();
+        initializeGameLoop();
+    }
+
+    public void setGameOverCallback(Runnable gameOverCallback) {
+        this.gameOverCallback = gameOverCallback;
+    }
+
+    public void start() {
+        isPaused = false;
+        gameLoop.start();
+    }
+
+    public void stop() {
+        if (gameLoop != null) {
+            gameLoop.stop();
+        }
+    }
+
+    public void pause() {
+        isPaused = true;
+    }
+
+    public void resume() {
+        isPaused = false;
+    }
+
+    public void handleKeyPressed(KeyEvent event) {
+        if (!isPaused) {
+            playerHandler.handleKeyPressed(event);
+        }
+    }
+
+    public void handleKeyReleased(KeyEvent event) {
+        if (!isPaused) {
+            playerHandler.handleKeyReleased(event);
+        }
+    }
+
+    private void initializeGameLoop() {
+        gameLoop = new AnimationTimer() {
+            private long lastTime = System.nanoTime();
+
+            @Override
+            public void handle(long now) {
+                if (gameData.isEnded()) return;
+                double deltaTime = (now - lastTime) / 1_000_000_000.0;
+                lastTime = now;
+
+                update(deltaTime);
+            }
+        };
+    }
+
+    private void spawnFishes() {
+        for (int i = 0; i < levelHandler.getMaxFishCount() - fishHandler.getFishCount(); i++) {
+            int fishOutOfBoundCount = fishHandler.getFishCount() - fishHandler.getFishCountInBound();
+            double bufferRatio = fishOutOfBoundCount / (double)levelHandler.getMaxFishCount();
+            spawner.setBufferRatio(bufferRatio);
+            BaseFish newFish = spawner.spawnRandomFish(levelHandler.getFishTypes());
+            fishHandler.addFish(newFish);
+        }
+    }
+
+    private void update(double deltaTime) {
+        if (isPaused)
+            return;
+        playerHandler.updatePlayerVelocity();
+        playerHandler.syncPlayerStats();
+        levelHandler.updateProgress();
+        fishHandler.updateAll(deltaTime);
+        fishHandler.collideAll();
+        gameRenderer.render();
+        updateAndCommitGameData(deltaTime);
+        spawnFishes();
+        checkLevelProgression();
+
+        if (!fishHandler.containsFish(player)) {
+            triggerGameOver();
+        }
+    }
+
+    private void updateAndCommitGameData(double deltaTime) {
+        gameData.updateDuration(deltaTime);
+        sessionManager.updateHighScore(gameData.getScore());
+        sessionManager.commit();
+    }
+
+    private void checkLevelProgression() {
+        if (gameData.getProgress() >= 1.0) {
+            if (gameData.getLevel() >= levelHandler.getTotalLevels())
+                triggerGameOver();
+            else
+                levelHandler.incrementLevel();
+        }
+    }
+
+    public void triggerGameOver() {
+        stop();
+        gameData.setEnded(true);
+        sessionManager.commit();
+        if (gameOverCallback != null) {
+            gameOverCallback.run();
+        }
+    }
+}
+package com.deepseadevs.fisheatfish.game;
+
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+
+import java.time.Duration;
+
+public class GameRenderer {
+    private static final double PROGRESS_BAR_HEIGHT = 10;
+    private static final double MARGIN = 10;
+    private static final double LINE_SPACING = 25;
+    private static final double BOX_PADDING = 5;
+    private static final Color BOX_COLOR = Color.rgb(30, 30, 30, 0.3); // Semi-transparent grey
+    private static final Color TEXT_COLOR = Color.WHITE;
+    private static final Font DEFAULT_FONT = new Font("HP Simplified", 20);
+
+    private final GraphicsContext gc;
+    private final FishHandler fishHandler;
+    private final GameData gameData;
+    private final SessionManager sessionManager;
+    private final Image backgroundImage;
+
+    public GameRenderer(GraphicsContext gc, FishHandler fishHandler, GameData gameData, SessionManager sessionManager) {
+        this.gc = gc;
+        this.fishHandler = fishHandler;
+        this.gameData = gameData;
+        this.sessionManager = sessionManager;
+        this.backgroundImage = new Image("file:src/assets/pixelBackground.png");
+    }
+
+    public void render() {
+        renderBackground();
+        renderFish();
+        renderGameStats();
+    }
+
+    private void renderBackground() {
+        clearCanvas();
+        gc.drawImage(backgroundImage, 0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
+    }
+
+    private void clearCanvas() {
+        gc.clearRect(0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
+    }
+
+    private void renderFish() {
+        fishHandler.renderAll(gc);
+        if (Settings.showHitBox)
+            fishHandler.renderAllHitBox(gc);
+    }
+
+    private void renderGameStats() {
+        gc.setFill(TEXT_COLOR);
+        gc.setFont(DEFAULT_FONT);
+        renderScoreBox();
+        renderLevelBox();
+        renderDurationBox();
+    }
+
+    private void renderScoreBox() {
+        String scoreText = "Score: " + gameData.getScore();
+        String highScoreText = "Highscore: " + sessionManager.getHighScore();
+
+        // Measure text dimensions
+        double scoreWidth = measureTextWidth(scoreText, gc.getFont());
+        double highScoreWidth = measureTextWidth(highScoreText, gc.getFont());
+        double textHeight = measureTextHeight(scoreText, gc.getFont());
+
+        // Calculate box dimensions
+        double boxWidth = Math.max(scoreWidth, highScoreWidth) + 2 * BOX_PADDING; // Add padding
+        double boxHeight = textHeight * 2 + (LINE_SPACING / 2) + 2 * BOX_PADDING - 5;
+
+        // Box position
+        double boxX = MARGIN;
+        double boxY = MARGIN ;
+
+        // Draw the box
+        gc.setFill(BOX_COLOR);
+        gc.fillRect(boxX, boxY, boxWidth, boxHeight - 15);
+
+        // Draw the text
+        gc.setFill(TEXT_COLOR);
+        gc.fillText(scoreText, boxX + BOX_PADDING, boxY + BOX_PADDING + textHeight - 10);
+        gc.fillText(highScoreText, boxX + BOX_PADDING, boxY + BOX_PADDING + textHeight + LINE_SPACING - 10);
+    }
+
+    private void renderLevelBox() {
+        String levelText = "Level: " + gameData.getLevel();
+        double levelWidth = measureTextWidth(levelText, gc.getFont());
+        double levelHeight = measureTextHeight(levelText, gc.getFont());
+
+        // Progress bar dimensions
+        double progressBarWidth = 200;
+
+        // Calculate box dimensions
+        double boxWidth = Math.max(levelWidth, progressBarWidth) + 2 * BOX_PADDING; // Add padding
+        double boxHeight = levelHeight + (LINE_SPACING / 2) + PROGRESS_BAR_HEIGHT + 2 * BOX_PADDING; // Add padding
+
+        // Box position
+        double boxX = MARGIN;
+        double boxY = gc.getCanvas().getHeight() - boxHeight - MARGIN;
+
+        // Draw the box
+        gc.setFill(BOX_COLOR);
+        gc.fillRect(boxX, boxY, boxWidth, boxHeight - 10);
+
+        // Draw the level text
+        gc.setFill(Color.LIGHTGOLDENRODYELLOW);
+        gc.fillText(levelText, boxX + BOX_PADDING, boxY + BOX_PADDING + levelHeight - 10);
+
+        // Draw the progress bar
+        renderProgressBar(boxX + BOX_PADDING, boxY + boxHeight - PROGRESS_BAR_HEIGHT - BOX_PADDING, gameData.getProgress());
+    }
+
+    private void renderDurationBox() {
+        String gameDurationText = formatDuration(gameData.getGameDuration());
+        double durationWidth = measureTextWidth(gameDurationText, gc.getFont());
+        double durationHeight = measureTextHeight(gameDurationText, gc.getFont());
+
+        // Calculate box dimensions
+        double boxWidth = durationWidth + 2 * BOX_PADDING; // Add padding
+        double boxHeight = durationHeight + 2 * BOX_PADDING; // Add padding
+
+        // Box position
+        double pauseButtonWidth = 50;
+        double boxX = gc.getCanvas().getWidth() - MARGIN - pauseButtonWidth - 100;
+        double boxY = MARGIN;
+
+        // Draw the box
+        gc.setFill(BOX_COLOR);
+        gc.fillRect(boxX, boxY, boxWidth, boxHeight - 5);
+
+        // Draw the duration text
+        gc.setFill(TEXT_COLOR);
+        gc.fillText(gameDurationText, boxX + BOX_PADDING, boxY + BOX_PADDING + durationHeight - 8);
+    }
+
+    private double measureTextWidth(String text, Font font) {
+        Text tempText = new Text(text);
+        tempText.setFont(font);
+        return tempText.getLayoutBounds().getWidth();
+    }
+
+    // Helper method to measure text height
+    private double measureTextHeight(String text, Font font) {
+        Text tempText = new Text(text);
+        tempText.setFont(font);
+        return tempText.getLayoutBounds().getHeight();
+    }
+
+    private void renderProgressBar(double x, double y, double progress) {
+        double barWidth = 200;
+        double barHeight = PROGRESS_BAR_HEIGHT;
+
+        // Ensure progress is within [0, 1]
+        progress = Math.max(0, Math.min(1, progress));
+
+        // Draw background
+        gc.setFill(Color.LIGHTGRAY);
+        gc.fillRect(x, y - barHeight, barWidth, barHeight);
+
+        // Draw progress
+        gc.setFill(Color.GREEN);
+        gc.fillRect(x, y - barHeight, barWidth * progress, barHeight);
+    }
+
+    private String formatDuration(Duration duration) {
+        long minutes = duration.toMinutes();
+        long seconds = duration.toSecondsPart();
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+}package com.deepseadevs.fisheatfish.game.level;
+import com.deepseadevs.fisheatfish.game.FishTypes;
+import com.deepseadevs.fisheatfish.game.GameData;
+
+import java.util.List;
+
+public class Level {
+    public List<FishTypes> getFishTypes() {
+        return List.of(FishTypes.SMALL);
+    }
+
+    public int getMaxFishCount() {
+        return 10;
+    }
+
+    public final void updateLevelProgress(GameData gameData) {
+        gameData.setLevelProgress(calculateProgress(gameData));
+    }
+
+    protected double calculateProgress(GameData gameData) {
+        return gameData.getLevelFishEaten() / 30.0;
+    }
+}
+package com.deepseadevs.fisheatfish.game.level;
+
+import com.deepseadevs.fisheatfish.game.FishTypes;
+import com.deepseadevs.fisheatfish.game.GameData;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class Level1 extends Level {
+    protected double calculateProgress(GameData gameData) {
+        return gameData.getScore() / 4640.0;
+    }
+
+    @Override
+    public int getMaxFishCount() {
+        return 12;
+    }
+
+    public List<FishTypes> getFishTypes() {
+        return List.of(FishTypes.SMALL);
+    }
+}
+package com.deepseadevs.fisheatfish.game.level;
+import com.deepseadevs.fisheatfish.game.FishTypes;
+import com.deepseadevs.fisheatfish.game.GameData;
+
+import java.util.List;
+
+public class Level2 extends Level {
+    protected double calculateProgress(GameData gameData) {
+        return gameData.getScore() / 15000.0;
+    }
+
+    public List<FishTypes> getFishTypes() {
+        return List.of(FishTypes.SMALL, FishTypes.MEDIUM, FishTypes.MEDIUM, FishTypes.MEDIUM);
+    }
+}
+
+package com.deepseadevs.fisheatfish.game.level;
+
+import com.deepseadevs.fisheatfish.game.FishTypes;
+import com.deepseadevs.fisheatfish.game.GameData;
+
+import java.util.List;
+
+public class Level3 extends Level {
+    protected double calculateProgress(GameData gameData) {
+        return gameData.getScore() / 45000.0;
+    }
+
+    public List<FishTypes> getFishTypes() {
+        return List.of(FishTypes.SMALL, FishTypes.MEDIUM, FishTypes.MEDIUM, FishTypes.LARGE);
+    }
+}
+package com.deepseadevs.fisheatfish.game.level;
+
+import com.deepseadevs.fisheatfish.game.FishTypes;
+import com.deepseadevs.fisheatfish.game.GameData;
+
+import java.util.List;
+
+public class Level4 extends Level {
+    @Override
+    protected double calculateProgress(GameData gameData) {
+        return gameData.getLevelDuration().getSeconds() / 120.0;
+    }
+
+    public List<FishTypes> getFishTypes() {
+        return List.of(FishTypes.SMALL, FishTypes.MEDIUM, FishTypes.LARGE,
+                FishTypes.LARGE, FishTypes.MEDIUM, FishTypes.GIANT);
+    }
+}
+                 package com.deepseadevs.fisheatfish.game.level;
+
+import com.deepseadevs.fisheatfish.game.FishTypes;
+import com.deepseadevs.fisheatfish.game.GameData;
+import com.deepseadevs.fisheatfish.game.PlayerHandler;
+
+import java.time.Duration;
+import java.util.*;
+
+
+public class LevelHandler {
+    ArrayList<Level> levels;
+    GameData gameData;
+    PlayerHandler playerHandler;
+
+    public LevelHandler(GameData gameData, PlayerHandler playerHandler) {
+        this(gameData, playerHandler, new Level1(), new Level2(), new Level3(), new Level4());
+    }
+
+    public LevelHandler(GameData gameData, PlayerHandler playerHandler, Level... levels) {
+        this.levels = new ArrayList<>(Arrays.asList(levels));
+        this.gameData = gameData;
+        this.playerHandler = playerHandler;
+    }
+
+    public List<FishTypes> updateAndGetFishTypes() {
+        getCurrentLevel().updateLevelProgress(gameData);
+        return getFishTypes();
+    }
+
+    public List<FishTypes> getFishTypes() {
+        ArrayList<FishTypes> currentFish = new ArrayList<>(getCurrentLevel().getFishTypes());
+        if (gameData.getProgress() >= 0.5) {
+            currentFish.addAll(new HashSet<>((getNextLevel().getFishTypes())));
+        }
+        return currentFish;
+    }
+
+    public int getMaxFishCount() {
+        return getCurrentLevel().getMaxFishCount();
+    }
+
+    public void incrementLevel() {
+        gameData.setLevel(gameData.getLevel() + 1);
+        gameData.setLevelDuration(Duration.ZERO);
+        playerHandler.resetFishEaten();
+        getCurrentLevel().updateLevelProgress(gameData);
+    }
+
+    public int getTotalLevels() {
+        return levels.size();
+    }
+
+    public void updateProgress() {
+        getCurrentLevel().updateLevelProgress(gameData);
+    }
+
+    public Level getCurrentLevel() {
+        return getSpecifiedLevel(gameData.getLevel());
+    }
+
+    public Level getNextLevel() {
+        return getSpecifiedLevel(gameData.getLevel() + 1);
+    }
+
+    public Level getSpecifiedLevel(int level) {
+        if (this.levels.isEmpty())
+            throw new IllegalArgumentException("No level stored in LevelHandler");
+        else if (level > levels.size())
+            return levels.get(levels.size() - 1); // changed getLast() to levels.size() - 1
+        else
+            return levels.get(level - 1);
+    }
+}
+package com.deepseadevs.fisheatfish.game;
+
+import com.deepseadevs.fisheatfish.game.fish.BaseFish;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+
+import java.util.HashSet;
+import java.util.Set;
+
+public class PlayerHandler {
+    private final GameData gameData;
+    private final BaseFish player;
+    private int prevFishEaten;
+    private final Set<KeyCode> keysPressed;
+    private final Bound bound;
+
+    public PlayerHandler(GameData data, BaseFish player, Bound bound) {
+        this.gameData = data;
+        this.player = player;
+        player.setFishEaten(data.getLevelFishEaten());
+        player.setArea(data.getSize());
+        player.setScore(gameData.getScore());
+        this.keysPressed = new HashSet<>();
+        this.prevFishEaten = player.getFishEaten();
+        this.bound = bound;
+    }
+
+    public void handleKeyPressed(KeyEvent event) {
+        keysPressed.add(event.getCode());
+    }
+
+    public void handleKeyReleased(KeyEvent event) {
+        keysPressed.remove(event.getCode());
+    }
+
+    public int getAccumulatedFishEaten() {
+        updateTotalFishEaten();
+        return gameData.getFishEaten();
+    }
+
+    public int getCurrentFishEaten() {
+        updateTotalFishEaten();
+        return player.getFishEaten();
+    }
+
+    public void resetFishEaten() {
+        updateTotalFishEaten();
+        player.setFishEaten(0);
+        prevFishEaten = 0;
+    }
+
+    public void syncPlayerStats() {
+        updateTotalFishEaten();
+        gameData.setLevelFishEaten(player.getFishEaten());
+        gameData.setSize((int)Math.round(player.getArea()));
+        gameData.setScore(player.getScore());
+    }
+
+    public void updateTotalFishEaten() {
+        int newFishEaten = player.getFishEaten() - prevFishEaten;
+        prevFishEaten = player.getFishEaten();
+        if (newFishEaten <= 0)
+            return;
+        gameData.setFishEaten(gameData.getFishEaten() + newFishEaten);
+    }
+
+    public void updatePlayerVelocity() {
+        double dx = calculateHorizontalMovement();
+        double dy = calculateVerticalMovement();
+
+        if (player.getX() <= bound.minX) { // Left
+            player.setX(bound.minX);
+        }
+        if (player.getX() + player.getWidth() >= bound.maxX) { // Right
+            player.setX(bound.maxX - player.getWidth());
+        }
+        if (player.getY() <= bound.minY) { // Up
+            player.setY(bound.minY);
+        }
+        if (player.getY() + player.getHeight() >= bound.maxY) { // Down
+            player.setY(bound.maxY - player.getHeight());
+        }
+
+        player.setXv(dx);
+        player.setYv(dy);
+
+        if (player.getSpeed() > player.getMaxSpeed() || dy != 0 || dx != 0)
+            player.setSpeed(player.getMaxSpeed());
+    }
+
+    private double calculateHorizontalMovement() {
+        if (keysPressed.contains(KeyCode.A) || keysPressed.contains(KeyCode.LEFT)) return -1;
+        if (keysPressed.contains(KeyCode.D) || keysPressed.contains(KeyCode.RIGHT)) return 1;
+        return 0;
+    }
+
+    private double calculateVerticalMovement() {
+        if (keysPressed.contains(KeyCode.W) || keysPressed.contains(KeyCode.UP)) return -1;
+        if (keysPressed.contains(KeyCode.S) || keysPressed.contains(KeyCode.DOWN)) return 1;
+        return 0;
+    }
+}
+package com.deepseadevs.fisheatfish.game;
+
+public class Settings {
+    public static boolean showHitBox;
+}
+package com.deepseadevs.fisheatfish.game;
+
+import com.deepseadevs.fisheatfish.game.fish.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+
+public class Spawner {
+    static final int BUFFER = 600;
+    private double bufferRatio;
+    private final Bound bound;
+    private final Random random;
+
+    public Spawner() {
+        this(new Bound(0, 0, 1, 1));
+    }
+
+    public Spawner(Bound bound) {
+        this.bound = bound;
+        this.random = new Random();
+        this.bufferRatio = 0;
+    }
+
+    public void setBufferRatio(double bufferRatio) {
+        this.bufferRatio = bufferRatio;
+    }
+
+    private BaseFish fishTypeToFish(FishTypes fishType) {
+        switch (fishType) {
+            case SMALL:
+                return new SmallFish();
+            case MEDIUM:
+                return new MediumFish();
+            case LARGE:
+                return new LargeFish();
+            case GIANT:
+                return new GiantFish();
+            case PLAYER_SMALL:
+                return new SmallPlayerFish();
+            case PLAYER_MEDIUM:
+                return new MediumPlayerFish();
+            case PLAYER_LARGE:
+                return new LargePlayerFish();
+            case PLAYER_GIANT:
+                return new GiantPlayerFish();
+            default:
+                throw new IllegalArgumentException("Unhandled fish type: " + fishType);
+        }
+    }
+
+    public BaseFish spawnRandomFish(FishTypes... fishTypes) {
+        return spawnRandomFish(new ArrayList<>(Arrays.asList(fishTypes)));
+    }
+
+    public BaseFish spawnRandomFish(List<FishTypes> fishTypes) {
+        return spawnRandomFish(new ArrayList<>(fishTypes));
+    }
+
+    public BaseFish spawnRandomFish(ArrayList<FishTypes> fishTypesList) {
+        if (fishTypesList == null || fishTypesList.isEmpty()) {
+            throw new IllegalArgumentException("No fish types provided");
+        }
+        int idx = random.nextInt(fishTypesList.size());
+        FishTypes selectedFishType = fishTypesList.get(idx);
+        return spawnFish(selectedFishType);
+    }
+
+    public BaseFish spawnFish(FishTypes fishType) {
+        BaseFish newFish = fishTypeToFish(fishType);
+        return configureNewFish(newFish);
+    }
+
+    public BaseFish spawnFishAtCentre(FishTypes fishType) {
+        return spawnFishAt(fishType, bound.getMidX(), bound.getMidY());
+    }
+
+    public BaseFish spawnFishAt(FishTypes fishType, double x, double y) {
+        BaseFish newFish = fishTypeToFish(fishType);
+        newFish.setX(x);
+        newFish.setY(y);
+        return newFish;
+    }
+
+    private BaseFish configureNewFish(BaseFish newFish) {
+        newFish.setY(random.nextDouble(bound.minY, Math.max(bound.minY + 1, bound.maxY - newFish.getHeight())));
+        newFish.setXv(random.nextInt(50, 200));
+        newFish.setYv(random.nextInt(0, 20));
+        newFish.setSpeed(newFish.getMaxSpeed());
+
+        double buffer = bufferRatio * BUFFER + 1;
+        if (Math.random() > 0.5) { // left side
+            newFish.setX(random.nextDouble(
+                    bound.minX - 2 * buffer - newFish.getWidth(),
+                    bound.minX - buffer - newFish.getWidth()
+            ));
+        } else { // right side
+            newFish.setXv(-newFish.getXv());
+            newFish.setX(random.nextDouble(
+                    bound.maxX + buffer,
+                    bound.maxX + 2 * buffer
+            ));
+        }
+        return newFish;
+    }
+}
+package com.deepseadevs.fisheatfish.pages;
+
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.UIController;
+import javafx.scene.Scene;
+
+public abstract class BasePage {
+    protected final UIController uiController;
+    protected final SessionManager sessionManager;
+    protected final Scene scene;
+
+    public BasePage(UIController uiController, SessionManager sessionManager) {
+        this.uiController = uiController;
+        this.sessionManager = sessionManager;
+        this.scene = createScene();
+    }
+
+    public Scene getScene() {
+        return this.scene;
+    }
+
+    protected abstract Scene createScene();
+}
+
+package com.deepseadevs.fisheatfish.pages;
+
+import com.deepseadevs.fisheatfish.database.HistoryParser;
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.UIController;
+import com.deepseadevs.fisheatfish.game.FishTypes;
+import com.deepseadevs.fisheatfish.game.Spawner;
+import com.deepseadevs.fisheatfish.game.fish.BaseFish;
+import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
+import com.deepseadevs.fisheatfish.widgets.buttons.AccentButton;
+import com.deepseadevs.fisheatfish.widgets.buttons.SecondaryButton;
+import javafx.animation.AnimationTimer;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
+public class FishSelectionPage extends BasePage {
+    private Canvas canvas;
+    private AnimationTimer animationTimer;
+    private GraphicsContext gc;
+
+    private final Map<FishTypes, BaseFish> fishMap;
+    private final Spawner spawner;
+    private int currentFishIndex;
+    private final int maxFishIndex;
+    private final FishTypes[] fishTypeArray;
+    private FishTypes selectedFishType;
+
+    private Button selectButton;
+    private Button previousButton;
+    private Button nextButton;
+    private Button startButton;
+    private Button backButton;
+
+    public FishSelectionPage(UIController uiController, SessionManager sessionManager) {
+        super(uiController, sessionManager);
+        List<FishTypes> fishTypesList = List.of(FishTypes.PLAYER_SMALL, FishTypes.PLAYER_MEDIUM, FishTypes.PLAYER_LARGE, FishTypes.PLAYER_GIANT);
+        this.spawner = new Spawner();
+        this.fishMap = new EnumMap<>(FishTypes.class);
+        this.fishTypeArray = fishTypesList.toArray(new FishTypes[0]);
+        this.currentFishIndex = Math.max(0, fishTypesList.indexOf(sessionManager.getUserFishType()));
+        this.selectedFishType = sessionManager.getUserFishType();
+        this.maxFishIndex = HistoryParser.of(sessionManager.getGameHistory()).getHighestLevel();
+
+        initializeFishMap();
+        initializeAnimationTimer();
+        updateSelectButtonState();
+        startButton.requestFocus();
+    }
+
+    private void initializeFishMap() {
+        for (FishTypes fishType : fishTypeArray) {
+            BaseFish fish = spawner.spawnFish(fishType);
+            fish.setXv(1);
+            fishMap.put(fishType, fish);
+        }
+    }
+
+
+    @Override
+    protected Scene createScene() {
+        StackPane root = new StackPane();
+
+        root.setStyle("-fx-background-color: skyblue;");
+        // Canvas for fish rendering
+        canvas = new Canvas(540, 360);
+        gc = canvas.getGraphicsContext2D();
+
+        // HBox for button alignment
+        HBox topButtonBox = new HBox(20);
+        topButtonBox.setAlignment(Pos.CENTER);
+
+        previousButton = new MainButton("Previous");
+        previousButton.setMinWidth(80);
+        previousButton.setOnAction(e -> showPreviousFish());
+
+        selectButton = new MainButton("Select");
+        selectButton.setMinWidth(100);
+        selectButton.setOnAction(e -> selectCurrentFish());
+
+        nextButton = new MainButton("Next");
+        nextButton.setMinWidth(80);
+        nextButton.setOnAction(e -> showNextFish());
+
+        topButtonBox.getChildren().addAll(previousButton, selectButton, nextButton);
+
+        HBox botButtonBox = new HBox(20);
+        botButtonBox.setAlignment(Pos.CENTER);
+        botButtonBox.setMaxWidth(400);
+
+        backButton = new AccentButton("Back");
+        backButton.setMinWidth(50);
+        backButton.setOnAction(e -> {
+            stopAnimationTimer();
+            uiController.gotoMainMenu();
+        });
+
+        startButton = new SecondaryButton("Start Game");
+        startButton.setMinWidth(230);
+        startButton.setOnAction(e -> {
+            stopAnimationTimer();
+            uiController.gotoGamePage();
+        });
+
+        botButtonBox.getChildren().addAll(backButton, startButton);
+        VBox buttonsContainer = new VBox(20);
+        buttonsContainer.setTranslateY(100); // Y offset
+        buttonsContainer.setAlignment(Pos.CENTER); // Center align the contents of VBox
+        StackPane.setAlignment(buttonsContainer, Pos.CENTER); // Center align VBox in StackPane
+
+        buttonsContainer.getChildren().addAll(topButtonBox, botButtonBox);
+        root.getChildren().addAll(canvas, buttonsContainer);
+        Scene scene = new Scene(root);
+        scene.setFill(Color.LIGHTBLUE);
+        return scene;
+    }
+
+
+    private void initializeAnimationTimer() {
+        animationTimer = new AnimationTimer() {
+            private long lastTime = System.nanoTime();
+
+            @Override
+            public void handle(long now) {
+                double deltaTime = (now - lastTime) / 1_000_000_000.0;
+                lastTime = now;
+
+                renderCurrentFish(deltaTime);
+            }
+        };
+        animationTimer.start();
+    }
+
+    private void stopAnimationTimer() {
+        if (animationTimer != null) {
+            animationTimer.stop();
+        }
+    }
+
+    private void renderCurrentFish(double deltaTime) {
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        gc.setFill(Color.SKYBLUE);
+        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        BaseFish currentFish = getCurrentFish();
+        currentFish.update(deltaTime);
+        currentFish.setX(canvas.getWidth() / 2 - currentFish.getWidth() / 2);
+        currentFish.setY(canvas.getHeight() / 2 - currentFish.getHeight() / 2);
+        currentFish.render(gc);
+    }
+
+    private void showPreviousFish() {
+        currentFishIndex = (currentFishIndex - 1 + fishTypeArray.length) % fishTypeArray.length;
+        updateSelectButtonState();
+    }
+
+    private void showNextFish() {
+        currentFishIndex = (currentFishIndex + 1) % fishTypeArray.length;
+        updateSelectButtonState();
+    }
+
+    private void selectCurrentFish() {
+        selectedFishType = getCurrentFishType();
+        sessionManager.setUserFishType(selectedFishType);
+        updateSelectButtonState();
+    }
+
+    private void updateSelectButtonState() {
+        FishTypes currentFishType = getCurrentFishType();
+        if (currentFishType == selectedFishType) {
+            selectButton.setDisable(true);
+            selectButton.setText("Selected");
+        } else if (currentFishIndex >= maxFishIndex) {
+            selectButton.setDisable(true);
+            selectButton.setText("Locked");
+        } else{
+            selectButton.setDisable(false);
+            selectButton.setText("Select");
+        }
+    }
+
+    private BaseFish getCurrentFish() {
+        return fishMap.get(getCurrentFishType());
+    }
+
+    private FishTypes getCurrentFishType() {
+        return fishTypeArray[currentFishIndex];
+    }
+}
+package com.deepseadevs.fisheatfish.pages;
+
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.UIController;
+import com.deepseadevs.fisheatfish.game.GameData;
+import com.deepseadevs.fisheatfish.game.GameEngine;
+import com.deepseadevs.fisheatfish.game.Settings;
+import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
+import com.deepseadevs.fisheatfish.widgets.buttons.MenuMainButton;
+import com.deepseadevs.fisheatfish.widgets.buttons.MenuSecondaryButton;
+import com.deepseadevs.fisheatfish.widgets.labels.*;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.control.Button;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.time.Duration;
+
+public class GamePage extends BasePage {
+    private Canvas canvas;
+    private GameData gameData;
+    private GameEngine gameEngine;
+    private GameOverOverlay gameOverOverlay;
+    private Pane pauseOverlay;
+    Button continueButton;
+
+    public GamePage(UIController uiController, SessionManager sessionManager) {
+        this(uiController, sessionManager, false);
+    }
+
+    public GamePage(UIController uiController, SessionManager sessionManager, boolean continueGame) {
+        this(uiController, sessionManager, continueGame ? sessionManager.getPreviousGameData() : sessionManager.createNewGameData());
+    }
+
+    public GamePage(UIController uiController, SessionManager sessionManager, GameData gameData) {
+        super(uiController, sessionManager);
+        this.gameData = gameData;
+        this.gameEngine = new GameEngine(canvas.getGraphicsContext2D(), sessionManager, gameData);
+        gameEngine.setGameOverCallback(this::showGameOverScreen);
+        scene.setOnKeyPressed(event -> gameEngine.handleKeyPressed(event));
+        scene.setOnKeyReleased(event -> gameEngine.handleKeyReleased(event));
+        this.gameEngine.start();
+    }
+
+    @Override
+    protected Scene createScene() {
+        StackPane root = new StackPane();
+
+        // Main game canvas
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        this.canvas = new Canvas(screenSize.getWidth() * 0.75, screenSize.getHeight() * 0.75);
+        root.getChildren().add(canvas);
+
+        // Pause Button
+        StackPane pauseButtonContainer = new StackPane();
+        Button pauseButton = new MainButton("Pause");
+        pauseButton.setOnAction(e -> showPauseOverlay());
+        pauseButton.setMinWidth(80);
+        pauseButton.setMinHeight(30);
+        pauseButton.setTranslateX(canvas.getWidth() / 2 - 50);  // Position 10px from the right
+        pauseButton.setTranslateY(- canvas.getHeight() / 2 + 25);  // Position 10px from the top
+        pauseButtonContainer.getChildren().add(pauseButton);
+
+        createPauseOverlay();
+
+        gameOverOverlay = new GameOverOverlay(uiController, sessionManager);
+        gameOverOverlay.setPrefSize(canvas.getWidth(), canvas.getHeight());
+
+        // Center overlays and pause button
+        StackPane.setAlignment(pauseButtonContainer, Pos.CENTER);
+        StackPane.setAlignment(pauseOverlay, Pos.CENTER);
+        StackPane.setAlignment(gameOverOverlay, Pos.CENTER);
+
+        root.getChildren().addAll(pauseButtonContainer, pauseOverlay, gameOverOverlay);
+
+        Scene scene = new Scene(root);
+        scene.setFill(Color.BLACK);
+
+        return scene;
+    }
+
+    private void createPauseOverlay() {
+        pauseOverlay = new StackPane();
+        pauseOverlay.setVisible(false); // Only visible when paused
+        pauseOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);"); // Semi-transparent black background
+        pauseOverlay.setPrefSize(canvas.getWidth(), canvas.getHeight());
+
+        VBox buttonContainer = new VBox(20); // Vertical spacing of 20 between buttons
+        buttonContainer.setAlignment(Pos.CENTER);
+
+        continueButton = new MenuSecondaryButton("Resume");
+        continueButton.setOnAction(e -> hidePauseOverlay());
+
+        Button saveAndQuitButton = new MenuMainButton("Save and Quit");
+        saveAndQuitButton.setOnAction(e -> saveAndQuit());
+
+        Button endGameButton = new MenuMainButton("End Game");
+        endGameButton.setOnAction(e -> {
+            pauseOverlay.setVisible(false);
+            gameEngine.triggerGameOver();
+        });
+
+        Button toggleHitBoxButton = new MenuMainButton((Settings.showHitBox? "Hide": "Show") + " Hit Box");
+        toggleHitBoxButton.setOnAction(e -> {
+            Settings.showHitBox = !Settings.showHitBox;
+            if (Settings.showHitBox)
+                toggleHitBoxButton.setText("Hide Hit Box");
+            else
+                toggleHitBoxButton.setText("Show Hit Box");
+            hidePauseOverlay();
+        });
+
+        buttonContainer.getChildren().addAll(continueButton, toggleHitBoxButton, endGameButton, saveAndQuitButton);
+
+        pauseOverlay.getChildren().add(buttonContainer);
+    }
+
+    private void saveAndQuit() {
+        sessionManager.commit();
+        uiController.gotoMainMenu();
+    }
+
+    private void showGameOverScreen() {
+        pauseOverlay.setVisible(false);
+        gameOverOverlay.loadDynamicContent(gameData);
+        gameOverOverlay.setVisible(true);
+        gameOverOverlay.focusRestart();
+    }
+
+    private void showPauseOverlay() {
+        pauseOverlay.setVisible(true);
+        continueButton.requestFocus();
+        gameEngine.pause();
+    }
+
+    private void hidePauseOverlay() {
+        pauseOverlay.setVisible(false);
+        gameEngine.resume();
+    }
+}
+
+class GameOverOverlay extends StackPane {
+    private Button restartButton;
+    private Button backButton;
+    private UIController uiController;
+    private SessionManager sessionManager;
+
+    VBox labelBox;
+    Label gameOverLabel;
+    Label currentScoreLabel;
+    Label highScoreLabel;
+    Label timeLabel;
+    Label levelLabel;
+    Label congratsLabel;
+
+    public GameOverOverlay(UIController uiController, SessionManager sessionManager) {
+        this.uiController = uiController;
+        this.sessionManager = sessionManager;
+        setVisible(false);
+        initWidgets();
+    }
+
+    public void initWidgets() {
+        setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
+
+        labelBox = new VBox(20);
+        labelBox.setAlignment(Pos.CENTER);
+
+        gameOverLabel = new TitleLabel("Game Over");
+        currentScoreLabel = new BoldLabel("");
+        highScoreLabel = new SubscriptLabel("");
+        timeLabel = new BoldLabel("");
+        levelLabel = new BoldLabel("");
+        congratsLabel = new ColoredLabel("New High Score!", "#fbbf24");
+        congratsLabel.setVisible(false);
+
+        labelBox.getChildren().addAll(gameOverLabel, levelLabel, timeLabel, currentScoreLabel, highScoreLabel, congratsLabel);
+
+        HBox buttonBox = new HBox(20);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        backButton = new MainButton("Back to Menu");
+        backButton.setOnAction(e -> uiController.gotoMainMenu());
+
+        restartButton = new MainButton("Play Again");
+        restartButton.setOnAction(e -> uiController.gotoGamePage());
+
+        Button leaderboardButton = new MainButton("Leaderboard");
+        leaderboardButton.setOnAction(e -> uiController.gotoLeaderBoard());
+
+        buttonBox.getChildren().addAll(backButton, restartButton, leaderboardButton);
+
+        VBox mainContainer = new VBox(30);
+        mainContainer.setAlignment(Pos.CENTER);
+        mainContainer.setPadding(new Insets(50));
+        mainContainer.getChildren().addAll(labelBox, buttonBox);
+
+        StackPane.setAlignment(mainContainer, Pos.CENTER);
+        getChildren().add(mainContainer);
+    }
+
+    public void loadDynamicContent(GameData gameData) {
+        currentScoreLabel.setText("Score: " + gameData.getScore());
+        highScoreLabel.setText("High Score: " + sessionManager.getHighScore());
+        levelLabel.setText("Level " + gameData.getLevel());
+        timeLabel.setText(formatDuration(gameData.getGameDuration()));
+        congratsLabel.setVisible(gameData.getScore() == sessionManager.getHighScore());
+    }
+
+    public void focusRestart() {
+        restartButton.requestFocus();
+    }
+
+    public static String formatDuration(Duration duration) {
+        long secs = duration.getSeconds();
+        long mins = secs / 60;
+        secs %= 60;
+        return String.format("%dm%ds", mins, secs);
+    }
+}
+package com.deepseadevs.fisheatfish.pages;
+
+import com.deepseadevs.fisheatfish.*;
+import com.deepseadevs.fisheatfish.database.DatabaseManager;
+import com.deepseadevs.fisheatfish.database.HistoryParser;
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.database.UserData;
+import com.deepseadevs.fisheatfish.game.GameData;
+import com.deepseadevs.fisheatfish.game.Spawner;
+import com.deepseadevs.fisheatfish.game.fish.BaseFish;
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
+import com.deepseadevs.fisheatfish.widgets.labels.*;
+import javafx.animation.AnimationTimer;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+
+import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.util.*;
+
+public class HistoryPage extends BasePage {
+    private VBox contentBox;
+    private AnimationTimer animationTimer;
+    private final String BACKGROUND_COLOR = "#1a202c";
+    private final String CARD_COLOR = "#222a3a";
+
+    public HistoryPage(UIController uiController, SessionManager sessionManager) {
+        this(uiController, sessionManager, DatabaseManager.getInstance().getUserData(sessionManager.getUserID()));
+    }
+
+    public HistoryPage(UIController uiController, SessionManager sessionManager, UserData userData) {
+        super(uiController, sessionManager);
+        createDynamicContent(userData);
+    }
+
+    protected Scene createScene() {
+        // Centered VBox for content
+        contentBox = new VBox();
+        contentBox.setAlignment(Pos.CENTER);
+        contentBox.setSpacing(20);
+        contentBox.setStyle("-fx-background-color: " + BACKGROUND_COLOR + ";");
+
+        // Wrap contentBox in a ScrollPane to allow scrolling for the entire scene
+        ScrollPane root = new ScrollPane(contentBox);
+        root.setFitToWidth(true);
+        root.setFitToHeight(true);
+        root.setStyle("-fx-background-color: " + BACKGROUND_COLOR + ";");
+        root.setPadding(new Insets(20));
+        // fast scrolling
+        root.getContent().setOnScroll(scrollEvent -> {
+            double contentHeight = contentBox.getHeight();
+            double viewportHeight = root.getViewportBounds().getHeight();
+            double scrollHeight = contentHeight - viewportHeight;
+            if (scrollHeight <= 0)
+                return;
+            double deltaY = (scrollEvent.getDeltaY() > 0? 100: -100) / scrollHeight;
+            double vValue = root.getVvalue();
+            root.setVvalue(vValue - deltaY);
+        });
+
+
+        return new Scene(root, 800, 500); // Adjust dimensions as necessary
+    }
+
+    private void createDynamicContent(UserData userData) {
+        // Title label
+        TitleLabel titleLabel = new TitleLabel("PROFILE");
+
+        VBox statsLayout = createStatsLayout(userData);
+
+        // History layout
+        VBox historyLayout = createHistoryLayout(userData);
+
+        // Add content to the box
+        contentBox.getChildren().addAll(titleLabel, statsLayout, historyLayout);
+    }
+
+    private AnimationTimer getAnimationTimer(GraphicsContext gc, Canvas canvas, BaseFish currentFish) {
+        AnimationTimer timer = new AnimationTimer() {
+            private long lastTime = System.nanoTime();
+
+            @Override
+            public void handle(long now) {
+                double deltaTime = (now - lastTime) / 1_000_000_000.0;
+                lastTime = now;
+
+                gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+                gc.setFill(Color.web(CARD_COLOR));
+                gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+
+                currentFish.update(deltaTime);
+                currentFish.setX(canvas.getWidth() / 2 - currentFish.getWidth() / 2);
+                currentFish.setY(canvas.getHeight() / 2 - currentFish.getHeight() / 2);
+                currentFish.render(gc);
+            }
+        };
+        timer.start();
+        return timer;
+    }
+
+    private VBox createStatsLayout(UserData userData) {
+        VBox statsLayout = new VBox();
+        statsLayout.setSpacing(10);
+        statsLayout.setPadding(new Insets(15));
+        statsLayout.setStyle("-fx-background-radius: 10; -fx-background-color: " + CARD_COLOR + ";");
+        statsLayout.setMaxWidth(500);
+        statsLayout.setAlignment(Pos.CENTER);
+
+        Canvas canvas = new Canvas(200, 60);
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        Spawner spawner = new Spawner();
+        BaseFish currentFish = spawner.spawnFish(userData.getFishType());
+        currentFish.setXv(1);
+        currentFish.setArea(1600);
+        animationTimer = getAnimationTimer(gc, canvas, currentFish);
+
+        VBox nameBox = new VBox();
+        nameBox.setAlignment(Pos.CENTER);
+        Label usernameLabel = new GeneralLabel(userData.getDisplayName(), Font.font("Arial", FontWeight.BOLD, 16), GameStyles.TEXT_COLOR);
+        Label userIDLabel = new GeneralLabel(userData.getUserID(), Font.font("Arial", 12), "#888888");
+        nameBox.getChildren().addAll(usernameLabel, userIDLabel);
+
+        HistoryParser parser = HistoryParser.of(userData.getHistory());
+
+        GridPane gridPane = new GridPane();
+        gridPane.setPadding(new Insets(10)); // Padding around the grid
+        gridPane.setHgap(10); // Horizontal gap between columns
+        gridPane.setVgap(20); // Vertical gap between rows
+
+        // Add ColumnConstraints to split columns evenly
+        ColumnConstraints[] col = new ColumnConstraints[3];
+        for (int i = 0; i < 3; i++) {
+            col[i] = new ColumnConstraints();
+            col[i].setPercentWidth(100.0 / 3.0);
+        }
+
+        // Add constraints to the GridPane
+        gridPane.getColumnConstraints().addAll(col);
+
+        String[][] text = {
+                { String.valueOf(userData.getHighScore()), String.valueOf(parser.getHighestLevel()), durationToString(parser.getLongestDuration()) },
+                { "Highest Score", "Highest Level", "Longest Game" },
+                { String.valueOf(parser.getTotalFishEaten()), String.valueOf(parser.getTotalGames()), durationToString(parser.getTotalDuration()) },
+                { "Total Fish Eaten", "Total Games Played", "Total Time Played" }
+        };
+        Label[][] labels = new Label[4][3];
+        VBox[][] vBoxes = new VBox[2][3];
+
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (i % 2 == 0)
+                    labels[i][j] = new GeneralLabel(text[i][j], GameStyles.MAIN_FONT, GameStyles.TEXT_COLOR);
+                else {
+                    labels[i][j] = new GeneralLabel(text[i][j], Font.font("Arial", 12), "#888888");
+                    vBoxes[i/2][j] = new VBox();
+                    vBoxes[i/2][j].getChildren().addAll(labels[i-1][j], labels[i][j]);
+                    gridPane.add(vBoxes[i/2][j], j, i/2);
+                }
+                setLabelProperties(labels[i][j]);
+            }
+        }
+
+        // Back button
+        MainButton backButton = new MainButton("Back");
+        backButton.setOnAction(e -> {
+            animationTimer.stop();
+            uiController.gotoPreviousPage();
+        });
+
+        statsLayout.getChildren().addAll(canvas, nameBox, gridPane, backButton);
+
+        return statsLayout;
+    }
+
+    private String durationToString(Duration duration) {
+        long s = duration.getSeconds();
+        return s >= 3600 ? String.format("%d:%02d:%02d", s / 3600, s % 3600 / 60, s % 60) : String.format("%d:%02d", s / 60, s % 60);
+    }
+
+    private VBox createHistoryLayout(UserData userData) {
+        VBox historyLayout = new VBox();
+        historyLayout.setSpacing(10);
+        historyLayout.setPadding(new Insets(15));
+        historyLayout.setStyle("-fx-background-radius: 10; -fx-background-color: " + CARD_COLOR + ";");
+        historyLayout.setMaxWidth(500);
+        historyLayout.setAlignment(Pos.CENTER);
+
+        // Header row
+        HBox headerRow = createRow("Date", "Level", "Score", "Duration", 0);
+        historyLayout.getChildren().add(headerRow);
+
+        // Create rows
+        ArrayList<GameData> history = new ArrayList<>(userData.getHistory());
+        history.sort(Comparator.comparing(GameData::getEndTime).reversed());
+        for (GameData data : history) {
+            String date = new SimpleDateFormat("dd/MM/yyyy, HH:mm").format(Date.from(data.getEndTime()));
+            HBox row = createRow(date, String.valueOf(data.getLevel()), String.valueOf(data.getScore()), durationToString(data.getGameDuration()), data.getScore() == userData.getHighScore() ? 2 : 1);
+            historyLayout.getChildren().add(row);
+        }
+
+        return historyLayout;
+    }
+
+    // type: 0 => header, 1 => normal text, 2 => colored text
+    private HBox createRow(String date, String level, String score, String duration, int type) {
+        String[] text = { date, level, score, duration };
+        HBox row = new HBox();
+        row.setSpacing(10);
+        row.setAlignment(Pos.CENTER);
+        row.setPadding(new Insets(10));
+
+        // Apply background styles
+        if (type != 0)
+            row.setStyle("""
+                    -fx-background-color: rgba(255, 255, 255, 0.1);
+                    -fx-padding: 10px;
+                    -fx-background-radius: 5px;
+                    """);
+
+        // Create labels for each column
+        Label[] labels = new Label[4];
+        switch (type) {
+            case 0 -> {
+                for (int i = 0; i < 4; i++) {
+                    labels[i] = new BoldLabel(text[i]);
+                    setLabelProperties(labels[i]);
+                }
+
+            }
+            case 1 -> {
+                for (int i = 0; i < 4; i++) {
+                    labels[i] = new NeutralLabel(text[i]);
+                    setLabelProperties(labels[i]);
+                }
+            }
+            case 2 -> {
+                for (int i = 0; i < 4; i++) {
+                    labels[i] = new ColoredLabel(text[i], "#d3d3ff");
+                    setLabelProperties(labels[i]);
+                }
+            }
+        }
+
+        // Add labels to the row
+        row.getChildren().addAll(labels);
+
+        return row;
+    }
+
+    private void setLabelProperties(Label label) {
+        final double COLUMN_WIDTH = 150;
+        HBox.setHgrow(label, Priority.ALWAYS);
+        label.setMinWidth(COLUMN_WIDTH);
+        label.setMaxWidth(Double.MAX_VALUE);
+    }
+
+}
+package com.deepseadevs.fisheatfish.pages;
+
+import com.deepseadevs.fisheatfish.database.DatabaseManager;
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.UIController;
+import com.deepseadevs.fisheatfish.database.UserData;
+import com.deepseadevs.fisheatfish.pages.utils.LeaderboardUtils;
+import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
+import com.deepseadevs.fisheatfish.widgets.labels.*;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.text.Font;
+import javafx.scene.layout.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+
+public class LeaderboardPage extends BasePage {
+    private final String BACKGROUND_COLOR = "#1a202c";
+
+    public LeaderboardPage(UIController uiController, SessionManager sessionManager) {
+        super(uiController, sessionManager);
+    }
+
+    protected Scene createScene() {
+        // Centered VBox for content
+        VBox contentBox = new VBox();
+        contentBox.setAlignment(Pos.CENTER);
+        contentBox.setSpacing(20);
+        contentBox.setStyle("-fx-background-color: " + BACKGROUND_COLOR + ";");
+
+        // Title label
+        TitleLabel titleLabel = new TitleLabel("LEADERBOARD");
+
+        // Back button
+        MainButton backButton = new MainButton("Back");
+        backButton.setOnAction(e -> uiController.gotoPreviousPage());
+        backButton.setFocusTraversable(false);
+
+        // Leaderboard layout
+        VBox leaderboardLayout = createLeaderboardLayout();
+
+        // Add content to the box
+        contentBox.getChildren().addAll(titleLabel, leaderboardLayout, backButton);
+
+        // Wrap contentBox in a ScrollPane to allow scrolling for the entire scene
+        ScrollPane root = new ScrollPane(contentBox);
+        root.setFitToWidth(true);
+        root.setFitToHeight(true);
+        root.setStyle("-fx-background-color: " + BACKGROUND_COLOR + ";");
+        root.setPadding(new Insets(20));
+        // fast scrolling
+        root.getContent().setOnScroll(scrollEvent -> {
+            double contentHeight = contentBox.getHeight();
+            double viewportHeight = root.getViewportBounds().getHeight();
+            double scrollHeight = contentHeight - viewportHeight;
+            if (scrollHeight <= 0)
+                return;
+            double deltaY = (scrollEvent.getDeltaY() > 0? 100: -100) / scrollHeight;
+            double vValue = root.getVvalue();
+            root.setVvalue(vValue - deltaY);
+        });
+
+        return new Scene(root, 700, 500); // Adjust dimensions as necessary
+    }
+
+    private VBox createLeaderboardLayout() {
+        VBox leaderboardLayout = new VBox();
+        leaderboardLayout.setSpacing(10); // Space between rows
+        leaderboardLayout.setPadding(new Insets(15));
+        leaderboardLayout.setStyle("-fx-background-radius: 10; -fx-background-color: derive(" + BACKGROUND_COLOR + ", 10%);");
+        leaderboardLayout.setMaxWidth(500);
+        leaderboardLayout.setAlignment(Pos.CENTER);
+
+        // Header row
+        HBox headerRow = createRow("Rank", "Username", "High Score", "", 0);
+        leaderboardLayout.getChildren().add(headerRow);
+
+        // Fetch and sort top players
+        Collection<UserData> topPlayersRaw = LeaderboardUtils.getTopUsers(10);
+        List<UserData> topPlayers = new ArrayList<>(topPlayersRaw);
+        topPlayers.sort(Comparator.comparingLong(UserData::getHighScore).reversed());
+
+        boolean isUserOnLeaderboard = false;
+
+        int rank = 1;
+        for (UserData user : topPlayers) {
+            boolean isCurrentUser = user.getUserID().equals(sessionManager.getUserID());
+            if (isCurrentUser) {
+                isUserOnLeaderboard = true;
+            }
+
+            HBox row = createRow(String.valueOf(rank), user.getDisplayName(), String.valueOf(user.getHighScore()), user.getUserID(), isCurrentUser ? 2 : 1);
+            leaderboardLayout.getChildren().add(row);
+            rank++;
+        }
+
+        if (!isUserOnLeaderboard) {
+            UserData currentUser = DatabaseManager.getInstance().getUserData(sessionManager.getUserID());
+            HBox currentUserRow = createRow("-", currentUser.getDisplayName(), String.valueOf(currentUser.getHighScore()), currentUser.getUserID(), 2);
+            leaderboardLayout.getChildren().add(currentUserRow);
+        }
+
+        return leaderboardLayout;
+    }
+
+    // type: 0 => header, 1 => normal text, 2 => colored text
+    private HBox createRow(String rank, String username, String score, String userID, int type) {
+        final String[] text = { rank, username, score, userID };
+        HBox row = new HBox();
+        row.setSpacing(10);
+        row.setAlignment(Pos.CENTER);
+        row.setPadding(new Insets(10));
+
+        // Create labels for each column
+        Label[] labels = new Label[3];
+        switch (type) {
+            case 0 -> {
+
+                for (int i = 0; i < 3; i++) {
+                    labels[i] = new BoldLabel(text[i]);
+                    setLabelProperties(labels[i]);
+                }
+            }
+            case 1 -> {
+                for (int i = 0; i < 3; i++) {
+                    labels[i] = new NeutralLabel(text[i]);
+                    setLabelProperties(labels[i]);
+                }
+            }
+            case 2 -> {
+                for (int i = 0; i < 3; i++) {
+                    labels[i] = new ColoredLabel(text[i], "#d3d3ff");
+                    setLabelProperties(labels[i]);
+                }
+            }
+        }
+
+        if (type != 0) {
+            String borderColor = rank.equals("1") ? "#efbf04" : rank.equals("2") ? "#c4c4c4": rank.equals("3") ? "#ce8946" : "null";
+            final String ROW_STYLE = String.format("""
+                    -fx-background-color: rgba(255, 255, 255, 0.1);
+                    -fx-background-radius: 5px;
+                    -fx-border-color: %s;
+                    """, borderColor);
+            final String ROW_HOVER_STYLE = String.format("""
+                    -fx-background-color: derive(rgba(255, 255, 255, 0.1), -20%%);
+                    -fx-background-radius: 5px;
+                    -fx-border-color: %s;
+                    -fx-cursor: hand;
+                    """, borderColor);
+            row.setStyle(ROW_STYLE);
+            row.setOnMouseClicked(e -> {
+                uiController.gotoHistoryPage(DatabaseManager.getInstance().getUserData(userID));
+            });
+            row.setOnMouseEntered(e -> {
+                row.setStyle(ROW_HOVER_STYLE);
+            });
+            row.setOnMouseExited(e -> {
+                row.setStyle(ROW_STYLE);
+            });
+
+            VBox vbox = new VBox();
+            Label userIDLabel = new GeneralLabel(userID, Font.font("Arial", 10), "#888888");
+            setLabelProperties(userIDLabel);
+            vbox.getChildren().addAll(labels[1], userIDLabel);
+            row.getChildren().addAll(labels[0], vbox, labels[2]);
+            return row;
+        }
+
+        // Add labels to the row
+        row.getChildren().addAll(labels);
+
+        return row;
+    }
+
+    private void setLabelProperties(Label label) {
+        final double COLUMN_WIDTH = 150;
+        HBox.setHgrow(label, Priority.ALWAYS);
+        label.setMinWidth(COLUMN_WIDTH);
+        label.setMaxWidth(Double.MAX_VALUE);
+    }
+
+}
+package com.deepseadevs.fisheatfish.pages;
+
+import com.deepseadevs.fisheatfish.database.DatabaseManager;
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.UIController;
+import com.deepseadevs.fisheatfish.pages.utils.LoginUtils;
+import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+
+public class LoginPage extends BasePage {
+    Label userIDLabel;
+    Label passwordLabel;
+    Button loginButton;
+    Button newAccountButton;
+    TextField userIDField;
+    PasswordField passwordField;
+    Text feedbackText;
+
+    public LoginPage(UIController uiController, SessionManager sessionManager) {
+        super(uiController, sessionManager);
+    }
+
+    protected Scene createScene() {
+        GridPane gridPane = new GridPane();
+        gridPane.setPadding(new Insets(20, 20, 20, 20));
+        gridPane.setVgap(15);
+        gridPane.setHgap(15);
+        gridPane.setAlignment(Pos.CENTER);
+        gridPane.setStyle("-fx-background-color: #1a202c;");
+
+        // Username Input
+        userIDField = new TextField();
+        userIDField.setPromptText("Enter your username");
+        userIDField.setFont(new Font("Arial", 14));
+        userIDField.setStyle(
+                "-fx-background-color: #1a202c;" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-radius: 10;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-prompt-text-fill: gray;" +
+                        "-fx-padding: 10;"
+        );
+
+        userIDLabel = new Label("Username:");
+        userIDLabel.setStyle("""
+            -fx-font-size: 14px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #b5c7eb;
+        """);
+
+        // Password Input
+        passwordField = new PasswordField();
+        passwordField.setPromptText("Enter your password");
+        passwordField.setFont(new Font("Arial", 14));
+        passwordField.setStyle(
+                "-fx-background-color: #1a202c;" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-radius: 10;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-prompt-text-fill: gray;" +
+                        "-fx-padding: 10;"
+        );
+
+        passwordLabel = new Label("Password:");
+        passwordLabel.setStyle("""
+            -fx-font-size: 14px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #b5c7eb;
+        """);
+
+        // Styled Buttons
+        loginButton = new MainButton("Login");
+        newAccountButton = new MainButton("New Account");
+
+        // Feedback Text
+        feedbackText = new Text();
+        feedbackText.setFont(new Font("Arial", 12));
+        feedbackText.setFill(Color.RED);
+        feedbackText.setStyle("-fx-padding: 10;");
+
+        // Hooks
+        loginButton.setOnAction(e -> this.attemptLogin());
+        newAccountButton.setOnAction(e -> uiController.gotoNewAccount());
+        userIDField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                passwordField.requestFocus();
+            }
+        });
+        passwordField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                loginButton.fire();
+            }
+        });
+
+        // Add components to grid
+        gridPane.add(userIDLabel, 0, 0);
+        gridPane.add(userIDField, 1, 0);
+        gridPane.add(passwordLabel, 0, 1);
+        gridPane.add(passwordField, 1, 1);
+        gridPane.add(loginButton, 1, 2);
+        gridPane.add(newAccountButton, 1, 3);
+        gridPane.add(feedbackText, 1, 4);
+
+        // Outer container
+        VBox outerBox = new VBox(gridPane);
+        outerBox.setPadding(new Insets(30));
+        outerBox.setStyle("-fx-background-color: #1a202c;");
+        outerBox.setAlignment(Pos.CENTER);
+
+        return new Scene(outerBox, 400, 350);
+
+    }
+
+
+    //  Apply password hashing using LoginUtils.hashString done
+    private void attemptLogin() {
+        String userID = userIDField.getText();
+        String password = passwordField.getText();
+
+        String hashedPassword = LoginUtils.hashString(password);
+
+        if (DatabaseManager.getInstance().isCorrectPassword(userID, hashedPassword)) {
+            sessionManager.setUser(userID);
+            uiController.gotoMainMenu();
+        } else {
+            feedbackText.setText("Invalid username or password");
+            feedbackText.setFill(Color.RED);
+        }
+    }
+}
+
+
+package com.deepseadevs.fisheatfish.pages;
+
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.UIController;
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+import com.deepseadevs.fisheatfish.widgets.labels.SubscriptLabel;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.paint.Color;
+import com.deepseadevs.fisheatfish.widgets.buttons.MenuColoredButton;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+
+public class MainMenuPage extends BasePage {
+    Random random;
+    int tipsIdx;
+
+    public MainMenuPage(UIController uiController, SessionManager sessionManager) {
+        super(uiController, sessionManager);
+    }
+
+    @Override
+    protected Scene createScene() {
+        // Create main container with vertical layout and 20 pixels element spacing
+        VBox root = new VBox(20);
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(40));
+        root.setStyle("-fx-background-color: #1a202c;"); // dark background
+
+        // Create title tags
+        Label titleLabel = new Label("Fish Eat Fish");
+        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 36));
+        titleLabel.setTextFill(Color.web("#60a5fa")); // blue title
+
+        // Create welcome tags
+        Label welcomeLabel = new Label("Welcome, " + sessionManager.getDisplayName() + "!");
+        welcomeLabel.setFont(Font.font("System", 18));
+        welcomeLabel.setTextFill(Color.web("#e2e8f0")); // Light gray text
+
+        // Display the highest user score
+        Label highScoreLabel = new Label("High Score: " + sessionManager.getHighScore());
+        highScoreLabel.setFont(Font.font("System", 16));
+        highScoreLabel.setTextFill(Color.web("#fbbf24")); // Gold text
+
+        // Display tips
+        Label tipsLabel = createTipsLabel();
+
+        // Create Key Function
+        //Button continueButton = createMainButton("Continue Game", "#22c55e");
+        MenuColoredButton continueButton = new MenuColoredButton("Continue Game", GameStyles.SECONDARY_COLOR);
+        continueButton.setOnAction(e -> uiController.gotoGamePage(true));
+        continueButton.setStyle(continueButton.getStyle() + "-fx-min-width: 300px;");
+
+        //Button startGameButton = createMainButton("New Game", "#22c55e"); // Green color
+        MenuColoredButton startGameButton = new MenuColoredButton("New Game", GameStyles.SECONDARY_COLOR);
+        startGameButton.setOnAction(e -> uiController.gotoFishSelectionPage());
+        startGameButton.setStyle(startGameButton.getStyle() + "-fx-min-width: 300px;");
+
+        Button leaderboardButton = new MenuColoredButton("Leaderboard", GameStyles.MAIN_COLOR);
+        leaderboardButton.setOnAction(e -> uiController.gotoLeaderBoard());
+
+        // profile button
+        Button profileButton = new MenuColoredButton("Profile", GameStyles.MAIN_COLOR);
+        profileButton.setOnAction(e -> uiController.gotoHistoryPage());
+
+        // Create logout button
+        MenuColoredButton logoutButton = new MenuColoredButton("Logout", GameStyles.ACCENT_COLOR);
+        logoutButton.setOnAction(e -> uiController.logout());
+        logoutButton.setStyle(logoutButton.getStyle() + "-fx-min-width: 300px;");
+
+        // Add all elements to the main container
+        root.getChildren().addAll(
+                titleLabel,
+                welcomeLabel,
+                highScoreLabel,
+                tipsLabel
+        );
+
+        if (sessionManager.hasOngoingGame()) {
+            root.getChildren().add(continueButton);
+        }
+
+        root.getChildren().addAll(
+                startGameButton,
+                leaderboardButton,
+                profileButton,
+                logoutButton
+        );
+
+        return new Scene(root, 600, 800);
+    }
+
+    private Label createTipsLabel() {
+        String[] tipsArr = {
+                "Stay away from larger fishes!",
+                "Level can reflect your fish power",
+                "Beware! Large fish emerge from screen edges",
+                "Keep your distance from the edges to avoid jump scare",
+                "use WASD to move your fish",
+                "Check the Leaderboard to compare your strength",
+                "Click on profile to view your progress",
+                "Eat smaller fish, avoid larger fish",
+                "Hunt larger fish to grow faster!",
+                "Higher score unlock more levels",
+                "Reach higher level to unlock fishes!",
+                "Don't share your account password, you may lose it forever!",
+                "You get extra scores for every fish eaten",
+                "Larger fish may appear small, watch out!",
+                "Try to eat larger fishes - maybe they aren't!",
+                "You become larger from eating fishes",
+        };
+        List<String> tipsList = Arrays.asList(tipsArr);
+        Collections.shuffle(tipsList);
+        String[] finalTipsArr = tipsList.toArray(new String[0]);;
+        Label tipsLabel = new SubscriptLabel("Tips: " + tipsArr[0]);
+        tipsIdx = 0;
+        tipsLabel.setOnMouseClicked(e -> {
+            tipsIdx += 1;
+            tipsIdx %= finalTipsArr.length;
+            tipsLabel.setText("Tips: " + finalTipsArr[tipsIdx]);
+        });
+        return tipsLabel;
+    }
+}
+package com.deepseadevs.fisheatfish.pages;
+
+import com.deepseadevs.fisheatfish.database.DatabaseManager;
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.UIController;
+import com.deepseadevs.fisheatfish.pages.utils.LoginUtils;
+import com.deepseadevs.fisheatfish.widgets.buttons.MainButton;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+
+public class NewAccountPage extends BasePage {
+    // Define UI components
+    VBox mainBox;
+    Label userIDLabel;
+    Label displayNameLabel;
+    Label passwordLabel;
+    Label confirmPasswordLabel;
+    Button createAccountButton;
+    Button backToLoginButton;
+    TextField userIDField;
+    TextField displayNameField;
+    PasswordField passwordField;
+    PasswordField confirmPasswordField;
+    Text feedbackText;
+    VBox successOverlay;
+
+    public NewAccountPage(UIController uiController, SessionManager sessionManager) {
+        super(uiController, sessionManager);
+    }
+
+    protected Scene createScene() {
+        // Welcome label
+        Label welcomeLabel = new Label("CREATE ACCOUNT");
+        welcomeLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #b5c7eb;");
+
+        // Main form layout
+        GridPane gridPane = new GridPane();
+        gridPane.setPadding(new Insets(20, 20, 20, 20));
+        gridPane.setVgap(15);
+        gridPane.setHgap(15);
+        gridPane.setAlignment(Pos.CENTER);
+        gridPane.setStyle("-fx-background-color: #1a202c;");
+
+        // Widgets and design
+        userIDLabel = new Label("Account name:");
+        userIDLabel.setFont(new Font("Arial", 16));
+        userIDLabel.setStyle("""
+            -fx-font-size: 14px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #b5c7eb;
+        """);
+
+        userIDField = new TextField();
+        userIDField.setFont(new Font("Arial", 14));
+
+        displayNameLabel = new Label("Displayed name:");
+        displayNameLabel.setFont(new Font("Arial", 16));
+        displayNameLabel.setStyle("""
+            -fx-font-size: 14px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #b5c7eb;
+        """);
+
+        displayNameField = new TextField();
+        displayNameField.setFont(new Font("Arial", 14));
+
+        passwordLabel = new Label("Password:");
+        passwordLabel.setFont(new Font("Arial", 16));
+        passwordLabel.setStyle("""
+            -fx-font-size: 14px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #b5c7eb;
+        """);
+
+        passwordField = new PasswordField();
+        passwordField.setFont(new Font("Arial", 14));
+
+        confirmPasswordLabel = new Label("Confirm Password:");
+        confirmPasswordLabel.setFont(new Font("Arial", 16));
+        confirmPasswordLabel.setStyle("""
+            -fx-font-size: 14px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #b5c7eb;
+        """);
+
+        confirmPasswordField = new PasswordField();
+        confirmPasswordField.setFont(new Font("Arial", 14));
+
+        createAccountButton = new MainButton("Create Account");
+        backToLoginButton = new MainButton("Back to Login");
+        feedbackText = new Text();
+        feedbackText.setFont(new Font("Arial", 12));
+        feedbackText.setFill(Color.RED);
+
+        // Hooks
+        createAccountButton.setOnAction(e -> this.attemptCreateAccount());
+        backToLoginButton.setOnAction(e -> uiController.gotoLogin());
+
+        // events
+        userIDField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                displayNameField.requestFocus();
+            }
+        });
+        displayNameField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                passwordField.requestFocus();
+            }
+        });
+        passwordField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                confirmPasswordField.requestFocus();
+            }
+        });
+        confirmPasswordField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                createAccountButton.fire();
+            }
+        });
+
+        // Add nodes to grid
+        gridPane.add(userIDLabel, 0, 0);
+        gridPane.add(userIDField, 1, 0);
+        gridPane.add(displayNameLabel, 0, 1);
+        gridPane.add(displayNameField, 1, 1);
+        gridPane.add(passwordLabel, 0, 2);
+        gridPane.add(passwordField, 1, 2);
+        gridPane.add(confirmPasswordLabel, 0, 3);
+        gridPane.add(confirmPasswordField, 1, 3);
+        gridPane.add(createAccountButton, 1, 4);
+        gridPane.add(backToLoginButton, 0, 4);
+        gridPane.add(feedbackText, 1, 5);
+
+        // Main box for new account form
+        mainBox = new VBox(20, welcomeLabel, gridPane);
+        mainBox.setPadding(new Insets(30));
+        mainBox.setStyle("-fx-background-color: #1a202c;");
+        mainBox.setAlignment(Pos.CENTER);
+
+        // Success overlay
+        successOverlay = new VBox();
+        successOverlay.setSpacing(20);
+        successOverlay.setPadding(new Insets(20));
+        successOverlay.setAlignment(Pos.CENTER);
+        successOverlay.setStyle("-fx-background-color: #F0F8FF;");
+
+        Text successMessage = new Text("Account created successfully!");
+        successMessage.setFont(new Font("Arial", 18));
+        successMessage.setStyle("-fx-font-weight: bold;");
+        successMessage.setFill(Color.GREEN);
+
+        Button overlayBackToLoginButton = new Button("Back to Login");
+        overlayBackToLoginButton.setFont(new Font("Arial", 14));
+        overlayBackToLoginButton.setStyle("-fx-background-color: #66ccff; -fx-text-fill: white;");
+        overlayBackToLoginButton.setOnAction(e -> uiController.gotoLogin());
+
+        successOverlay.getChildren().addAll(successMessage, overlayBackToLoginButton);
+        successOverlay.setVisible(false);
+        successOverlay.setDisable(true);
+
+        // Wrap everything in a StackPane for overlay functionality
+        StackPane root = new StackPane();
+        root.getChildren().addAll(mainBox, successOverlay);
+
+        return new Scene(root, 600, 400);
+    }
+
+    private void attemptCreateAccount() {
+        String userID = userIDField.getText();
+        String displayedName = displayNameField.getText();
+        String password = passwordField.getText();
+        String confirmPassword = confirmPasswordField.getText();
+
+        String invalidNamePattern = ".*,.*";
+        String userIDPattern = "[a-zA-Z0-9_]+";
+
+        if (userID.isEmpty() || displayedName.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            feedbackText.setText("All fields are required.");
+        } else if (userID.length() > 20){
+            feedbackText.setText("Account Name cannot be\nlonger than 20 characters");
+        } else if (!userID.matches(userIDPattern)) {
+            feedbackText.setText("Account Name can only\ncontain letters, numbers,\nand underscores.");
+        } else if (displayedName.matches(invalidNamePattern)) {
+            feedbackText.setText("Display name cannot contain\ncomma ',' character.");
+        } else if (!password.equals(confirmPassword)) {
+            feedbackText.setText("Passwords do not match.");
+        } else if (password.length() < 4) {
+            feedbackText.setText("Password must be at least 4 characters long");
+        } else if (DatabaseManager.getInstance().userExists(userID)) {
+            feedbackText.setText("Username already taken.");
+        } else {
+            disableCreateAccountInputs();
+            String hashedPassword = LoginUtils.hashString(password);
+            DatabaseManager.getInstance().createNewUser(userID, displayedName, hashedPassword);
+            successOverlay.setDisable(false);
+            successOverlay.setVisible(true);
+            backToLoginButton.requestFocus();
+        }
+    }
+
+    private void disableCreateAccountInputs() {
+        mainBox.setDisable(true);
+    }
+}
+package com.deepseadevs.fisheatfish.pages.utils;
+import com.deepseadevs.fisheatfish.database.DatabaseManager;
+import com.deepseadevs.fisheatfish.database.UserData;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Collection;
+import java.util.Collections;
+
+public class LeaderboardUtils {
+    public static Collection<UserData> getTopUsers(int n) {
+        Collection<UserData> allData = DatabaseManager.getInstance().getAllUserData();
+
+
+        if (allData == null || allData.isEmpty() || n <= 0) {
+            // Return an empty collection if no data is available or invalid input
+            return Collections.emptyList();
+        }
+
+        // Create a list to sort the data (since Collection doesn't support direct sorting)
+        ArrayList<UserData> userList = new ArrayList<>(allData);
+
+        // Sort the list in descending order of high scores
+        userList.sort(Comparator.comparingLong(UserData::getHighScore).reversed());
+
+        // Return the top n users (or all users if n exceeds the available data)
+        return userList.subList(0, Math.min(n, userList.size()));
+    }
+}
+package com.deepseadevs.fisheatfish.pages.utils;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+public class LoginUtils {
+
+    public static String hashString(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] encodedHash = digest.digest(input.getBytes());
+
+            StringBuilder hexString = new StringBuilder(2 * encodedHash.length);
+            for (byte b : encodedHash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error initializing SHA-256 algorithm", e);
+        }
+    }
+
+    public static void main(String[] args) {
+        String input = "YourStringToHash";
+        String hashed = hashString(input);
+        System.out.println("Hashed String: " + hashed);
+    }
+}
+
+package com.deepseadevs.fisheatfish;
+
+import com.deepseadevs.fisheatfish.database.SessionManager;
+import com.deepseadevs.fisheatfish.database.UserData;
+import com.deepseadevs.fisheatfish.pages.*;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+
+import java.util.Stack;
+
+public class UIController {
+    private final Stage stage;
+    private final SessionManager sessionManager;
+    private final Stack<BasePage> previousPages;
+    private BasePage currentPage;
+
+    public UIController(Stage stage, SessionManager sessionManager) {
+        this.stage = stage;
+        this.sessionManager = sessionManager;
+        this.previousPages = new Stack<>();
+        this.currentPage = null;
+    }
+
+    public void showPage(BasePage page) {
+        if (page instanceof MainMenuPage)
+            previousPages.clear();
+        // if current page is game page and previous page is game page, don't add
+        else if (currentPage != null && !(page instanceof GamePage && currentPage instanceof GamePage)) {
+            previousPages.push(currentPage);
+        }
+        showScene(page.getScene());
+        currentPage = page;
+    }
+
+    private void showScene(Scene scene) {
+        boolean isMaximised = stage.isMaximized();
+        stage.setMaximized(false);
+        stage.setScene(scene);
+        stage.setMaximized(isMaximised);
+    }
+
+    public void gotoLogin() {
+        LoginPage loginPage = new LoginPage(this, sessionManager);
+        showPage(loginPage);
+    }
+
+    public void gotoNewAccount() {
+        NewAccountPage loginPage = new NewAccountPage(this, sessionManager);
+        showPage(loginPage);
+    }
+
+    public void gotoMainMenu() {
+        MainMenuPage mainMenuPage = new MainMenuPage(this, sessionManager);
+        showPage(mainMenuPage);
+    }
+
+    public void gotoGamePage() {
+        GamePage gamePage = new GamePage(this, sessionManager);
+        showPage(gamePage);
+    }
+
+    public void gotoGamePage(boolean continueGame) {
+        GamePage gamePage = new GamePage(this, sessionManager, continueGame);
+        showPage(gamePage);
+    }
+
+    public void gotoFishSelectionPage() {
+        FishSelectionPage fishSelectionPage = new FishSelectionPage(this, sessionManager);
+        showPage(fishSelectionPage);
+    }
+
+    public void gotoLeaderBoard() {
+        LeaderboardPage leaderboardPage = new LeaderboardPage(this, sessionManager);
+        showPage(leaderboardPage);
+    }
+
+    public void gotoHistoryPage() {
+        HistoryPage historyPage = new HistoryPage(this, sessionManager);
+        showPage(historyPage);
+    }
+
+    public void gotoHistoryPage(UserData userData) {
+        HistoryPage historyPage = new HistoryPage(this, sessionManager, userData);
+        showPage(historyPage);
+    }
+
+    public void gotoPreviousPage() {
+        if (!previousPages.isEmpty()) {
+            currentPage = previousPages.pop();
+            showScene(currentPage.getScene());
+        }
+        else
+            System.err.println("No page to go back to.");
+    }
+
+    public void logout() {
+        sessionManager.clearSession();
+        gotoLogin();
+    }
+}
+package com.deepseadevs.fisheatfish.widgets.buttons;
+
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+
+public class AccentButton extends ColoredButton {
+    public AccentButton(String text) {
+        super(text, GameStyles.ACCENT_COLOR);
+    }
+}
+package com.deepseadevs.fisheatfish.widgets.buttons;
+
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+import javafx.scene.control.Button;
+import javafx.scene.text.Font;
+
+public class ColoredButton extends Button {
+    public ColoredButton(String text, String color) {
+        super(text);
+        setFont(Font.font("Arial", 14));
+        setButtonStyle(color);
+    }
+
+    private void setButtonStyle(String color) {
+        String defaultStyle = getStyleWithColor(color);
+        String hoverStyle = getStyleWithColor(String.format("derive(%s, -20%%)", color));
+        setStyle(defaultStyle);
+
+        setOnMouseEntered(e -> setStyle(hoverStyle));
+        setOnMouseExited(e -> setStyle(defaultStyle));
+    }
+
+    private String getStyleWithColor(String color) {
+        return String.format("""
+                -fx-background-color: %s;
+                -fx-text-fill: %s;
+                -fx-font-size: 16px;
+                -fx-font-weight: bold;
+                -fx-padding: 5px 10px;
+                -fx-background-radius: 8px;
+                -fx-cursor: hand;
+                """, color, GameStyles.TEXT_COLOR);
+    }
+}
+package com.deepseadevs.fisheatfish.widgets.buttons;
+
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+
+public class MainButton extends ColoredButton {
+    public MainButton(String text) {
+        super(text, GameStyles.MAIN_COLOR);
+    }
+}
+package com.deepseadevs.fisheatfish.widgets.buttons;
+
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+
+public class MenuAccentButton extends MenuColoredButton {
+    public MenuAccentButton(String text) {
+        super(text, GameStyles.ACCENT_COLOR);
+    }
+}
+package com.deepseadevs.fisheatfish.widgets.buttons;
+
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+import javafx.scene.control.Button;
+import javafx.scene.text.Font;
+
+public class MenuColoredButton extends Button {
+    public MenuColoredButton(String text, String color) {
+        super(text);
+        setFont(Font.font("Arial", 14));
+        setButtonStyle(color);
+    }
+
+    private void setButtonStyle(String color) {
+        String defaultStyle = getStyleWithColor(color);
+        String hoverStyle = getStyleWithColor(String.format("derive(%s, -20%%)", color));
+        setStyle(defaultStyle);
+
+        setOnMouseEntered(e -> setStyle(hoverStyle));
+        setOnMouseExited(e -> setStyle(defaultStyle));
+    }
+
+    private String getStyleWithColor(String color) {
+        return String.format("""
+                -fx-background-color: %s;
+                -fx-text-fill: %s;
+                -fx-font-size: 16px;
+                -fx-padding: 12px 24px;
+                -fx-background-radius: 8px;
+                -fx-cursor: hand;
+                -fx-min-width: 300px;
+                """, color, GameStyles.TEXT_COLOR);
+    }
+}
+package com.deepseadevs.fisheatfish.widgets.buttons;
+
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+
+public class MenuMainButton extends MenuColoredButton {
+    public MenuMainButton(String text) {
+        super(text, GameStyles.MAIN_COLOR);
+    }
+}
+package com.deepseadevs.fisheatfish.widgets.buttons;
+
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+
+public class MenuSecondaryButton extends MenuColoredButton {
+    public MenuSecondaryButton(String text) {
+        super(text, GameStyles.SECONDARY_COLOR);
+    }
+}package com.deepseadevs.fisheatfish.widgets.buttons;
+
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+
+public class NeutralButton extends ColoredButton {
+    public NeutralButton(String text) {
+        super(text, GameStyles.NEUTRAL_COLOR);
+    }
+}package com.deepseadevs.fisheatfish.widgets.buttons;
+
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+
+public class SecondaryButton extends ColoredButton {
+    public SecondaryButton(String text) {
+        super(text, GameStyles.SECONDARY_COLOR);
+    }
+}package com.deepseadevs.fisheatfish.widgets;
+
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+
+public class GameStyles {
+    public static final String MAIN_COLOR = "#0099ff";
+    public static final String SECONDARY_COLOR = "#00aaaa";
+    public static final String NEUTRAL_COLOR = "#64748b";
+    public static final String TEXT_COLOR = "#ffffff";
+    public static final String ACCENT_COLOR = "#e65c00";
+    public static final String BACKGROUND_COLOR = "##87CEEB";
+
+    public static final Font MAIN_FONT = Font.font("Arial", 16);
+    public static final Font TITLE_FONT = Font.font("Arial", FontWeight.EXTRA_BOLD, 24);
+    public static final Font LABEL_FONT = Font.font("Arial", 14);
+    public static final Font BOLD_LABEL_FONT = Font.font("Arial", FontWeight.BOLD, 14);
+
+    public static Font loadFont(String path, int size) {
+        return Font.loadFont(GameStyles.class.getResourceAsStream(path), size);
+    }
+}
+package com.deepseadevs.fisheatfish.widgets.labels;
+
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+
+public class BoldLabel extends GeneralLabel {
+    public BoldLabel(String text) {
+        super(text, GameStyles.BOLD_LABEL_FONT, GameStyles.TEXT_COLOR);
+    }
+}
+package com.deepseadevs.fisheatfish.widgets.labels;
+
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+
+public class ColoredLabel extends GeneralLabel {
+    public ColoredLabel(String text, String color) {
+        super(text, GameStyles.LABEL_FONT, color);
+    }
+}
+package com.deepseadevs.fisheatfish.widgets.labels;
+
+import javafx.scene.control.Label;
+import javafx.scene.text.Font;
+
+public class GeneralLabel extends Label {
+    public GeneralLabel(String text, Font font, String color) {
+        super(text);
+        setLabelStyle(font, color);
+    }
+
+    private void setLabelStyle(Font font, String color) {
+        setFont(font);
+        setStyle(String.format("""
+                -fx-text-fill: %s;
+                -fx-alignment: center;
+                """, color));
+
+    }
+}
+package com.deepseadevs.fisheatfish.widgets.labels;
+
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+
+public class NeutralLabel extends GeneralLabel {
+    public NeutralLabel(String text) {
+        super(text, GameStyles.LABEL_FONT, GameStyles.TEXT_COLOR);
+    }
+}
+package com.deepseadevs.fisheatfish.widgets.labels;
+
+import javafx.scene.text.Font;
+
+public class SubscriptLabel extends GeneralLabel {
+    public SubscriptLabel(String text) {
+        super(text, Font.font("Arial", 12), "#aaaaaa");
+    }
+}
+package com.deepseadevs.fisheatfish.widgets.labels;
+
+import com.deepseadevs.fisheatfish.widgets.GameStyles;
+
+public class TitleLabel extends GeneralLabel {
+    public TitleLabel(String text) {
+        super(text, GameStyles.TITLE_FONT, "#b5c7eb");
+    }
+}
+module com.deepseadevs.fisheatfish {
+    requires javafx.controls;
+    requires javafx.fxml;
+    requires java.desktop;
+
+    opens com.deepseadevs.fisheatfish;
+    exports com.deepseadevs.fisheatfish;
+    opens com.deepseadevs.fisheatfish.game;
+    exports com.deepseadevs.fisheatfish.game;
+    opens com.deepseadevs.fisheatfish.game.fish;
+    exports com.deepseadevs.fisheatfish.game.fish;
+    opens com.deepseadevs.fisheatfish.game.level;
+    exports com.deepseadevs.fisheatfish.game.level;
+    exports com.deepseadevs.fisheatfish.pages;
+    opens com.deepseadevs.fisheatfish.pages;
+    exports com.deepseadevs.fisheatfish.database;
+    opens com.deepseadevs.fisheatfish.database;
+    exports com.deepseadevs.fisheatfish.pages.utils;
+    opens com.deepseadevs.fisheatfish.pages.utils;
+}
