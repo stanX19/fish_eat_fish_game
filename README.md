@@ -24,6 +24,7 @@ The game is built using the following technologies:
 
 - Java – Core programming language
 - JavaFX – GUI framework for building interactive user interfaces
+- CSV – Used as the backend for data storage and processing
 
 ## Game Snapshots
 
