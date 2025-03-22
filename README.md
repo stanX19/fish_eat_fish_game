@@ -4,28 +4,26 @@ Fish Eat Fish is an interactive, GUI-based game developed in Java. Players contr
 
 It was developed as a group assignment for University of Malaya's Fundamentals of Programming course.
 
-## installation
+## initialization
 
 Please follow this tutorial: https://youtu.be/4IYLf3siEuc
 
 ## key features
 
-- Authentication
-- multiple designs for enemy fishes
-- multiple choices for player fish
+- Authentication System
+- diverse fish designs
+- multiple playable fish
 - Character movement using wasd
 - Balanced scoring system
 - Viewable Game History
-- Leaderboard
+- Competitive Leaderboard
 
-## How to play
+## Technology Stack
 
-1. Start the game by logging in or signing up.
-2. Select your fish from the available choices.
-3. Navigate the waters using the WASD keys.
-4. Eat smaller fish to grow in size and earn points.
-5. Avoid larger fish, or you'll lose the game!
-6. Compete for the highest score and track your progress in the leaderboard.
+The game is built using the following technologies:
+
+- Java – Core programming language
+- JavaFX – GUI framework for building interactive user interfaces
 
 ## Game Snapshots
 
@@ -39,3 +37,11 @@ Please follow this tutorial: https://youtu.be/4IYLf3siEuc
 ![img.png](snapshots/img_6.png)
 ![img.png](snapshots/img_7.png)
 
+## How to play
+
+1. Start the game by logging in or signing up.
+2. Select your fish from the available choices.
+3. Navigate the waters using the WASD keys.
+4. Eat smaller fish to grow in size and earn points.
+5. Avoid larger fish, or you'll lose the game!
+6. Compete for the highest score and track your progress in the leaderboard.
