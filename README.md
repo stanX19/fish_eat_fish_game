@@ -4,11 +4,11 @@ Fish Eat Fish is an interactive, GUI-based game developed in Java. Players contr
 
 It was developed as a group assignment for University of Malaya's Fundamentals of Programming course.
 
-## initialization
+## Initialization
 
 Please follow this tutorial: https://youtu.be/4IYLf3siEuc
 
-## key features
+## Key features
 
 - Authentication System
 - diverse fish designs
