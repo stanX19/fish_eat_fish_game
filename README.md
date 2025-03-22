@@ -49,9 +49,13 @@ The game is built using the following technologies:
 
 ## Special thanks
 
-Special thanks to out team members
+We would like to extend our gratitude to:
+
+- University of Malaya for providing the opportunity to work on this project.
+
+- Our team members
 [StanX19](https://github.com/stanx19), 
 [zheHT](https://github.com/zheHT), 
 [akramhilmi](https://github.com/akramhilmi), 
 [DerYung](https://github.com/DerYung) and 
-[Dorizun](https://github.com/Dorizun) for their dedication and collaboration throughout the development process.
+[Dorizun](https://github.com/Dorizun) for commiting and collaborating throughout the project.
